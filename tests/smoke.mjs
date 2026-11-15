@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+const frontend=process.env.FRONTEND_URL || 'http://127.0.0.1:8080';
+const backend=process.env.BACKEND_URL || 'http://127.0.0.1:1337';
+let response=await fetch(frontend+'/health'); assert.equal(response.status,200);
+response=await fetch(frontend); assert.match(await response.text(),/PULSE/);
+response=await fetch(frontend+'/allenati'); assert.equal(response.status,200); assert.match(await response.text(),/PULSE/);
+response=await fetch(backend+'/_health'); assert.equal(response.status,204);
+response=await fetch(backend+'/admin'); assert.equal(response.status,200);
+response=await fetch(backend+'/api/auth/local/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'smoke-test',email:'smoke@example.invalid',password:'Synthetic-test-only-123!'})});
+assert.equal(response.status,400); assert.equal((await response.json()).error.message,"Register action is currently disabled");
+response=await fetch(backend+'/api/users/me'); assert.equal(response.status,403);
+response=await fetch(frontend+'/api/users/me'); assert.equal(response.status,403);
+console.log('PASS: frontend, deep link, health Strapi, admin, registrazione chiusa, accesso anonimo negato e proxy API.');

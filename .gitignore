@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+.cache/
+.tmp/
+.strapi/
+.env
+.env.*
+!.env.example
+coverage/
+test-results/
+playwright-report/
+backups/
+backend/public/uploads/*
+!backend/public/uploads/.gitkeep
+.strapi-updater.json

@@ -1,0 +1,1 @@
+module.exports = { async bootstrap({ strapi }) { const store = strapi.store({ type: 'plugin', name: 'users-permissions' }); const advanced = await store.get({ key: 'advanced' }); await store.set({ key: 'advanced', value: { ...advanced, allow_register: false } }); } };

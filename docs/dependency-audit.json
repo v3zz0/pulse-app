@@ -1,0 +1,21 @@
+{
+  "command": "npm audit --omit=dev --json",
+  "date": "2026-11-15",
+  "backend": {
+    "info": 0,
+    "low": 2,
+    "moderate": 9,
+    "high": 23,
+    "critical": 0,
+    "total": 34
+  },
+  "frontend": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "note": "Strapi 5.62.0 latest stable at inspection. Automated remediation suggests incompatible downgrades; not applied. Reassess before deployment."
+}

@@ -1,0 +1,392 @@
+[
+  {
+    "file": "Dieta Alessandro Vezzoli modifica 4.pdf",
+    "sha256": "97405c4055504ee720f98ab400bc02a5f9debafa6fbea1cf0ae7d6a6b41eda87",
+    "pages": 7,
+    "links": []
+  },
+  {
+    "file": "Scheda-palestra.PDF",
+    "sha256": "55181a2160ec6749157376b824455607383fb286efdb387a08bb0de23bec4fad",
+    "pages": 2,
+    "links": [
+      {
+        "page": 1,
+        "url": "https://youtu.be/kWrRwATrqpc?si=FeI7slwXXj0wzsdh",
+        "reviewRequired": true,
+        "candidateExercise": "Panca piana BB — riscaldamento",
+        "annotationRect": [
+          747.2037963867188,
+          324.62176513671875,
+          762.8511962890625,
+          332.4850158691406
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtu.be/kWrRwATrqpc?si=FeI7slwXXj0wzsdh",
+        "reviewRequired": true,
+        "candidateExercise": "Panca piana BB — top set",
+        "annotationRect": [
+          747.2037963867188,
+          343.5713806152344,
+          762.8511962890625,
+          351.43463134765625
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtu.be/kWrRwATrqpc?si=FeI7slwXXj0wzsdh",
+        "reviewRequired": true,
+        "candidateExercise": "Panca piana BB — back-off",
+        "annotationRect": [
+          747.2037963867188,
+          354.9411315917969,
+          762.8511962890625,
+          362.80438232421875
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/mtdl0u6kvZ4?si=sYZXL6ZQVKPzoK1u",
+        "reviewRequired": true,
+        "candidateExercise": "Spinte manubri panca 30",
+        "annotationRect": [
+          747.2037963867188,
+          373.8907470703125,
+          762.8511962890625,
+          381.75396728515625
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/S_QWQWNhMlw?si=uAt2udQIBmUBZsjV",
+        "reviewRequired": true,
+        "candidateExercise": "Croci coi manubri",
+        "annotationRect": [
+          747.2037963867188,
+          385.260498046875,
+          762.8511962890625,
+          393.1237487792969
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/t7e4PTG-9Jg?si=xysOaiIiN0QUSia0",
+        "reviewRequired": true,
+        "candidateExercise": "Dip",
+        "annotationRect": [
+          747.2037963867188,
+          396.6302490234375,
+          762.8511962890625,
+          404.4934997558594
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtu.be/ShdTBJN4QQo?si=cLg6c5tzpQWVXKOn",
+        "reviewRequired": true,
+        "candidateExercise": "Estensione tricipite BB EZ",
+        "annotationRect": [
+          747.2037963867188,
+          426.9496154785156,
+          762.8511962890625,
+          434.8128662109375
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtu.be/iP2fjvG0g3w?si=OeCKnGyLUoSqCwjs",
+        "reviewRequired": true,
+        "candidateExercise": "V-ups",
+        "annotationRect": [
+          747.2037963867188,
+          449.68914794921875,
+          762.8511962890625,
+          457.5523681640625
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/TOzXuyvkLGQ?si=HF2h31bxLlIklENV",
+        "reviewRequired": true,
+        "candidateExercise": "In and outs",
+        "annotationRect": [
+          747.2037963867188,
+          461.05889892578125,
+          762.8511962890625,
+          468.922119140625
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/qyzWSrLC2jU?si=WBcl9fvWqgTf7UqF",
+        "reviewRequired": true,
+        "candidateExercise": "Stacco — top set",
+        "annotationRect": [
+          747.2037963867188,
+          521.6976318359375,
+          762.8511962890625,
+          529.5608520507812
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/qyzWSrLC2jU?si=WBcl9fvWqgTf7UqF",
+        "reviewRequired": true,
+        "candidateExercise": "Stacco — back-off",
+        "annotationRect": [
+          747.2037963867188,
+          533.0673828125,
+          762.8511962890625,
+          540.9306030273438
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/ouvRuZoV5o8?si=59hryNfnlaAFEha9",
+        "reviewRequired": true,
+        "candidateExercise": "Rematore Multipower presa supina",
+        "annotationRect": [
+          747.2037963867188,
+          552.0169677734375,
+          762.8511962890625,
+          559.8801879882812
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/xWk7F1p6aqE?si=C410rUKYsvoOiVo2",
+        "reviewRequired": true,
+        "candidateExercise": "Shrugs",
+        "annotationRect": [
+          747.2037963867188,
+          563.38671875,
+          762.8511962890625,
+          571.25
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/MTbU_AcUCSY?si=dCqv0ZVEDTs2w5iV",
+        "reviewRequired": true,
+        "candidateExercise": "Curl BB EZ",
+        "annotationRect": [
+          747.2037963867188,
+          574.7564697265625,
+          762.8511962890625,
+          582.6197509765625
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/dWbt59ouhTU?si=j_Lnmmp9E0sz18DV",
+        "reviewRequired": true,
+        "candidateExercise": "Spider curl",
+        "annotationRect": [
+          747.2037963867188,
+          586.126220703125,
+          762.8511962890625,
+          593.989501953125
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/xENVg7RX_O8?si=spGMRRHA1ws-rCE9",
+        "reviewRequired": true,
+        "candidateExercise": "Wrist curl",
+        "annotationRect": [
+          747.2037963867188,
+          597.4959716796875,
+          762.8511962890625,
+          605.3592529296875
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtu.be/s9kDjo3-Nks?si=p2goVvk7KQIEkzq-",
+        "reviewRequired": true,
+        "candidateExercise": "Around the world",
+        "annotationRect": [
+          747.2037963867188,
+          620.2355346679688,
+          762.8511962890625,
+          628.0987548828125
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/aRUMRbl7KS4?si=zejWLGifaYyR32cr",
+        "reviewRequired": true,
+        "candidateExercise": "Russian twist",
+        "annotationRect": [
+          747.2037963867188,
+          631.6052856445312,
+          762.8511962890625,
+          639.468505859375
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtu.be/-bJIpOq-LWk?si=F2Gb40UR3v-wf5Us",
+        "reviewRequired": true,
+        "candidateExercise": "Squat — riscaldamento",
+        "annotationRect": [
+          747.2037963867188,
+          654.3447875976562,
+          762.8511962890625,
+          662.2080078125
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtu.be/-bJIpOq-LWk?si=F2Gb40UR3v-wf5Us",
+        "reviewRequired": true,
+        "candidateExercise": "Squat — top set",
+        "annotationRect": [
+          747.2037963867188,
+          673.2943725585938,
+          762.8511962890625,
+          681.1575927734375
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtu.be/-bJIpOq-LWk?si=F2Gb40UR3v-wf5Us",
+        "reviewRequired": true,
+        "candidateExercise": "Squat — back-off",
+        "annotationRect": [
+          747.2037963867188,
+          684.6641235351562,
+          762.8511962890625,
+          692.52734375
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtu.be/61cywGaiGFs?si=2CSED0fL-zQ3kICM",
+        "reviewRequired": true,
+        "candidateExercise": "RDL BB",
+        "annotationRect": [
+          747.2037963867188,
+          703.61376953125,
+          762.8511962890625,
+          711.4769897460938
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtu.be/PWn9anjfsZ0?si=YpB0W5XIIfGLDLAx",
+        "reviewRequired": true,
+        "candidateExercise": "Bulgarian squat al Multipower",
+        "annotationRect": [
+          747.2037963867188,
+          714.9835205078125,
+          762.8511962890625,
+          722.8467407226562
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/j35tg6W6Go4?si=P1TUyuvUUTv2l4M0",
+        "reviewRequired": true,
+        "candidateExercise": "Polpacci al Multipower",
+        "annotationRect": [
+          747.2037963867188,
+          726.353271484375,
+          762.8511962890625,
+          734.2164916992188
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/zoN5EH50Dro?si=7UPhXVv3nvlkrdir",
+        "reviewRequired": true,
+        "candidateExercise": "Military press",
+        "annotationRect": [
+          747.2037963867188,
+          737.7230224609375,
+          762.8511962890625,
+          745.5862426757812
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/Zp-Wy4mvM4Q?si=1tG6pqUM1vxd4y4w",
+        "reviewRequired": true,
+        "candidateExercise": "Alzate frontali (circuito)",
+        "annotationRect": [
+          747.2037963867188,
+          749.0927734375,
+          762.8511962890625,
+          756.9559936523438
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/jUaqG4wou2k?si=53vRPfqHBFuSSagc",
+        "reviewRequired": true,
+        "candidateExercise": "Alzate laterali (circuito)",
+        "annotationRect": [
+          747.2037963867188,
+          760.4625244140625,
+          762.8511962890625,
+          768.3258056640625
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 1,
+        "url": "https://youtube.com/shorts/p58258eetUQ?si=Z3VKO40fRy7S8GEn",
+        "reviewRequired": true,
+        "candidateExercise": "Lento avanti (circuito)",
+        "annotationRect": [
+          747.2037963867188,
+          771.832275390625,
+          762.8511962890625,
+          779.695556640625
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      },
+      {
+        "page": 2,
+        "url": "https://youtu.be/Ft1lnUNj_F0?si=VJvB34bL8RnWE27L",
+        "reviewRequired": true,
+        "candidateExercise": "Defaticamento",
+        "annotationRect": [
+          747.2037963867188,
+          324.62176513671875,
+          762.8511962890625,
+          332.4850158691406
+        ],
+        "mappingMethod": "Ordine annotazioni e righe LINK; rettangoli originali fuori pagina, associazione da verificare manualmente"
+      }
+    ]
+  }
+]

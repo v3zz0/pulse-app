@@ -1,0 +1,35 @@
+import { test, expect } from '@playwright/test';
+test('Home: ordine, consumo/annullamento, sostituzioni e persistenza demo', async ({page}) => {
+ const errors=[]; page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/');
+ await expect(page.getByRole('heading',{name:'La tua giornata.'})).toBeVisible();
+ const next=page.getByTestId('next-meal');
+ expect((await next.boundingBox()).y).toBeLessThan((await page.getByTestId('meal-list').boundingBox()).y);
+ await expect(next).toContainText('Colazione');
+ await page.getByRole('button',{name:'Mangiato',exact:true}).click();
+ await expect(next).toContainText('Spuntino mattina');
+ await page.reload();
+ await expect(next).toContainText('Spuntino mattina');
+ await page.getByRole('button',{name:'Annulla pasto: Colazione',exact:true}).click();
+ await expect(next).toContainText('Colazione');
+ await page.getByRole('button',{name:'Sostituisci',exact:true}).click();
+ await expect(page.getByRole('dialog')).toBeVisible();
+ await page.getByRole('button',{name:/Pancake con albumi/}).click();
+ await expect(next).toContainText('Pancake con albumi');
+ await page.getByRole('button',{name:'OFF',exact:true}).click();
+ await expect(next).toContainText('Avena, yogurt e frutta');
+ await expect(page.getByRole('button',{name:'Inizia allenamento'})).toBeDisabled();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+ await page.screenshot({path:`test-results/home-${test.info().project.name}.png`,fullPage:true});
+ expect(errors).toEqual([]);
+});
+test('Dialog accessibile e navigazione', async ({page})=>{
+ await page.goto('/');
+ await page.getByRole('button',{name:'Sostituisci',exact:true}).click();
+ await page.keyboard.press('Escape');
+ await expect(page.getByRole('dialog')).not.toBeVisible();
+ await page.getByRole('link',{name:'Allenati',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Diventa più forte.'})).toBeVisible();
+ await page.reload();
+ await expect(page.getByRole('heading',{name:'Diventa più forte.'})).toBeVisible();
+});

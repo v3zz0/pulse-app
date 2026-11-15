@@ -1,0 +1,64 @@
+name: pulse
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-pulse}
+      POSTGRES_USER: ${DATABASE_USERNAME:-pulse}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Configurare DATABASE_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks: [private]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  strapi:
+    build: ./backend
+    environment:
+      NODE_ENV: production
+      STRAPI_TELEMETRY_DISABLED: 'true'
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${DATABASE_NAME:-pulse}
+      DATABASE_USERNAME: ${DATABASE_USERNAME:-pulse}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Configurare DATABASE_PASSWORD}
+      APP_KEYS: ${APP_KEYS:?Configurare APP_KEYS}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET:?Configurare ADMIN_JWT_SECRET}
+      API_TOKEN_SALT: ${API_TOKEN_SALT:?Configurare API_TOKEN_SALT}
+      TRANSFER_TOKEN_SALT: ${TRANSFER_TOKEN_SALT:?Configurare TRANSFER_TOKEN_SALT}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Configurare ENCRYPTION_KEY}
+      JWT_SECRET: ${JWT_SECRET:?Configurare JWT_SECRET}
+    ports: ['127.0.0.1:1337:1337']
+    volumes: [uploads:/app/public/uploads]
+    networks: [private, edge]
+    depends_on:
+      postgres: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, node, -e, 'fetch("http://127.0.0.1:1337/_health").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    restart: unless-stopped
+  frontend:
+    build: ./frontend
+    ports: ['127.0.0.1:8080:80']
+    networks: [private, edge]
+    depends_on:
+      strapi: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, wget, -Y, "off", -q, --spider, 'http://127.0.0.1/health']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+networks:
+  edge: {}
+  private:
+    internal: true
+volumes:
+  postgres_data:
+  uploads:

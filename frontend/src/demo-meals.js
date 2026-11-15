@@ -1,0 +1,14 @@
+// Subset from approved HTML, not a complete PDF import. Demo only.
+export const demoMeals = {ON:[
+ {id:'breakfast',time:'08:00',name:'Colazione',choices:[{title:'Fiocchi d’avena + yogurt greco',desc:'80 g fiocchi d’avena · 1 yogurt greco 0% · tè o tisana'},{title:'Pancake con albumi',desc:'80 g farina d’avena · 200 ml albumi · crema di frutta secca q.b.'},{title:'Crema di riso e albumi',desc:'80 g crema di riso · 200 ml albumi · cacao amaro'}]},
+ {id:'snack1',time:'10:30',name:'Spuntino mattina',choices:[{title:'Gallette + bresaola',desc:'5 gallette di riso/mais · 80 g bresaola'},{title:'Pane + yogurt greco',desc:'50 g pane integrale · 1 yogurt greco bianco 0%'},{title:'Pancake veloce',desc:'40 g farina d’avena · 150 ml albumi'}]},
+ {id:'lunch',time:'13:00',name:'Pranzo',choices:[{title:'Riso + pollo',desc:'200 g riso crudo · 250 g pollo · verdure · 1 cucchiaio raso EVO'},{title:'Pasta integrale + tacchino',desc:'200 g pasta integrale cruda · 250 g tacchino · verdure · EVO'},{title:'Patate + merluzzo',desc:'750 g patate lesse · 300–320 g merluzzo · verdure · EVO'}]},
+ {id:'snack2',time:'17:00',name:'Spuntino pomeriggio',choices:[{title:'Mandorle + frutta',desc:'15 mandorle · 1 frutto fresco di stagione'},{title:'Pistacchi + frutta',desc:'20 g pistacchi non salati · 1 frutto fresco'}]},
+ {id:'dinner',time:'20:30',name:'Cena',choices:[{title:'Quinoa + parmigiano',desc:'250 g quinoa cruda · 20 g parmigiano · verdure · ½ cucchiaio EVO'},{title:'Grano saraceno + semi',desc:'250 g grano saraceno crudo · 20 g semi di zucca · verdure · ½ cucchiaio EVO'},{title:'Miglio + avocado',desc:'250 g miglio crudo · 50 g avocado · verdure · ½ cucchiaio EVO'}]}
+],OFF:[
+ {id:'breakfast',time:'08:00',name:'Colazione',choices:[{title:'Avena, yogurt e frutta',desc:'80 g fiocchi d’avena · yogurt greco 0,1% · 1 frutto fresco'},{title:'Pancake con frutta',desc:'80 g farina d’avena · 200 ml albumi · 1 frutto fresco'}]},
+ {id:'snack1',time:'10:30',name:'Spuntino mattina',choices:[{title:'Mandorle + gallette',desc:'15 mandorle · 3 gallette a scelta'},{title:'Noci + pane di segale',desc:'4 noci · 1 fetta pane di segale con pomodorini'}]},
+ {id:'lunch',time:'13:00',name:'Pranzo',choices:[{title:'Riso integrale + legumi',desc:'180 g riso integrale crudo · 40 g legumi secchi · verdure · EVO'},{title:'Cous cous + fiocchi di latte',desc:'200 g cous cous crudo · 100 g fiocchi di latte · EVO'}]},
+ {id:'snack2',time:'17:00',name:'Spuntino pomeriggio',choices:[{title:'Pistacchi + gallette',desc:'20 g pistacchi · 4 biscotti Enervit · 6 gallette'},{title:'Mandorle + gallette',desc:'20 mandorle · 4 biscotti Enervit · 6 gallette'}]},
+ {id:'dinner',time:'20:30',name:'Cena',choices:[{title:'Riso + uova',desc:'200 g riso basmati crudo · 3 uova · verdure · EVO'},{title:'Pasta + tofu',desc:'200 g pasta integrale cruda · 150 g tofu · verdure · EVO'},{title:'Polenta + pesce bianco',desc:'200 g polenta (peso secco) · 200–250 g pesce bianco · verdure · EVO'}]}
+]};

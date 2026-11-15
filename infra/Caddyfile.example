@@ -1,0 +1,8 @@
+# Host Linux: installare Caddy, sostituire domini e configurare DNS.
+# Non usare questi domini di esempio senza sostituirli.
+pulse.example.com {
+ reverse_proxy 127.0.0.1:8080
+}
+admin.pulse.example.com {
+ reverse_proxy 127.0.0.1:1337
+}
