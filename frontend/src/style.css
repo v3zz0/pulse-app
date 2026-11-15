@@ -76,3 +76,7 @@
 .home-list-heading{font-size:10px;font-weight:850;letter-spacing:1.6px;color:var(--muted);margin:22px 0 8px}
 
 a.navitem{text-decoration:none}button:disabled{opacity:.5;cursor:not-allowed}.phase-note{margin-bottom:14px}.sheet-dialog{color:var(--ink);margin:auto;max-width:650px;width:calc(100% - 24px)}.sheet-dialog::backdrop{background:#000b;backdrop-filter:blur(7px)}
+/* Long source ingredient names and date controls must fit the same mobile layout. */
+.grocery-item span,.choice-main,.note,.warning{overflow-wrap:anywhere;min-width:0}
+.todayline>label{min-width:0;flex:1}.todayline .switch-seg{flex-shrink:0}
+.card{min-width:0}.field{min-width:0;max-width:100%}

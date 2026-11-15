@@ -1,17 +1,115 @@
-import { defineStore } from 'pinia';
-import { demoMeals } from '../demo-meals.js';
-export const localDate = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Rome', year:'numeric',month:'2-digit',day:'2-digit' }).format(new Date());
-const key = 'pulse-phase1-demo';
-function load() { try { const data = JSON.parse(localStorage.getItem(key)); if(data?.date === localDate() && ['ON','OFF'].includes(data.mode)) return { mode:data.mode, done:data.done || {}, choices:data.choices || {} }; } catch {} return {mode:'ON',done:{},choices:{}}; }
-export const useDay = defineStore('day', {
- state: load,
- getters: { meals: s => demoMeals[s.mode], next() { return this.meals.find(m => !this.isDone(m.id)); }, count() { return this.meals.filter(m => this.isDone(m.id)).length; } },
- actions: {
-  isDone(id) { return this.done[this.mode+':'+id] === true; },
-  choice(m) { return m.choices[this.choices[this.mode+':'+m.id] || 0] || m.choices[0]; },
-  save() { try { localStorage.setItem(key,JSON.stringify({date:localDate(),...this.$state})); } catch { return false; } return true; },
-  toggle(id) { this.done[this.mode+':'+id] = !this.isDone(id); return this.save(); },
-  setMode(mode) { this.mode=mode; return this.save(); },
-  select(id,index) { this.choices[this.mode+':'+id]=index; return this.save(); }
- }
+import { defineStore } from "pinia";
+import { api, send } from "../api.js";
+export const localDate = (offset = 0) => {
+  const now = new Date();
+  now.setDate(now.getDate() + offset);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Rome",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+};
+export const useDay = defineStore("day", {
+  state: () => ({
+    date: localDate(),
+    mode: "OFF",
+    meals: [],
+    shopping: [],
+    revision: 0,
+    preferences: {},
+    plan: null,
+    busy: false,
+    error: "",
+  }),
+  getters: {
+    next() {
+      return this.meals.find((m) => !m.consumedAt);
+    },
+    count() {
+      return this.meals.filter((m) => m.consumedAt).length;
+    },
+  },
+  actions: {
+    apply(data) {
+      this.mode = data.mode;
+      this.meals = data.meals;
+      this.revision = data.revision;
+      this.shopping = data.shopping;
+    },
+    async load(date = localDate()) {
+      this.busy = true;
+      this.error = "";
+      this.date = date;
+      try {
+        const [day, prefs, plan] = await Promise.all([
+          api("/days/" + date),
+          api("/preferences"),
+          api("/nutrition"),
+        ]);
+        this.apply(day);
+        this.preferences = prefs;
+        this.plan = plan;
+      } catch (e) {
+        this.error = e.message;
+      } finally {
+        this.busy = false;
+      }
+    },
+    async change(body) {
+      if (this.busy) return;
+      this.busy = true;
+      this.error = "";
+      try {
+        this.apply(
+          await send("/days/" + this.date, {
+            ...body,
+            revision: this.revision,
+          }),
+        );
+        return true;
+      } catch (e) {
+        this.error = e.message;
+        if (e.status === 409) this.apply(await api("/days/" + this.date));
+        return false;
+      } finally {
+        this.busy = false;
+      }
+    },
+    isDone(id) {
+      return !!this.meals.find((m) => m.id === id)?.consumedAt;
+    },
+    choice(meal) {
+      const menu = meal.menus[meal.menuIndex || 0];
+      const items = (
+        meal.selectedIngredients ||
+        menu.groups.map((g, i) => g.options[meal.selections?.[i] || 0])
+      ).map((i) => i?.text || "Da verificare");
+      return { title: items.slice(0, 2).join(" · "), desc: items.join(" · ") };
+    },
+    toggle(id) {
+      return this.change({
+        action: "meal",
+        mealId: id,
+        consumed: !this.isDone(id),
+      });
+    },
+    setMode(mode) {
+      return this.change({ action: "mode", mode });
+    },
+    select(id, menuIndex, selections) {
+      return this.change({ action: "meal", mealId: id, menuIndex, selections });
+    },
+    async prefer(optionKey, status) {
+      try {
+        await send("/preferences", { optionKey, status });
+        this.preferences[optionKey] = status;
+      } catch (e) {
+        this.error = e.message;
+      }
+    },
+    checkShopping(itemId, checked) {
+      return this.change({ action: "shopping", itemId, checked });
+    },
+  },
 });

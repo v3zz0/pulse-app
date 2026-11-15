@@ -1,67 +1,86 @@
 # PULSE 2.1
 
-Prima fase eseguibile: Home Vue 3 fedele alla demo, Strapi 5 nativo e PostgreSQL 17. JavaScript, nessun sorgente TypeScript. Il prompt e i riferimenti originali sono in `PULSE_Starter_Codex_Cloud/`.
+Vue 3 JavaScript, Strapi 5 JavaScript, PostgreSQL 17 e Docker Compose. Il progetto procede su `main`, senza nuove PR. Design e riferimenti originali restano in `PULSE_Starter_Codex_Cloud/`.
 
-La Home usa dati **dimostrativi locali**, separati da Strapi: consumo/annullamento, ON/OFF e sostituzioni sono provabili; login utente finale, import completo, allenamenti, peso, integratori, PWA e notifiche sono fasi successive. Le funzioni non implementate sono disabilitate o presentano una pagina esplicativa. Nessuna falsa persistenza backend. Piano storico da rivedere, non prescrizione attuale.
+## Avvio locale
 
-## Avvio con Docker
-
-Richiede Docker Engine e Compose v2. Dalla root:
+Node 24 e Docker Compose v2, dalla root:
 
 ```sh
-node infra/init-env.js # solo la prima volta; non sovrascrive .env
-# In alternativa cp .env.example .env e compilare TUTTI i segreti casuali.
+node infra/init-env.js # solo se .env manca; non sovrascrive segreti
+# Host ordinario:
 docker compose up -d --build --wait
+# Codex Cloud con CA di sessione, in alternativa:
+./infra/build-cloud.sh
+docker compose up -d --no-build --wait --wait-timeout 180
 ```
 
-Frontend: `http://localhost:8080`. Admin Strapi: `http://localhost:1337/admin` (creare il primo amministratore tramite pannello nativo). Credenziali amministratore diverse dall'utente finale, che sarà configurato nella fase 2. Le porte sono bindate solo al loopback; il database non è pubblicato. Non esporre il pannello iniziale prima di aver creato l'admin.
+Frontend su `http://localhost:8080`; amministrazione Strapi su `http://localhost:1337/admin`. Solo loopback; PostgreSQL non pubblica porte. Nessun deploy pubblico. Il file `.env` è ignorato, generato con permessi 0600 e non copiato nelle immagini. `infra/build-cloud.sh` monta la CA come secret temporaneo, mantenendo TLS verificato.
+
+## Primo utilizzo personale
+
+1. Creare l'admin Strapi dal pannello locale.
+2. Creare l'utente **Users & Permissions / User** con email, username, password forte, provider `local`, ruolo Authenticated, Confirmed attivo e Blocked disattivo. Admin e utente finale sono separati; registrazione pubblica chiusa.
+3. Importare la dieta privata per quell'utente. Il PDF viene montato in sola lettura, non pubblicato né incluso nelle immagini. Dalla root, sostituire l'email di esempio:
 
 ```sh
-docker compose ps
-curl -f http://localhost:8080/health
-curl -f http://localhost:1337/_health
-docker compose logs --tail=100 strapi
-docker compose stop             # conserva volumi
-docker compose up -d --wait     # riavvio
-docker compose down            # conserva volumi; NON aggiungere -v per dati reali
+docker compose stop frontend strapi
+docker compose run --rm --no-deps \
+  -v "$PWD/PULSE_Starter_Codex_Cloud/references:/private:ro" \
+  strapi node scripts/import-nutrition.js \
+  '/private/Dieta Alessandro Vezzoli modifica 4.pdf' 'utente@example.com'
+docker compose up -d --no-build --wait
 ```
 
-I segreti sono generati in `.env` (ignorato, permessi 0600) e non inclusi nelle immagini. Custodirli anche nei backup sicuri: ruotarli cambia sessioni/token/dati cifrati. Non usare `docker compose config` senza `--quiet` nei log condivisi perché mostra valori risolti.
+L'import è idempotente per utente, hash PDF e versione parser. Un PDF diverso viene rifiutato finché non viene revisionato l'importatore. Le giornate conservano snapshot del piano: una nuova versione non cambia lo storico. Non caricare PDF clinici nella Media Library pubblica.
 
-## Sviluppo
+4. Accedere dalla Home. Il cookie di sessione è HttpOnly, SameSite Strict, valido sette giorni; logout revoca la sessione PostgreSQL. Nessun token in localStorage.
 
-Node 24 LTS, npm e lockfile separati. Per la UI:
+## Funzioni della fase 2
+
+Home su dati PostgreSQL; ON/OFF; Mangiato/annullamento; composizioni alternative e gruppi di alimenti; preferiti/non graditi; pianificazione di domani; peso; integratori e assunzioni con dose e orario; spesa derivata dalle selezioni e spunte persistenti. L'app non calcola macro senza fonti verificate e segnala il piano storico da rivedere.
+
+Pasti e note del PDF sono conservati, incluse bevande/pre-workout/pre-letto, limiti di frequenza e note generali. Le quantità condivise o ambigue sono marcate da verificare e il testo originale è consultabile: l'importazione tecnica non è una nuova validazione nutrizionale. La spesa elenca quantità testuali per porzione; non converte unità o somma ingredienti alternativi.
+
+Allenamento, grafici settimanali, PWA e notifiche appartengono alla fase 3 e non sono simulati come attivi. L'admin gestisce i cataloghi; per i pasti il formato attuale è JSON strutturato, documentato con un esempio sintetico in [docs/STRAPI_GUIDE.md](docs/STRAPI_GUIDE.md).
+
+## Sviluppo e test
 
 ```sh
 cd frontend
 npm ci
-npm run dev
+npm run dev # porta 5173, proxy API verso Strapi 1337
 npm run build
 npm test
-npx playwright install chromium
-npm run test:e2e
+cd ../backend
+npm ci
+npm run build
+npm test
 ```
 
-Il dev server gira sulla porta 5173; `/api` è inoltrato a Strapi locale. Per Chromium già installato: `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e`. Nei cloud con home non scrivibile, usare `npm --cache /tmp/pulse-npm ...` e `XDG_CONFIG_HOME=/tmp/pulse-config` per Strapi. Il download browser può richiedere autorizzazione di rete per `cdn.playwright.dev` e destinazioni di redirect.
+Nel cloud usare `npm --cache /tmp/pulse-npm ...`; per Strapi nativo `XDG_CONFIG_HOME=/tmp/pulse-config STRAPI_TELEMETRY_DISABLED=true npm run build`. Per il runtime nativo è necessario PostgreSQL raggiungibile e variabili DB/segreti iniettate: nessun fallback SQLite.
 
-Per sviluppare Strapi, installare `backend` con `npm ci`, quindi `npm run build`. Il flusso Docker sopra è quello completo testato. Per `npm run develop` nativo occorre un PostgreSQL raggiungibile sul loopback e le variabili di `.env` iniettate nel processo; aggiungere `DATABASE_HOST=127.0.0.1`, `DATABASE_PORT` del proprio DB. Non esiste fallback SQLite. Non pubblicare la porta DB su tutte le interfacce. Non avviare due istanze Strapi concorrenti durante modifiche schema.
+Test browser e integrazione richiedono **utenti sintetici**, non credenziali personali. Su un DB di sviluppo, creare una directory locale privata scrivibile dall'utente `node` del container, montarla su `/testout` e avviare `scripts/test-fixtures.js` con `PULSE_TEST_FIXTURES=1` e i PDF montati su `/private`. Lo script crea/resetta esclusivamente gli utenti `pulse-test-1/2@example.invalid`, importa piani privati e scrive credenziali casuali nel file locale, senza stamparle. Non eseguirlo sul server di produzione.
 
-## Struttura
+```sh
+PULSE_TEST_CREDENTIALS=/percorso/privato/credentials.json node tests/phase2-integration.mjs
+cd frontend
+PULSE_TEST_CREDENTIALS=/percorso/privato/credentials.json CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e
+```
 
-- `frontend/src`: shell Vue, icone e CSS derivati dalla demo, store Pinia isolato per l'anteprima.
-- `backend/config`, `backend/src`: Strapi JavaScript/PostgreSQL; bootstrap disabilita la registrazione pubblica a ogni avvio. Nessun modello personale ancora esposto.
-- `infra`: generazione segreti, backup DB, esempio reverse proxy.
-- `docs/DATA_MODEL.md`: schema versionato proposto; `docs/reference-inventory.json`: hash, pagine e 29 link PDF con righe candidate da verificare.
-- `docs/VALIDATION.md`: risultati e limiti reali, non una lista di funzionalità completate.
+Test sorgente PDF: eseguito da `backend/npm test` contro l'originale del repository; nel container impostare `PULSE_TEST_PDF` sul mount privato. Chromium può essere installato con Playwright fuori dal cloud se necessario. Il proxy Vite preserva l'origine per il controllo CSRF.
 
-## Produzione Linux, TLS e aggiornamenti
+## Backup e gestione
 
-Non distribuire questa prima fase come prodotto completo. Per preparare un host, usare Compose e Caddy sull'host con `infra/Caddyfile.example`, sostituire i domini, configurare DNS e porte 80/443 per TLS automatico. Il proxy punta alle porte loopback. Configurare URL pubblico Strapi, proxy headers e CORS per il dominio scelto prima di abilitare login frontend. Nessun deploy remoto è stato eseguito. HTTPS/PWA/Web Push non sono verificati in questa fase.
+`./infra/backup.sh` crea un dump PostgreSQL privato in `backups/` (ignorato). Salvare separatamente `.env` e volume upload in backup protetti esterni. Provare sempre `pg_restore` in un database separato prima di sostituire dati reali.
 
-Backup DB dalla root: `./infra/backup.sh`. Salvare separatamente `.env` e volume `uploads` in archivio privato cifrato; i PDF non appartengono agli upload pubblici. Conservare copie esterne alla macchina. Per provare un restore, creare un database temporaneo e usare `pg_restore --no-owner --no-privileges` con un dump, controllare dati e applicazione prima di qualsiasi sostituzione del DB reale. Mai ripristinare sopra produzione senza backup e finestra di manutenzione.
+```sh
+docker compose ps
+docker compose logs --tail=100 strapi
+docker compose stop
+docker compose up -d --no-build --wait
+```
 
-Aggiornamenti: backup, annotare versioni immagini/lockfile, verificare migrazioni su copia DB, aggiornare dipendenze in un cambiamento revisionabile, `npm ci`, build/test e `docker compose up -d --build --wait`. Strapi può sincronizzare lo schema all'avvio: l'immagine precedente da sola non è un rollback del database; servono backup compatibili. Le future migrazioni custom devono essere versionate e testate. PostgreSQL resta solo sulla rete interna; frontend e Strapi hanno anche una rete di accesso per le porte loopback. Configurare esplicitamente destinazioni e credenziali per mail/Web Push futuri.
+`docker compose down` conserva i volumi; non usare `-v` sui dati da mantenere. Prima di aggiornare Strapi o schemi, fare backup e provare su una copia: il rollback del codice non ripristina automaticamente il database. Non stampare `docker compose config` risolto nei log: usare `--quiet`.
 
-### Build nell'ambiente cloud con CA di sessione
-
-In Codex Cloud la build normale può fallire sulla verifica del certificato proxy. Usare `./infra/build-cloud.sh`, poi `docker compose up -d --no-build --wait`. Lo script prepara Dockerfile temporanei e monta `CODEX_PROXY_CERT` come secret BuildKit per `npm ci`, senza disabilitare TLS né copiare il certificato nei layer. Su host ordinari usare la build Compose normale. Smoke test dello stack avviato: `node tests/smoke.mjs`.
+HTTPS, proxy affidabile e cookie Secure dietro proxy, backup completi, migrazioni e deploy sul server saranno collaudati nella fase 4. L'esempio Caddy è soltanto un riferimento da adattare. Audit e limiti reali in [docs/VALIDATION.md](docs/VALIDATION.md); non esporre in produzione prima della revisione sicurezza.

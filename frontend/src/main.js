@@ -1,9 +1,34 @@
-import { createApp } from 'vue';
-import { createPinia } from 'pinia';
-import { createRouter, createWebHistory } from 'vue-router';
-import App from './App.vue';
-import Home from './Home.vue';
-import Placeholder from './Placeholder.vue';
-import './style.css';
-const router = createRouter({ history: createWebHistory(), routes: [{ path: '/', component: Home }, ...['dieta','allenati','progressi','altro'].map(path => ({ path: '/'+path, component: Placeholder, props: { section: path } })), { path: '/:pathMatch(.*)*', redirect: '/' }] });
-createApp(App).use(createPinia()).use(router).mount('#app');
+import { createApp } from "vue";
+import { createPinia } from "pinia";
+import { createRouter, createWebHistory } from "vue-router";
+import App from "./App.vue";
+import Home from "./Home.vue";
+import Login from "./Login.vue";
+import Nutrition from "./Nutrition.vue";
+import Personal from "./Personal.vue";
+import Placeholder from "./Placeholder.vue";
+import { useAuth } from "./stores/auth";
+import "./style.css";
+const pinia = createPinia();
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [
+    { path: "/", component: Home },
+    { path: "/login", component: Login },
+    { path: "/dieta", component: Nutrition },
+    { path: "/altro", component: Personal },
+    ...["allenati", "progressi"].map((section) => ({
+      path: "/" + section,
+      component: Placeholder,
+      props: { section },
+    })),
+    { path: "/:pathMatch(.*)*", redirect: "/" },
+  ],
+});
+router.beforeEach(async (to) => {
+  const auth = useAuth(pinia);
+  if (!auth.checked) await auth.check();
+  if (!auth.user && to.path !== "/login") return "/login";
+  if (auth.user && to.path === "/login") return "/";
+});
+createApp(App).use(pinia).use(router).mount("#app");

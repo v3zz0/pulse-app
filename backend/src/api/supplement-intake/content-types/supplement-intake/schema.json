@@ -1,0 +1,50 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pulse_supplement_intakes",
+  "info": {
+    "singularName": "supplement-intake",
+    "pluralName": "supplement-intakes",
+    "displayName": "Assunzioni integratori"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "product": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::supplement-product.supplement-product"
+    },
+    "uniqueKey": {
+      "type": "string",
+      "unique": true,
+      "required": true
+    },
+    "day": {
+      "type": "date",
+      "required": true
+    },
+    "takenAt": {
+      "type": "datetime"
+    },
+    "dose": {
+      "type": "string"
+    },
+    "productName": {
+      "type": "string"
+    },
+    "ingredientsSnapshot": {
+      "type": "text"
+    },
+    "slot": {
+      "type": "string",
+      "default": "daily"
+    }
+  }
+}

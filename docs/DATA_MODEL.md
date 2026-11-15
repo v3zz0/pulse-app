@@ -35,3 +35,9 @@ Questo è un progetto, non una dichiarazione di tabelle già implementate. Usare
 - Sync offline: UUID stabile, revision, transazioni, conflitti espliciti; IndexedDB conserva bozze e coda, backend autorevole. Il client non crea sessioni duplicate a ogni retry.
 - Import in staging con hash e chiave deterministica per riga/gruppo; validazione prima della pubblicazione atomica. Note ambigue visibili in admin e test fixture sintetiche; nessun seed automatico dei PDF in produzione.
 - Restrict delete per versioni in uso; preferire archiviazione. Indici owner/date e owner/status. Vincoli SQL aggiuntivi tramite migrazioni revisionate, con backup e restore prima degli upgrade.
+
+## Implementazione effettiva fase 2
+
+Le collezioni presenti sono nutrition-plan, daily-plan, food-preference, weight-entry, supplement-product, supplement-intake e pulse-session. I pasti/gruppi/opzioni sono un JSON versionato nel piano e uno snapshot nella giornata, anziché le tabelle separate inizialmente proposte: questo semplifica l'import e conserva la fonte, ma l'editing admin è attualmente JSON. La guida `STRAPI_GUIDE.md` descrive chiavi e responsabilità.
+
+Le chiavi univoche includono l'utente; le giornate hanno revisione per concorrenza ottimistica. Consumi annullabili, nessuna sostituzione su pasto già consumato. Assunzioni distinguibili per prodotto/data/orario; nessuna dose precompilata dal piano storico. I registri utente sono accessibili solo tramite endpoint protetti da sessione, senza REST CRUD generico. Lo schema allenamento resta progettuale per fase 3.

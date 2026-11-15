@@ -1,6 +1,6 @@
 {
   "command": "npm audit --omit=dev --json",
-  "date": "2026-11-15",
+  "date": "2026-11-16",
   "backend": {
     "info": 0,
     "low": 2,
@@ -17,5 +17,5 @@
     "critical": 0,
     "total": 0
   },
-  "note": "Strapi 5.62.0 latest stable at inspection. Automated remediation suggests incompatible downgrades; not applied. Reassess before deployment."
+  "note": "Fase 2: npm audit fix senza force eseguito; nessuna segnalazione eliminata con gli aggiornamenti compatibili disponibili. Strapi 5.62.0 resta latest stabile. Correzioni suggerite richiedono downgrade Strapi o major incompatibili (React Router/Zod/Hono); non forzate. Nessuna vulnerabilit\u00e0 critica, revisione obbligatoria prima della produzione."
 }

@@ -1,0 +1,35 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pulse_weight_entrys",
+  "info": {
+    "singularName": "weight-entry",
+    "pluralName": "weight-entrys",
+    "displayName": "Registro peso"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "uniqueKey": {
+      "type": "string",
+      "unique": true,
+      "required": true
+    },
+    "day": {
+      "type": "date",
+      "required": true
+    },
+    "kg": {
+      "type": "decimal",
+      "required": true,
+      "min": 30,
+      "max": 250
+    }
+  }
+}

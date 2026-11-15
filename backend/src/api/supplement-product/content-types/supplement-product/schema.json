@@ -1,0 +1,35 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pulse_supplement_products",
+  "info": {
+    "singularName": "supplement-product",
+    "pluralName": "supplement-products",
+    "displayName": "Integratori"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "instructions": {
+      "type": "text"
+    },
+    "ingredients": {
+      "type": "text"
+    },
+    "source": {
+      "type": "enumeration",
+      "enum": ["historical-plan", "manual"],
+      "default": "manual"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pulse_nutrition_plans",
+  "info": {
+    "singularName": "nutrition-plan",
+    "pluralName": "nutrition-plans",
+    "displayName": "Piani nutrizionali"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "sourceHash": {
+      "type": "string",
+      "required": true
+    },
+    "sourceDate": {
+      "type": "date"
+    },
+    "reviewStatus": {
+      "type": "enumeration",
+      "enum": ["historical-review", "reviewed"],
+      "default": "historical-review"
+    },
+    "notes": {
+      "type": "text"
+    },
+    "meals": {
+      "type": "json",
+      "required": true
+    },
+    "supplements": {
+      "type": "json"
+    },
+    "importReport": {
+      "type": "json"
+    },
+    "importVersion": {
+      "type": "integer",
+      "required": true
+    }
+  }
+}

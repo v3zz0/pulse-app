@@ -1,0 +1,34 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pulse_food_preferences",
+  "info": {
+    "singularName": "food-preference",
+    "pluralName": "food-preferences",
+    "displayName": "Preferenze alimentari"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "uniqueKey": {
+      "type": "string",
+      "unique": true,
+      "required": true
+    },
+    "optionKey": {
+      "type": "string",
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["favorite", "avoid", "neutral"],
+      "default": "neutral"
+    }
+  }
+}

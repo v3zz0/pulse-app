@@ -9,9 +9,11 @@ Lavorare direttamente su `main`, sincronizzandolo con `origin/main` prima di ini
 ## Quattro macrofasi
 
 1. **FASE 1 — Fondamenta: completata.** Conservare Vue 3 Composition API JavaScript, Router, Pinia, Strapi 5, PostgreSQL e Docker Compose. Non ripetere lo scaffold.
-2. **FASE 2 — Login e nutrizione completa: in corso.** Unisce le precedenti fasi 2 e 3. Login/logout Strapi, API protette e ownership; import completo e verificato della dieta PDF, provenienza e revisione delle ambiguità; persistenza PostgreSQL; pasti ON/OFF, Mangiato e Sostituisci, preferenze e alternative; preparazione di domani; peso corporeo; integratori e assunzioni; lista della spesa; Home collegata ai dati reali. Verificare subito le vulnerabilità e correggere quelle risolvibili senza rompere la compatibilità. Organizzare Strapi con nomi comprensibili, responsabilità separate e guida pratica alle modifiche.
+2. **FASE 2 — Login e nutrizione completa: implementata.** Unisce le precedenti fasi 2 e 3. Login/logout Strapi, API protette e ownership; import completo e verificato della dieta PDF, provenienza e revisione delle ambiguità; persistenza PostgreSQL; pasti ON/OFF, Mangiato e Sostituisci, preferenze e alternative; preparazione di domani; peso corporeo; integratori e assunzioni; lista della spesa; Home collegata ai dati reali. Verificare subito le vulnerabilità e correggere quelle risolvibili senza rompere la compatibilità. Organizzare Strapi con nomi comprensibili, responsabilità separate e guida pratica alle modifiche.
 3. **FASE 3 — Allenamento e PWA completa.** Unisce le precedenti fasi 4 e 5. Schede A/B/C originali e video verificati; carichi standard persistenti distinti dalle modifiche temporanee; serie completate, saltate e senza peso registrato; timer su timestamp, salvataggio automatico, ripresa, storico, grafici e riepiloghi settimanali. PWA installabile, notifiche e promemoria dove supportati. Non implementare Allenamento rapido.
 4. **FASE 4 — Produzione.** Test finali, sicurezza, backup e restore, HTTPS, configurazione e documentazione per il server privato. Nessun deploy senza autorizzazione esplicita.
+
+Verifiche e limiti della fase 2: `docs/VALIDATION.md`. Guida per modificare Strapi: `docs/STRAPI_GUIDE.md`. Le ambiguità della fonte sono marcate da rivedere; non costituiscono una nuova prescrizione.
 
 ## Regole invarianti
 
