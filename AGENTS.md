@@ -9,3 +9,5 @@ Backend: cd backend && npm ci && npm run build. Configurazione PostgreSQL obblig
 Compose: node infra/init-env.js solo se .env manca; docker compose up -d --build --wait.
 Aggiornare docs/VALIDATION.md con risultati reali. Non spacciare demo, test non eseguiti o placeholder per funzionalità persistenti.
 Non confondere carico standard e peso effettivo. Ogni operazione personale futura richiede ownership server-side.
+
+Workflow Git: lavorare su main, sincronizzare origin/main prima delle attività. Nessun nuovo branch o PR. Dopo ogni attività completata eseguire build/test, commit descrittivo, push non forzato su origin/main e verifica SHA remoto. Se il push è negato fermarsi e spiegare, senza creare PR.

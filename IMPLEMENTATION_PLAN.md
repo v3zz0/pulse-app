@@ -2,12 +2,20 @@
 
 Il prompt originale è `PULSE_Starter_Codex_Cloud/PULSE_PROMPT_CODEX.md`, non nella root. Gli originali restano intatti nella sottocartella; nessun PDF entra nelle immagini o negli asset web.
 
-1. **Fondamenta (questa consegna)**: Vue 3 Composition API JavaScript, Router, Pinia, CSS della demo approvata; Home responsive con interazioni locali dichiaratamente dimostrative; Strapi 5 JavaScript con Users & Permissions, PostgreSQL, Compose, segreti locali, healthcheck e documentazione. Registrazione pubblica disabilitata. Piano e schema dati progettuale. Nessun CRUD personale esposto.
-2. **Dati e accesso**: login utente finale distinto dall'admin; ownership obbligatoria per ogni lettura/scrittura, registrazione chiusa, test accesso anonimo e cross-user. Modelli versionati e import idempotente completo dei PDF con provenienza, revisione delle ambiguità, video associati alle righe e seed sintetici separati.
-3. **Giornata persistente**: sostituire lo store demo con API autenticate; consumo/annullamento, ON/OFF, preferenze e domani, peso, integratori, spesa derivata da ingredienti. Nessun calcolo macro senza fonte verificata.
-4. **Allenamento**: schede integrali, snapshot serie e carichi, stato eseguito/saltato/non registrato, aggiornamento standard solo con conferma, IndexedDB, UUID idempotenti, timer su timestamp, test 60→50→non registrato→60.
-5. **Progressi e PWA**: medie del peso senza attribuire massa muscolare, storico, manifest/icona/service worker, cache senza dati privati indiscriminati, Web Push consensuale HTTPS con fallback in-app.
-6. **Produzione**: test ownership e restore, proxy TLS, backup cifrati/esterni, aggiornamenti e migrazioni provate, audit dipendenze e sicurezza prima di esporre il servizio.
+## Workflow Git
+
+Lavorare direttamente su `main`, sincronizzandolo con `origin/main` prima di iniziare. Non creare branch o Pull Request. Dopo ogni attività completata: build e test pertinenti, commit descrittivo, push senza force su `origin/main` e verifica dello SHA remoto. Se il push è negato, fermarsi e segnalare il blocco. Non pubblicare segreti, `.env` reali o database. Nessun deploy pubblico durante lo sviluppo.
+
+## Quattro macrofasi
+
+1. **FASE 1 — Fondamenta: completata.** Conservare Vue 3 Composition API JavaScript, Router, Pinia, Strapi 5, PostgreSQL e Docker Compose. Non ripetere lo scaffold.
+2. **FASE 2 — Login e nutrizione completa: in corso.** Unisce le precedenti fasi 2 e 3. Login/logout Strapi, API protette e ownership; import completo e verificato della dieta PDF, provenienza e revisione delle ambiguità; persistenza PostgreSQL; pasti ON/OFF, Mangiato e Sostituisci, preferenze e alternative; preparazione di domani; peso corporeo; integratori e assunzioni; lista della spesa; Home collegata ai dati reali. Verificare subito le vulnerabilità e correggere quelle risolvibili senza rompere la compatibilità. Organizzare Strapi con nomi comprensibili, responsabilità separate e guida pratica alle modifiche.
+3. **FASE 3 — Allenamento e PWA completa.** Unisce le precedenti fasi 4 e 5. Schede A/B/C originali e video verificati; carichi standard persistenti distinti dalle modifiche temporanee; serie completate, saltate e senza peso registrato; timer su timestamp, salvataggio automatico, ripresa, storico, grafici e riepiloghi settimanali. PWA installabile, notifiche e promemoria dove supportati. Non implementare Allenamento rapido.
+4. **FASE 4 — Produzione.** Test finali, sicurezza, backup e restore, HTTPS, configurazione e documentazione per il server privato. Nessun deploy senza autorizzazione esplicita.
+
+## Regole invarianti
+
+JavaScript senza TypeScript; Strapi 5, PostgreSQL e Docker Compose. Preservare design PULSE 2.1, verde menta e logo, stessa interfaccia adattiva telefono/desktop, Mangiato prima dell'elenco dei pasti. Nessuna modifica del design senza richiesta. Dati del piano storico distinti da nuove prescrizioni; macro non inventati. Ogni completamento va dimostrato con test reali, inclusa persistenza PostgreSQL.
 
 ## Criteri della fase 1
 
