@@ -34,13 +34,13 @@ services:
     image: pulse-strapi-production:${PULSE_IMAGE_TAG:-local}
     build:
       context: ./backend
-      args: {PUBLIC_API_URL: "https://apipulse.vezzo.vp360web.it"}
+      args: {PUBLIC_API_URL: "${PULSE_API_URL:?Configura PULSE_API_URL}"}
     environment:
       NODE_ENV: production
       PULSE_ENV: production
-      PUBLIC_ORIGIN: https://pulse.vezzo.vp360web.it
-      PUBLIC_API_URL: https://apipulse.vezzo.vp360web.it
-      CORS_ORIGINS: https://pulse.vezzo.vp360web.it,https://apipulse.vezzo.vp360web.it
+      PUBLIC_ORIGIN: ${PULSE_PUBLIC_ORIGIN:?Configura PULSE_PUBLIC_ORIGIN}
+      PUBLIC_API_URL: ${PULSE_API_URL:?}
+      CORS_ORIGINS: ${PULSE_PUBLIC_ORIGIN:?},${PULSE_API_URL:?}
       TRUST_PROXY: 'true'
       LOG_LEVEL: ${LOG_LEVEL:-info}
       STRAPI_TELEMETRY_DISABLED: 'true'

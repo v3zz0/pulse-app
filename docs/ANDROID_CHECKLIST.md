@@ -4,8 +4,8 @@
 
 ## Origine e installazione
 
-- [ ] I due DNS `.it` risolvono al server corretto. Chrome apre `https://pulse.vezzo.vp360web.it` senza avvisi di certificato, redirect inattesi o porte alternative.
-- [ ] Frontend sul dominio PULSE, admin separato su `https://apipulse.vezzo.vp360web.it/admin`, protetto per IP/VPN. Non installare l'admin come app personale.
+- [ ] I due DNS (frontend e admin) risolvono al server corretto. Chrome apre il dominio del frontend senza avvisi di certificato, redirect inattesi o porte alternative.
+- [ ] Frontend sul dominio PULSE, admin separato su `<dominio admin>/admin`, protetto per IP/VPN. Non installare l'admin come app personale.
 - [ ] Menu Chrome → Aggiungi a schermata Home → Installa; nome **PULSE**, icona P/battito, splash scuro, nessuna copia di PDF negli asset. In alternativa usare l'icona di installazione proposta dal browser.
 - [ ] Aprendo dalla Home Android appare come finestra standalone, corretta safe area, tastiera e navigazione inferiore; nessun overflow con caratteri grandi/rotazione.
 

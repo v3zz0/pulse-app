@@ -1,9 +1,20 @@
 module.exports = {
   async bootstrap({ strapi }) {
     if (process.env.PULSE_ENV === "production") {
+      // I domini arrivano dall'ambiente (PULSE_PUBLIC_ORIGIN / PULSE_API_URL nel compose):
+      // devono essere due origini https pure (senza path o slash finale) e diverse tra loro.
+      const isOrigin = (v) => {
+        try {
+          const u = new URL(v);
+          return u.protocol === "https:" && v === u.origin;
+        } catch {
+          return false;
+        }
+      };
       if (
-        process.env.PUBLIC_ORIGIN !== "https://pulse.vezzo.vp360web.it" ||
-        process.env.PUBLIC_API_URL !== "https://apipulse.vezzo.vp360web.it" ||
+        !isOrigin(process.env.PUBLIC_ORIGIN) ||
+        !isOrigin(process.env.PUBLIC_API_URL) ||
+        process.env.PUBLIC_ORIGIN === process.env.PUBLIC_API_URL ||
         process.env.TRUST_PROXY !== "true"
       )
         throw new Error("Configurazione produzione: verificare domini e proxy");

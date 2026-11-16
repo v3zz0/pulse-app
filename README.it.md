@@ -75,7 +75,7 @@ cd backend  && npm ci && npm run build && npm test
 
 Passo per passo, con regole del proxy, Jenkins, backup e aggiornamenti: **[DEPLOYMENT.md](DEPLOYMENT.md)** (in inglese).
 
-> In produzione il backend accetta solo le origini `https://pulse.vezzo.vp360web.it` e `https://apipulse.vezzo.vp360web.it` (vedi `backend/src/index.js` e `compose.jenkins.yml`). Se lo installi con altri domini, cambiali in quei due file e rifai il build.
+> I due domini pubblici (frontend e admin) si impostano con `PULSE_PUBLIC_ORIGIN` e `PULSE_API_URL` nel file env. Devono essere due origini `https://` diverse e senza slash finale, altrimenti in produzione il backend non parte.
 
 ## Backup
 

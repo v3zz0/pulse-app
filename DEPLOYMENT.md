@@ -42,11 +42,12 @@ Then append the settings from [`infra/production.env.example`](infra/production.
 | `ADMIN_JWT_SECRET`, `JWT_SECRET`, `API_TOKEN_SALT`, `TRANSFER_TOKEN_SALT`, `ENCRYPTION_KEY` | Distinct random secrets |
 | `PULSE_BIND_IP` | IP of the host where the two ports are published (a LAN IP, not `0.0.0.0`) |
 | `PULSE_FRONTEND_PORT`, `PULSE_API_PORT` | Host ports for the frontend and the admin panel |
+| `PULSE_PUBLIC_ORIGIN`, `PULSE_API_URL` | Public `https://` origins of the frontend and of the admin panel |
 | `LOG_LEVEL` | `info` in production |
 
 Keep `APP_KEYS`, `ENCRYPTION_KEY` and the other secrets safe and **stable**: if you lose them, sessions and encrypted fields are lost; if you change them on an existing database, they stop working.
 
-> **Domains.** In production mode the backend refuses to start unless `PUBLIC_ORIGIN` is `https://pulse.vezzo.vp360web.it` and `PUBLIC_API_URL` is `https://apipulse.vezzo.vp360web.it`, with `TRUST_PROXY=true`. To use your own domains edit `backend/src/index.js` and `compose.jenkins.yml` (`PUBLIC_ORIGIN`, `PUBLIC_API_URL`, `CORS_ORIGINS`, the `PUBLIC_API_URL` build argument), then rebuild.
+> **Domains.** Set `PULSE_PUBLIC_ORIGIN` (frontend) and `PULSE_API_URL` (admin) in the env file, e.g. `https://pulse.example.com` and `https://apipulse.example.com`. They must be distinct `https://` origins with no path or trailing slash, and `TRUST_PROXY` is forced to `true`: otherwise the backend refuses to start in production. If you change them after a first build, rebuild the images (the admin panel bakes in `PULSE_API_URL`).
 
 ## 2. Start the stack
 

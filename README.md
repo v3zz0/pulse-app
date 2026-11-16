@@ -75,7 +75,7 @@ cd backend  && npm ci && npm run build && npm test
 
 Step by step, including the reverse proxy rules, Jenkins, backups and updates: **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 
-> In production mode the backend only accepts the origins `https://pulse.vezzo.vp360web.it` and `https://apipulse.vezzo.vp360web.it` (see `backend/src/index.js` and `compose.jenkins.yml`). If you self-host with your own domains, change them in those two files and rebuild.
+> Your two public domains (frontend and admin) are set with `PULSE_PUBLIC_ORIGIN` and `PULSE_API_URL` in the env file. They must be distinct `https://` origins without a trailing slash, otherwise the backend refuses to start in production.
 
 ## Backups
 
