@@ -29,7 +29,7 @@ test("PWA produzione: installabilità, cache solo shell e ripresa offline dopo r
     fetch("/manifest.webmanifest").then((r) => r.json()),
   );
   expect(manifest.display).toBe("standalone");
-  expect(manifest.icons).toHaveLength(2);
+  expect(manifest.icons).toHaveLength(4);
   await page.getByRole("link", { name: "Allenati", exact: true }).click();
   await expect(page.getByTestId("workout-sync")).toHaveText(
     "Tutte le modifiche sincronizzate",

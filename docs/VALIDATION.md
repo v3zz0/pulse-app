@@ -1,3 +1,14 @@
+# Favicon e icone PWA ufficiali — 16 novembre 2026
+
+- Lavoro separato dal commit account `c549670`, già pubblicato e SHA remoto verificato. Checkout pulito e sincronizzato prima di questo blocco. Nessuna modifica a codice di autenticazione, dieta, allenamenti, backend o database in questo commit; nessun deploy.
+- Sorgente originale conservata byte per byte, hash e procedura deterministica in PWA_ICONS.md. Esportati ICO 16/32/48, PNG 16/32, Apple 180, standard e maskable 192/512. Nessun SVG approssimato.
+- Controllati dimensioni, tre frame ICO, area sicura centrale maskable e anteprima su fondo bianco/scuro con maschera circolare; anteprima ispezionata. Simbolo e gradienti originali preservati.
+- Build Vite, test frontend e build Docker frontend **PASS**. Solo container frontend locale ricostruito; servizi e volumi backend preservati.
+- **12 test browser PASS, zero saltati**, a 360/390/1440 px: nuovi controlli favicon/manifest/icone caricati HTTP200, MIME e decodifica dimensioni effettive, quattro purpose corretti, installabilità senza errori Chromium, precache di tutti i file grafici e caricamento offline. Regressione Home/nutrizione, account e PWA offline/sessione esistente PASS. Questi test usano solo utenti sintetici.
+- Tutti i nuovi asset sono inclusi nell’hash della shell; mantenuta l’assenza di skipWaiting/reload forzati e cache API/upload. Aggiornamento launcher Android, Edge/Firefox/Safari e dispositivo Android fisico non collaudati; procedura manuale documentata. L’instabilità del test notifiche registrata nel blocco account resta aperta: non è stata corretta o nascosta da questo lavoro grafico.
+
+---
+
 # Account personale e marchio senza versione — 16 novembre 2026
 
 - Main inizialmente pulito sul commit `3ef4672`; sincronizzazione `origin/main` confermata senza aggiornamenti. Nessun deploy remoto.

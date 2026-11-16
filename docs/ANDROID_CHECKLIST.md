@@ -34,3 +34,10 @@
 - [ ] Comprendere e comunicare il limite: avvisi mentre app aperta e connessa; Android può sospenderla. Nessuna consegna garantita a pagina chiusa o push remoto attivo.
 
 Prima del test con un account personale, completare le prove con un utente sintetico nel server di collaudo privato. Non condividere cookie, password o screenshot con dati sanitari nei report pubblici.
+
+## Nuovo logo ufficiale
+
+- [ ] Dopo deploy del frontend verificare favicon e quattro icone nel manifest (standard/maskable 192/512), nome PULSE e sfondo scuro.
+- [ ] Sincronizzare prima di chiudere tutte le finestre PULSE; riaprire per aggiornare la shell senza interrompere un allenamento.
+- [ ] Verificare icona Home/elenco app con maschera circolare e arrotondata. L’aggiornamento del launcher Android è distinto dall’attivazione del worker e può essere differito.
+- [ ] Non cancellare dati/disinstallare con bozze non sincronizzate. Procedura dettagliata e limiti browser in [PWA_ICONS.md](PWA_ICONS.md).

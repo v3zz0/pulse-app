@@ -11,6 +11,12 @@ export function pulsePwa() {
         "/manifest.webmanifest",
         "/icons/pulse-192.png",
         "/icons/pulse-512.png",
+        "/icons/pulse-maskable-192.png",
+        "/icons/pulse-maskable-512.png",
+        "/favicon.ico",
+        "/favicon-16x16.png",
+        "/favicon-32x32.png",
+        "/apple-touch-icon.png",
         ...assets,
       ];
       const version = createHash("sha256");
