@@ -22,3 +22,9 @@ backend/public/uploads/*
 *.key
 *.pem
 restore-reports/
+
+# Dati personali: restano sul disco ma non vanno mai su git
+PULSE_Starter_Codex_Cloud/
+*.pdf
+*.PDF
+/private/

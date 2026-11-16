@@ -3,3 +3,10 @@ dist
 test-results
 playwright-report
 .env*
+.git
+.secrets
+*.pdf
+*.PDF
+*.dump
+*.pem
+*.key

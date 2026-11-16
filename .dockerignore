@@ -1,0 +1,14 @@
+# Se qualcuno builda con il contesto nella radice, niente segreti ne' dati personali nelle immagini
+.git
+.secrets
+.env
+.env.*
+!.env.example
+node_modules
+backups
+PULSE_Starter_Codex_Cloud
+*.pdf
+*.PDF
+*.dump
+*.pem
+*.key

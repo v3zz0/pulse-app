@@ -5,3 +5,10 @@ node_modules
 dist
 build
 .env*
+.git
+.secrets
+*.pdf
+*.PDF
+*.dump
+*.pem
+*.key
