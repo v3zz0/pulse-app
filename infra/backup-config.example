@@ -1,0 +1,12 @@
+# Private Bash assignment file; install as /etc/pulse/backup.conf mode 600.
+PULSE_ROOT=/srv/pulse-app
+PULSE_ENV_FILE=/etc/pulse/production.env
+PULSE_COMPOSE_FILE=/srv/pulse-app/compose.production.yml
+PULSE_PROJECT=pulse-production
+BACKUP_DIR=/var/backups/pulse
+BACKUP_KEEP_DAYS=30
+GNUPGHOME=/etc/pulse/backup-gnupg
+BACKUP_RECIPIENT=
+# Optional, but required for off-server protection before declaring DR ready:
+BACKUP_REMOTE=
+BACKUP_SSH_KEY=/etc/pulse/backup-ssh

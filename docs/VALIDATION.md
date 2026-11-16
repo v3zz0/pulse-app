@@ -1,3 +1,51 @@
+# Fase4 — sicurezza e preparazione deployment, 16 novembre2026
+
+## Stato e perimetro
+
+Checkout iniziale pulito sul commit17d6f12, main sincronizzato prima del lavoro. Primo blocco sicurezza pubblicato come28d6c2b con SHA remoto verificato. Preparazione produzione e collaudi eseguiti **solo localmente**; nessun deploy remoto, modifica DNS, certificato pubblico ACME o timer installato sul PC. UI PULSE2.1, Vue3 JavaScript, Strapi5, PostgreSQL17, dati personali originali, dieta e video preservati. Fase5 non implementata.
+
+Domini esatti: `https://pulse.vezzo.vp360web.it`, `https://apipulse.vezzo.vp360web.it`, admin sul backend `/admin`. Resolver del PC e Google Public DNS hanno restituito NXDOMAIN per entrambi, Status3 e nessun record A al controllo. Il collaudo ha usato risoluzione dei nomi limitata ai processi di test verso127.0.0.1, non modifiche DNS/hosts di sistema.
+
+## Audit e protezioni
+
+- Audit iniziale34 (23high,9moderate,2low) → audit finale **25 (5high,20moderate,0low,0critical)**. Frontend0. Nessun `audit fix --force`, downgrade Strapi4 o override globale Zod3→4.
+- Strapi5.62.0 già ultima stable verificata. Corrette le copie Zod4 a4.6.7 e MCP Node2.1.2/Hono adapter2.1.8 secondo il range ammesso. La riduzione di due low è dovuta al ritiro ufficiale dell'advisory deepmerge recepito dal registro durante l'attività, **non a una patch inventata**. Report integrale in dependency-audit.json e analisi/patch/raggiungibilità in SECURITY.md. Le5 high residue da Zod3 nei parser di opzioni server non sono dichiarate risolte.
+- Login protetto da contatori HMAC PostgreSQL per IP/account, Retry-After e persistenza dopo riavvio. Registrazione chiusa e native JWT login/reset/connect/MCP inutilizzati non esposti. Ownership delle API personali preservata.
+- Produzione: Origin esatto obbligatorio, CORS ristretto, cookie personale Secure/HttpOnly/Strict host-only con revoca server, proxy a un hop con header client sovrascritti. Admin/backend per IP/VPN, rate limit nativo, CSP e header HTTP, body/array/depth limitati, log senza query/body/cookie/identificatori e rotazione container.
+- PostgreSQL produzione: ruolo app separato e verificato **rolsuper=false, rolcreatedb=false, rolcreaterole=false**; superuser bootstrap solo pulse_maintenance, segreto non presente nel container Strapi. Inizializzazione provata su volume nuovo e dati ripristinati come ruolo app. Volumi originali non convertiti o eliminati.
+
+## Build e test effettivi
+
+- npm ci frontend/backend, build Vite e admin Strapi, immagini locali e produzione: **PASS**. Backend11casi in6file, frontend1caso. Compose locale preservato; Compose produzione separato validato senza stampare segreti. Caddyfile verificato dal binario Caddy2.11.9. Node24.22.3/nginx1.28.3/PostgreSQL17/Caddy fissati per digest nelle immagini/configurazioni.
+- Regressione API fase2 e smoke: **PASS** (login/logout, dieta ON/OFF, pasti/annullamento/sostituzioni, preferenze, domani, peso, integratori/spesa, conflitti e accesso pubblico negato).
+- API fase3: **PASS** (due utenti, CSRF/ownership, avvio/serie/skip, retry e revisioni, snapshot/storico/volume, timer). Caso60standard→50temporanei→completata senza peso→nuova sessione60 **PASS via API e browser**.
+- `tests/phase4-security.mjs`: throttle verificato con10fallimenti/429 e Retry-After; dopo restart PostgreSQL/Strapi stesso blocco ancora attivo e login sintetico legittimo consentito. CORS ostile rifiutato, endpoint inutilizzati chiusi, collezione eccessiva413. Persistenza fase3 confrontata su UUID, revisione, endAt esatto, standard60, storico unlogged e promemoria: **PASS**.
+- Suite browser finale **12passati,0saltati** a360/390/1440px: nutrizione, allenamento, timer, offline/reload/ritorno rete, PWA installabilità, cache solo shell/asset, due tab, risposta persa/retry idempotente, conflitto esplicito/export, memoria locale non disponibile, ciclo60/50/senza peso/60 e notifiche reali. Notifiche confermate anche in tre ripetizioni consecutive del test mirato, con Chromium completo.
+- Nei controlli sono state corrette una sovrapposizione dei refresh promemoria e l'affidamento esclusivo all'evento online: operazioni promemoria serializzate, retry della coda pendente a ritorno visibilità e mentre l'app è visibile. Nessun cambio grafico. Il test notifiche usava accidentalmente il baseURL Vite per ripulire una fixture servita da8081: ora tutte quelle richieste puntano allo stesso server sotto test. Le prove finali non hanno retry di test mascherati o scenari saltati.
+- Copia isolata `pulse-rehearsal`, quattro container healthy, porte solo127.0.0.1, DB/app senza porte host. `tests/phase4-https.mjs`: **PASS** per certificato verificato con CA dedicata, domini reali via risoluzione locale, /api same-origin, cookie sicuri, Origin mancante/errato403, logout/revoca e admin nativo. Native admin browser login/reload **PASS**, nessun pageerror.
+- Browser HTTPS360/390/1440: **PASS** per cookie persistente, secure context, service worker, serie offline dopo reload, chiusura e riapertura con storage privato, sincronizzazione, assenza pageerror/overflow. Le sole eccezioni SSL nel browser riguardano la CA interna di test: Node/curl ne hanno verificato la catena senza bypass. Non è una prova di certificati pubblici o Android fisico.
+- Admin con IP non autorizzato: **403 anche con X-Forwarded-For127.0.0.1 contraffatto**; configurazione di prova poi ripristinata al gateway/32 effettivo. Header di origine/credenziali non sono trattati come autorizzazione IP.
+- Aggiornamento PWA **PASS**: versione sintetica del worker installata in attesa mentre la finestra conserva l'allenamento; dopo chiusura nuova versione attiva, vecchia cache rimossa, stessa sessione presente. Ripristinata la configurazione container originale alla fine della prova.
+
+## Backup e ripristino reali
+
+Prima degli schemi aggiuntivi effettuato dump privato originale. Nuovo backup completo cifrato GPG eseguito sia sullo stack locale sia sulla copia di produzione: DB, upload, env/configurazioni, lockfile/SHA/inventario immagini e, per la produzione, dati TLS Caddy. Chiave sintetica temporanea in directory0700; credenziali solo in file privati, nessun segreto nel repository/immagini.
+
+**Due restore completi PASS** in container e volumi nuovi con `--network none`, senza porte:70tabelle ripristinate, pg_restore exit-on-error, conteggi di tutte le tabelle confrontati, checksum manifesto validati e hash del file sentinella upload corrispondente. Il file sentinella sintetico è stato rimosso dall'originale. I container/volumi del test di restore sono stati eliminati, senza toccare gli originali. Un archivio GPG troncato è stato rifiutato senza produrre PASS o ripristinare dati.
+
+Script con lock, permessi, gestione errori, ripartenza app, retention e trasferimento cifrato rsync/SSH strict-host-key predisposti. Sintassi Bash e calendario systemd03:30Europe/Rome verificati. Timer/servizio **non installati o abilitati** sul PC; copia verso server esterno reale non eseguita perché destinatario, chiave e known_hosts devono essere forniti/configurati sul server.
+
+## Gate manuali prima del go-live
+
+1. Rivedere e accettare le mitigazioni specifiche dei25 finding residui; non attestare audit0 o sicurezza OS senza scansione dei layer. Se cambia l'esposizione/admin/plugin, rivalutare la raggiungibilità.
+2. Configurare DNS reali, firewall, email ACME, CIDR admin specifici e certificati pubblici dopo autorizzazione. Nessun dominio .com sostituito ai due indirizzi richiesti.
+3. Installare una chiave pubblica backup reale, custodire la privata altrove, configurare e verificare destinazione esterna/monitoraggio. Eseguire DR periodico, non solo una copia locale.
+4. Collaudare Chrome Android fisico con ANDROID_CHECKLIST.md. Notifiche rimangono foreground/in-app, senza push remoto a pagina chiusa. Le cinque associazioni video restano da revisionare e non sono state sostituite.
+
+DEPLOYMENT.md contiene requisiti, preview privata, comandi per pubblicazione futura, onboarding/import per nuovi utenti, migrazione dei dati esistenti senza reimport, backup/DR, aggiornamenti/rollback e troubleshooting. **Preparazione locale conclusa; nessun via libera automatico alla produzione.**
+
+---
+
 # Fase 3 — consegna funzionale e collaudo, 16 novembre 2026
 
 ## Implementazione e dati preservati

@@ -83,7 +83,7 @@ docker compose up -d --no-build --wait
 
 `docker compose down` conserva i volumi; non usare `-v` sui dati da mantenere. Prima di aggiornare Strapi o schemi, fare backup e provare su una copia: il rollback del codice non ripristina automaticamente il database. Non stampare `docker compose config` risolto nei log: usare `--quiet`.
 
-HTTPS, proxy affidabile e cookie Secure dietro proxy, backup completi, migrazioni e deploy sul server saranno collaudati nella fase 4. L'esempio Caddy è soltanto un riferimento da adattare. Audit e limiti reali in [docs/VALIDATION.md](docs/VALIDATION.md); non esporre in produzione prima della revisione sicurezza.
+La preparazione fase4 è documentata in [DEPLOYMENT.md](DEPLOYMENT.md): Compose separato di produzione, domini definitivi, proxy HTTPS, cookie Secure, admin per IP/VPN, backup cifrati e restore isolato. Sono stati eseguiti solo collaudi locali, senza deploy remoto né DNS modificati. Audit e rischi residui in [docs/SECURITY.md](docs/SECURITY.md): **non considerare autorizzato il go-live** prima dei controlli del server e della revisione dei rischi residui.
 
 ## Allenamento, PWA e promemoria
 
@@ -124,3 +124,14 @@ PULSE_TEST_CREDENTIALS=/percorso/privato/credentials.json npm run test:e2e
 ```
 
 Gli scenari PWA/notifiche usano la build locale su 8081; i test delle pagine usano Vite su 5173. Installare i browser con `npx playwright install chromium` sul nuovo PC. La suite notifiche usa Chromium completo. Le revisioni video sono separate dai programmi: [docs/VIDEO_REVIEW.md](docs/VIDEO_REVIEW.md).
+
+## Preparazione produzione — fase4
+
+- Frontend/PWA: `https://pulse.vezzo.vp360web.it`; backend/admin: `https://apipulse.vezzo.vp360web.it/admin`. API personale same-origin tramite `/api` sul frontend.
+- `compose.production.yml` è separato dal Compose locale: rete DB privata, ruolo applicativo non superuser, manutenzione distinta, healthcheck, log ruotati e immagini per digest. Default **loopback + CA interna**, senza pubblicazione accidentale.
+- `infra/preflight.js` controlla configurazione senza stampare segreti; il profilo pubblico verifica anche i DNS. I due domini erano NXDOMAIN al controllo del16 novembre2026: nessun record è stato modificato.
+- Backup completi cifrati GPG, timer systemd, retention, rsync/SSH verificato e restore in volumi nuovi: procedure in DEPLOYMENT.md. Copia su un server esterno reale da configurare e collaudare con le proprie credenziali.
+- Audit backend **34→25** (high23→5); Zod4/Hono corretti, due low ritirati dal registro e rischi residui descritti senza nasconderli. Nessun upgrade forzato incompatibile. Frontend0.
+- [Checklist Chrome Android](docs/ANDROID_CHECKLIST.md): installazione e prova fisica ancora manuali. Notifiche restano in-app/di sistema a pagina aperta, senza push remoto in background.
+
+Sviluppo locale invariato: `docker compose up -d --build --wait`. I dati personali esistenti vanno migrati mediante backup/restore, senza ricreare utenti o ripetere gli import. Fase5 (video3D e nuova dieta) non implementata; grafica, dieta e link esistenti preservati.

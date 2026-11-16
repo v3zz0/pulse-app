@@ -1,0 +1,9 @@
+[Unit]
+Description=Daily PULSE encrypted backup
+[Timer]
+OnCalendar=*-*-* 03:30:00 Europe/Rome
+Persistent=true
+RandomizedDelaySec=10m
+Unit=pulse-backup.service
+[Install]
+WantedBy=timers.target

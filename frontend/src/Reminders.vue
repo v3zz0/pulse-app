@@ -50,7 +50,25 @@ async function loadTargets() {
   }
 }
 watch(kind, loadTargets);
-async function refresh() {
+let sequence = Promise.resolve();
+function ordered(fn) {
+  const result = sequence.then(fn);
+  sequence = result.catch(() => {});
+  return result;
+}
+function refresh() {
+  return ordered(refreshNow);
+}
+function change(...args) {
+  return ordered(() => changeNow(...args));
+}
+function save() {
+  return ordered(saveNow);
+}
+function toggle(...args) {
+  return ordered(() => toggleNow(...args));
+}
+async function refreshNow() {
   try {
     rows.value = await api("/reminders");
     due.value = await api("/reminders/due");
@@ -86,7 +104,7 @@ async function refresh() {
     error.value = e.message;
   }
 }
-async function change(r, action, minutes) {
+async function changeNow(r, action, minutes) {
   try {
     const body = { action, minutes, date: r.date, revision: r.revision };
     try {
@@ -104,13 +122,13 @@ async function change(r, action, minutes) {
           revision: latest.revision,
         });
     }
-    await refresh();
+    await refreshNow();
   } catch (e) {
     error.value = e.message;
-    await refresh();
+    await refreshNow();
   }
 }
-async function save() {
+async function saveNow() {
   try {
     await send("/reminders/" + crypto.randomUUID(), {
       action: "settings",
@@ -124,7 +142,7 @@ async function save() {
         weekdays: weekdays.value,
       },
     });
-    await refresh();
+    await refreshNow();
   } catch (e) {
     error.value = e.message;
   }
@@ -134,14 +152,14 @@ async function permission() {
   notification.value = await Notification.requestPermission();
   await refresh();
 }
-async function toggle(r) {
+async function toggleNow(r) {
   try {
     await send("/reminders/" + r.id, {
       action: "settings",
       revision: r.revision,
       settings: { ...r.settings, enabled: !r.settings.enabled },
     });
-    await refresh();
+    await refreshNow();
   } catch (e) {
     error.value = e.message;
   }

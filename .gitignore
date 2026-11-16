@@ -14,3 +14,11 @@ backups/
 backend/public/uploads/*
 !backend/public/uploads/.gitkeep
 .strapi-updater.json
+
+# Private deployment and DR artifacts
+.secrets/
+*.dump
+*.tar.gpg
+*.key
+*.pem
+restore-reports/

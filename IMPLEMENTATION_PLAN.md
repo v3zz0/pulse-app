@@ -6,12 +6,13 @@ Il prompt originale è `PULSE_Starter_Codex_Cloud/PULSE_PROMPT_CODEX.md`, non ne
 
 Lavorare direttamente su `main`, sincronizzandolo con `origin/main` prima di iniziare. Non creare branch o Pull Request. Dopo ogni attività completata: build e test pertinenti, commit descrittivo, push senza force su `origin/main` e verifica dello SHA remoto. Se il push è negato, fermarsi e segnalare il blocco. Non pubblicare segreti, `.env` reali o database. Nessun deploy pubblico durante lo sviluppo.
 
-## Quattro macrofasi
+## Macrofasi
 
 1. **FASE 1 — Fondamenta: completata.** Conservare Vue 3 Composition API JavaScript, Router, Pinia, Strapi 5, PostgreSQL e Docker Compose. Non ripetere lo scaffold.
 2. **FASE 2 — Login e nutrizione completa: implementata.** Unisce le precedenti fasi 2 e 3. Login/logout Strapi, API protette e ownership; import completo e verificato della dieta PDF, provenienza e revisione delle ambiguità; persistenza PostgreSQL; pasti ON/OFF, Mangiato e Sostituisci, preferenze e alternative; preparazione di domani; peso corporeo; integratori e assunzioni; lista della spesa; Home collegata ai dati reali. Verificare subito le vulnerabilità e correggere quelle risolvibili senza rompere la compatibilità. Organizzare Strapi con nomi comprensibili, responsabilità separate e guida pratica alle modifiche.
 3. **FASE 3 — Allenamento e PWA: implementata e collaudata.** Unisce le precedenti fasi 4 e 5. Schede A/B/C originali e video verificati; carichi standard persistenti distinti dalle modifiche temporanee; serie completate, saltate e senza peso registrato; timer su timestamp, salvataggio automatico, ripresa, storico, grafici e riepiloghi settimanali. PWA installabile, notifiche e promemoria dove supportati. Non implementare Allenamento rapido.
-4. **FASE 4 — Produzione.** Test finali, sicurezza, backup e restore, HTTPS, configurazione e documentazione per il server privato. Nessun deploy senza autorizzazione esplicita.
+4. **FASE 4 — Sicurezza e preparazione deployment: implementata e collaudata localmente.** Correzioni compatibili dipendenze, API/CSRF/CORS/login persistente, Compose separato con TLS e admin per IP, ruoli PostgreSQL distinti, backup cifrati/rotazione/restore, aggiornamenti PWA e guida DEPLOYMENT.md. Nessun deploy remoto/DNS modificato. Go-live non autorizzato: DNS, ACME, sorgenti admin, copia backup esterna, revisione rischi residui e Android fisico sono gate operativi.
+5. **FASE 5 — Rinviata.** Libreria video3D uniforme in stile MoveKit con licenze e verifica esercizio per esercizio; nuova dieta secondo gusti e obiettivi configurabili da sottoporre al nutrizionista. Nessuna implementazione in fase4 e nessuna sostituzione di dieta/video.
 
 Verifiche e limiti della fase 2: `docs/VALIDATION.md`. Guida per modificare Strapi: `docs/STRAPI_GUIDE.md`. Le ambiguità della fonte sono marcate da rivedere; non costituiscono una nuova prescrizione.
 
@@ -41,3 +42,9 @@ Piano dettagliato in `docs/PHASE3.md`. Primo incremento implementato: import pri
 ## Consegna fase 3 — 16 novembre 2026
 
 Sessioni complete con standard separati, risultati espliciti, timer persistenti, ripresa IndexedDB e coda idempotente, conflitti visibili, storico/grafici e riepilogo, PWA e promemoria operativi. Criteri e collaudi reali in `docs/PHASE3.md` e `docs/VALIDATION.md`. Caso 60/50/senza peso/60 verificato via API e browser. Import a7e8930 preservato. Video: verifica metadati ufficiali, cinque associazioni restano da revisionare. Notifiche di sistema mentre l'app è aperta, fallback in-app; nessun push remoto garantito a pagina chiusa. Installabilità Chromium verificata; dispositivo Android fisico e HTTPS/server restano collaudi fase 4. Nessun deploy pubblico.
+
+## Consegna preparazione fase4 — 16 novembre2026
+
+Domini esatti: `https://pulse.vezzo.vp360web.it`, `https://apipulse.vezzo.vp360web.it`, admin `/admin`. Audit34→25, high23→5; Strapi5.62 già ultima stable, override compatibili Zod4.6.7 e MCP Node2.1.2/Hono2.1.8. Restano rischi analizzati, non cancellati dal report. Vedere SECURITY.md, VALIDATION.md, DEPLOYMENT.md e ANDROID_CHECKLIST.md.
+
+Ripristino di70tabelle e upload verificato in container/volumi senza rete, inclusa la configurazione di produzione. HTTPS e cookie su domini reali verificati solo con risoluzione locale e CA interna; admin nativo e allowlist IP collaudati. Nessun certificato pubblico richiesto, deploy remoto o timer installato sul PC. Il Compose locale e i dati personali originali restano preservati.

@@ -42,6 +42,20 @@ export const useWorkout = defineStore("workout", {
         channel = new BroadcastChannel("pulse-workout");
         channel.onmessage = () => this.load();
         window.addEventListener("online", () => this.load());
+        const resume = () => {
+          if (
+            useAuth().user?.id === this.owner &&
+            this.queue.length &&
+            !this.conflict &&
+            !this.syncing &&
+            navigator.onLine &&
+            document.visibilityState === "visible"
+          )
+            this.load();
+        };
+        document.addEventListener("visibilitychange", resume);
+        // Browser online events are hints; retry a pending queue while the app is visible.
+        setInterval(resume, 3000);
       }
       await this.load();
     },

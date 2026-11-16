@@ -1,8 +1,5 @@
-# Host Linux: installare Caddy, sostituire domini e configurare DNS.
-# Non usare questi domini di esempio senza sostituirli.
-pulse.example.com {
- reverse_proxy 127.0.0.1:8080
-}
-admin.pulse.example.com {
- reverse_proxy 127.0.0.1:1337
-}
+# Canonical production configuration with the two definitive .it domains:
+# infra/caddy/Caddyfile, used by compose.production.yml.
+# TLS defaults to an internal CA for local rehearsal, loopback bindings only.
+# See DEPLOYMENT.md before enabling public ACME or external bindings.
+import ./caddy/Caddyfile

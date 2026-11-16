@@ -19,16 +19,26 @@ test("consenso, notifica reale service worker, rinvio e disattivazione", async (
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
   await page.getByRole("link", { name: "Altro", exact: true }).click();
-  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.evaluate(() =>
+    Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Service worker non pronto")), 15000),
+      ),
+    ]),
+  );
   const old = await page.request
-    .get("/api/pulse/reminders")
+    .get("http://127.0.0.1:8081/api/pulse/reminders")
     .then((r) => r.json());
   for (const r of old.filter(
     (r) => r.settings.kind === "workout" && r.settings.target === "C",
   ))
-    await page.request.put("/api/pulse/reminders/" + r.id, {
-      data: { action: "delete", revision: r.revision },
-    });
+    await page.request.put(
+      "http://127.0.0.1:8081/api/pulse/reminders/" + r.id,
+      {
+        data: { action: "delete", revision: r.revision },
+      },
+    );
   await page.reload();
   await page.getByLabel("Tipo promemoria").selectOption("workout");
   await page.getByRole("combobox", { name: /Attività/ }).selectOption("C");

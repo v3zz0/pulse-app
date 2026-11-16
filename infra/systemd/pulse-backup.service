@@ -1,0 +1,14 @@
+[Unit]
+Description=PULSE encrypted consistent backup
+Requires=docker.service
+After=docker.service network-online.target
+[Service]
+Type=oneshot
+Environment=PULSE_CONFIG=/etc/pulse/backup.conf
+ExecStart=/srv/pulse-app/infra/backup-full.sh
+UMask=0077
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+StandardOutput=journal
+StandardError=journal

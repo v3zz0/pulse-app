@@ -1,3 +1,4 @@
+import { registerPwa } from "./pwa-updates.js";
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import { createRouter, createWebHistory } from "vue-router";
@@ -33,5 +34,4 @@ createApp(App).use(pinia).use(router).mount("#app");
 
 new BroadcastChannel("pulse-auth").onmessage = () => location.assign("/login");
 
-if (import.meta.env.PROD && "serviceWorker" in navigator)
-  navigator.serviceWorker.register("/sw.js").catch(() => {});
+if (import.meta.env.PROD) registerPwa();

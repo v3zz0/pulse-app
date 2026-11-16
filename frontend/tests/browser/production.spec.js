@@ -62,9 +62,9 @@ test("PWA produzione: installabilità, cache solo shell e ripresa offline dopo r
     "invio in attesa",
   );
   await context.setOffline(false);
-  await page.getByRole("button", { name: "Riprova sincronizzazione" }).click();
   await expect(page.getByTestId("workout-sync")).toHaveText(
     "Tutte le modifiche sincronizzate",
+    { timeout: 15000 },
   );
   const cached = await page.evaluate(async () => {
     const keys = await caches.keys();
