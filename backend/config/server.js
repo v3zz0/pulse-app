@@ -1,1 +1,11 @@
-module.exports = ({ env }) => ({ host: env('HOST','0.0.0.0'), port: env.int('PORT',1337), app: { keys: env.array('APP_KEYS') } });
+module.exports = ({ env }) => ({
+  host: env("HOST", "0.0.0.0"),
+  port: env.int("PORT", 1337),
+  url: env("PUBLIC_API_URL", ""),
+  proxy: {
+    koa: env.bool("TRUST_PROXY", false),
+    ipHeader: "X-Forwarded-For",
+    maxIpsCount: 1,
+  },
+  app: { keys: env.array("APP_KEYS") },
+});

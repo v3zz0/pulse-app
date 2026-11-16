@@ -1,0 +1,15 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pulse_login_attempts",
+  "info": {
+    "singularName": "login-attempt",
+    "pluralName": "login-attempts",
+    "displayName": "Limiti accesso"
+  },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "key": { "type": "string", "unique": true, "required": true },
+    "windowStart": { "type": "datetime", "required": true },
+    "attempts": { "type": "integer", "required": true }
+  }
+}

@@ -1,13 +1,14 @@
 "use strict";
 const { randomBytes, createHash } = require("node:crypto");
 const { fail } = require("./validation");
+const limit = require("./login-limit");
 const cookie = "pulse_session";
 const hash = (value) => createHash("sha256").update(value).digest("hex");
 const sessions = (strapi) =>
   strapi.db.query("api::pulse-session.pulse-session");
 const cookieOptions = (ctx) => ({
   httpOnly: true,
-  secure: ctx.secure,
+  secure: process.env.PULSE_ENV === "production" || ctx.secure,
   sameSite: "strict",
   overwrite: true,
   path: "/api/pulse",
@@ -16,6 +17,8 @@ const cookieOptions = (ctx) => ({
 // Cookie authentication requires same-origin mutations. No JWT is placed in web storage.
 function sameOrigin(ctx) {
   const origin = ctx.get("origin");
+  if (process.env.PULSE_ENV === "production" && !origin)
+    fail("Origine richiesta", 403);
   if (
     origin &&
     origin !== (process.env.PUBLIC_ORIGIN || `${ctx.protocol}://${ctx.host}`)
@@ -44,18 +47,10 @@ async function requireUser(ctx, strapi) {
   if (ctx.method !== "GET") sameOrigin(ctx);
   return session.owner;
 }
-const attempts = new Map();
 async function login(ctx, strapi) {
   ctx.set("Cache-Control", "no-store");
   sameOrigin(ctx);
-  const ip = ctx.ip,
-    now = Date.now();
-  for (const [key, item] of attempts)
-    if (now - item.start > 900000) attempts.delete(key);
-  const attempt = attempts.get(ip) || { start: now, count: 0 };
-  attempt.count++;
-  attempts.set(ip, attempt);
-  if (attempt.count > 20) fail("Troppi tentativi. Riprova tra 15 minuti.", 429);
+  const now = Date.now();
   const { identifier, password } = ctx.request.body || {};
   if (
     typeof identifier !== "string" ||
@@ -64,14 +59,19 @@ async function login(ctx, strapi) {
     password.length > 512
   )
     fail("Credenziali non valide", 401);
-  const user = await strapi.db
-    .query("plugin::users-permissions.user")
-    .findOne({
-      where: {
-        $or: [{ email: identifier.toLowerCase() }, { username: identifier }],
-        provider: "local",
-      },
-    });
+  let bucketKeys;
+  try {
+    bucketKeys = await limit.consume(strapi, ctx.ip, identifier);
+  } catch (e) {
+    if (e.retryAfter) ctx.set("Retry-After", String(e.retryAfter));
+    throw e;
+  }
+  const user = await strapi.db.query("plugin::users-permissions.user").findOne({
+    where: {
+      $or: [{ email: identifier.toLowerCase() }, { username: identifier }],
+      provider: "local",
+    },
+  });
   const valid =
     user &&
     (await strapi
@@ -80,7 +80,7 @@ async function login(ctx, strapi) {
       .validatePassword(password, user.password));
   if (!valid || user.blocked || !user.confirmed)
     fail("Credenziali non valide", 401);
-  attempts.delete(ip);
+  await limit.success(strapi, bucketKeys);
   const previous = ctx.cookies.get(cookie, { signed: false });
   if (previous)
     await sessions(strapi).delete({ where: { tokenHash: hash(previous) } });
