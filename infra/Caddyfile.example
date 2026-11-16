@@ -1,5 +1,0 @@
-# Canonical production configuration with the two definitive .it domains:
-# infra/caddy/Caddyfile, used by compose.production.yml.
-# TLS defaults to an internal CA for local rehearsal, loopback bindings only.
-# See DEPLOYMENT.md before enabling public ACME or external bindings.
-import ./caddy/Caddyfile

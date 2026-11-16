@@ -1,137 +1,106 @@
-# PULSE 2.1
+# PULSE
 
-Vue 3 JavaScript, Strapi 5 JavaScript, PostgreSQL 17 e Docker Compose. Il progetto procede su `main`, senza nuove PR. Design e riferimenti originali restano in `PULSE_Starter_Codex_Cloud/`.
+[Italiano](README.it.md) · [License: MIT](LICENSE)
 
-## Avvio locale
+**PULSE is a self-hosted, privacy-first app to follow your diet and your gym program.** It runs on your own server, keeps your data in your own PostgreSQL database and works as an installable PWA on your phone, with offline recovery during workouts.
 
-Node 24 e Docker Compose v2, dalla root:
+> The interface is in Italian. Contributions to translate it are welcome.
+
+## Features
+
+**Nutrition**
+- Daily plan with ON/OFF days (training / rest), meals with alternative compositions and food groups
+- "Eaten" / undo, favourite and disliked foods, planning for tomorrow
+- Body weight log, supplements with dose and time
+- Shopping list derived from your selections, with persistent check marks
+- Snapshots: changing the plan never rewrites your history
+
+**Training**
+- Full A/B/C program, one set at a time: registered weight, "completed without weight" or skipped
+- Rest timer with pause/resume that survives page reloads
+- Offline-first: every change is saved in IndexedDB first, then synced to the backend
+- Progress: history, effective weights, reps, load / body-weight charts and volume
+- Installable PWA, reminders for meals, supplements and workouts (in-app / system notifications while the app is open; there is no background push service)
+
+**Privacy and security**
+- Session cookie `HttpOnly`, `Secure`, `SameSite=Strict`; no token in `localStorage`
+- Public registration is closed; the Strapi admin panel is separated from the end user
+- Every personal route checks ownership on the server; login is rate-limited in PostgreSQL
+- Production database on an isolated network, with a non-superuser application role
+
+## Stack
+
+Vue 3 + Pinia + Vue Router (Vite) · Strapi 5 · PostgreSQL 17 · Nginx · Docker Compose. JavaScript only, no TypeScript.
+
+## Quick start (local)
+
+Requirements: Docker with Compose v2 and Node.js 24.
 
 ```sh
-node infra/init-env.js # solo se .env manca; non sovrascrive segreti
-# Host ordinario:
+git clone https://github.com/v3zz0/pulse-app.git
+cd pulse-app
+node infra/init-env.js        # creates .env with random secrets (never overwrites)
 docker compose up -d --build --wait
-# Codex Cloud con CA di sessione, in alternativa:
-./infra/build-cloud.sh
-docker compose up -d --no-build --wait --wait-timeout 180
 ```
 
-Frontend su `http://localhost:8080`; amministrazione Strapi su `http://localhost:1337/admin`. Solo loopback; PostgreSQL non pubblica porte. Nessun deploy pubblico. Il file `.env` è ignorato, generato con permessi 0600 e non copiato nelle immagini. `infra/build-cloud.sh` monta la CA come secret temporaneo, mantenendo TLS verificato.
+- App: <http://localhost:8080> (if the port is busy set `FRONTEND_PORT=8081` in `.env`)
+- Strapi admin: <http://localhost:1337/admin>
 
-## Primo utilizzo personale
+Ports are bound to localhost only and PostgreSQL publishes no port.
 
-1. Creare l'admin Strapi dal pannello locale.
-2. Creare l'utente **Users & Permissions / User** con email, username, password forte, provider `local`, ruolo Authenticated, Confirmed attivo e Blocked disattivo. Admin e utente finale sono separati; registrazione pubblica chiusa.
-3. Importare la dieta privata per quell'utente. Il PDF viene montato in sola lettura, non pubblicato né incluso nelle immagini. Dalla root, sostituire l'email di esempio:
+### First use
+
+1. Open the Strapi admin and create the administrator.
+2. In **Content Manager → User (Users & Permissions)** create your personal user: provider `local`, role *Authenticated*, *Confirmed* on, *Blocked* off.
+3. Sign in from the app home page with that user.
+4. Fill in your plans from the admin panel. Collections and fields are explained in [docs/STRAPI_GUIDE.md](docs/STRAPI_GUIDE.md) and [docs/DATA_MODEL.md](docs/DATA_MODEL.md).
+
+> The scripts `backend/scripts/import-nutrition.js` and `import-training.js` import the author's own PDFs: the parser checks the file hash and rejects any other document. They are kept as a reference and are not needed to use the app.
+
+## Development
 
 ```sh
-docker compose stop frontend strapi
-docker compose run --rm --no-deps \
-  -v "$PWD/PULSE_Starter_Codex_Cloud/references:/private:ro" \
-  strapi node scripts/import-nutrition.js \
-  '/private/Dieta Alessandro Vezzoli modifica 4.pdf' 'utente@example.com'
-docker compose up -d --no-build --wait
+cd frontend && npm ci && npm run dev     # http://localhost:5173, API proxied to Strapi on 1337
+cd backend  && npm ci && npm run build && npm test
 ```
 
-L'import è idempotente per utente, hash PDF e versione parser. Un PDF diverso viene rifiutato finché non viene revisionato l'importatore. Le giornate conservano snapshot del piano: una nuova versione non cambia lo storico. Non caricare PDF clinici nella Media Library pubblica.
+- `npm test` in `frontend` and `backend` runs the unit tests (`node --test`).
+- Two backend tests read the author's private PDFs, which are **not** in this repository: they fail unless you set `PULSE_TEST_PDF` / provide the files.
+- Browser tests (`frontend`: `npm run test:e2e`) need Playwright and **synthetic users**, never real accounts. See [docs/VALIDATION.md](docs/VALIDATION.md).
+- `node tests/smoke.mjs` is a 10-second check against a running stack (`FRONTEND_URL`, `BACKEND_URL`).
 
-4. Accedere dalla Home. Il cookie di sessione è HttpOnly, SameSite Strict, valido sette giorni; logout revoca la sessione PostgreSQL. Nessun token in localStorage.
+## Production
 
-## Funzioni della fase 2
+`compose.jenkins.yml` is the production stack: PostgreSQL on a private network, Strapi, the frontend (Nginx), ports published only on the IP you choose. TLS is **not** included: put a reverse proxy in front (Nginx Proxy Manager, Caddy, Traefik…).
 
-Home su dati PostgreSQL; ON/OFF; Mangiato/annullamento; composizioni alternative e gruppi di alimenti; preferiti/non graditi; pianificazione di domani; peso; integratori e assunzioni con dose e orario; spesa derivata dalle selezioni e spunte persistenti. L'app non calcola macro senza fonti verificate e segnala il piano storico da rivedere.
+Step by step, including the reverse proxy rules, Jenkins, backups and updates: **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 
-Pasti e note del PDF sono conservati, incluse bevande/pre-workout/pre-letto, limiti di frequenza e note generali. Le quantità condivise o ambigue sono marcate da verificare e il testo originale è consultabile: l'importazione tecnica non è una nuova validazione nutrizionale. La spesa elenca quantità testuali per porzione; non converte unità o somma ingredienti alternativi.
+> In production mode the backend only accepts the origins `https://pulse.vezzo.vp360web.it` and `https://apipulse.vezzo.vp360web.it` (see `backend/src/index.js` and `compose.jenkins.yml`). If you self-host with your own domains, change them in those two files and rebuild.
 
-Allenamento completo, storico/grafici, ripresa offline, PWA e promemoria sono ora operativi nella fase 3, con i limiti di consegna notifiche descritti sotto. L'admin gestisce i cataloghi; per i pasti il formato attuale è JSON strutturato, documentato con un esempio sintetico in [docs/STRAPI_GUIDE.md](docs/STRAPI_GUIDE.md).
+## Backups
 
-## Sviluppo e test
+- `./infra/backup.sh`: quick PostgreSQL dump into `backups/` (git-ignored).
+- `infra/backup-full.sh` + `infra/systemd/`: GPG-encrypted full backup (database, uploads, configuration) with retention and optional off-server copy.
+- `infra/restore-isolated.sh`: restores a backup into brand-new isolated volumes to prove it works.
 
-```sh
-cd frontend
-npm ci
-npm run dev # porta 5173, proxy API verso Strapi 1337
-npm run build
-npm test
-cd ../backend
-npm ci
-npm run build
-npm test
-```
+Always test a restore before you trust a backup.
 
-Nel cloud usare `npm --cache /tmp/pulse-npm ...`; per Strapi nativo `XDG_CONFIG_HOME=/tmp/pulse-config STRAPI_TELEMETRY_DISABLED=true npm run build`. Per il runtime nativo è necessario PostgreSQL raggiungibile e variabili DB/segreti iniettate: nessun fallback SQLite.
+## Documentation
 
-Test browser e integrazione richiedono **utenti sintetici**, non credenziali personali. Su un DB di sviluppo, creare una directory locale privata scrivibile dall'utente `node` del container, montarla su `/testout` e avviare `scripts/test-fixtures.js` con `PULSE_TEST_FIXTURES=1` e i PDF montati su `/private`. Lo script crea/resetta esclusivamente gli utenti `pulse-test-1/2@example.invalid`, importa piani privati e scrive credenziali casuali nel file locale, senza stamparle. Non eseguirlo sul server di produzione.
+| File | Content |
+|---|---|
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Production deployment, Jenkins, backups, updates |
+| [docs/SECURITY.md](docs/SECURITY.md) | Security model and known residual risks |
+| [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Collections and relations |
+| [docs/STRAPI_GUIDE.md](docs/STRAPI_GUIDE.md) | How to edit PULSE from the Strapi admin |
+| [docs/PHASE3.md](docs/PHASE3.md) | Training, PWA and reminders |
+| [docs/VALIDATION.md](docs/VALIDATION.md) | Real test results |
+| [docs/ANDROID_CHECKLIST.md](docs/ANDROID_CHECKLIST.md) | Manual checks on Chrome / Android |
 
-```sh
-PULSE_TEST_CREDENTIALS=/percorso/privato/credentials.json node tests/phase2-integration.mjs
-cd frontend
-PULSE_TEST_CREDENTIALS=/percorso/privato/credentials.json CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e
-```
+## Contributing
 
-Test sorgente PDF: eseguito da `backend/npm test` contro l'originale del repository; nel container impostare `PULSE_TEST_PDF` sul mount privato. Chromium può essere installato con Playwright fuori dal cloud se necessario. Il proxy Vite preserva l'origine per il controllo CSRF.
+Issues and pull requests are welcome. Before opening a PR run the build and tests of both `frontend` and `backend`, never commit `.env*`, PDFs, dumps or personal data, and use synthetic users in tests. Security problems: please open a private security advisory on GitHub instead of a public issue.
 
-## Backup e gestione
+## License
 
-`./infra/backup.sh` crea un dump PostgreSQL privato in `backups/` (ignorato). Salvare separatamente `.env` e volume upload in backup protetti esterni. Provare sempre `pg_restore` in un database separato prima di sostituire dati reali.
-
-```sh
-docker compose ps
-docker compose logs --tail=100 strapi
-docker compose stop
-docker compose up -d --no-build --wait
-```
-
-`docker compose down` conserva i volumi; non usare `-v` sui dati da mantenere. Prima di aggiornare Strapi o schemi, fare backup e provare su una copia: il rollback del codice non ripristina automaticamente il database. Non stampare `docker compose config` risolto nei log: usare `--quiet`.
-
-La preparazione fase4 è documentata in [DEPLOYMENT.md](DEPLOYMENT.md): Compose separato di produzione, domini definitivi, proxy HTTPS, cookie Secure, admin per IP/VPN, backup cifrati e restore isolato. Sono stati eseguiti solo collaudi locali, senza deploy remoto né DNS modificati. Audit e rischi residui in [docs/SECURITY.md](docs/SECURITY.md): **non considerare autorizzato il go-live** prima dei controlli del server e della revisione dei rischi residui.
-
-## Allenamento, PWA e promemoria
-
-Stato e collaudi: [docs/PHASE3.md](docs/PHASE3.md). Da Allenati avviare la scheda completa A/B/C; Home mette in evidenza la sessione da riprendere. Ogni serie permette peso registrato, completamento senza peso o salto. Il carico della seduta non aggiorna lo standard: usare «Aggiorna carico standard» e confermare. Gli aggiornamenti standard valgono per le prossime sessioni, senza riscrivere quelle già iniziate o concluse.
-
-Il recupero parte automaticamente quando la fonte indica secondi non ambigui. Timer manuale, pausa e ripresa usano timestamp persistenti. Ogni modifica va prima in IndexedDB e poi nel backend; il messaggio di sincronizzazione distingue bozza locale e salvataggio server. Avvio di una nuova sessione e cambio standard richiedono rete. Se c'è un conflitto, scaricare una copia della bozza prima di scegliere la versione server. Logout rimuove i dati locali: attendere la sincronizzazione prima di uscire se si vogliono mantenere modifiche offline sul server.
-
-Progressi mostra storico, pesi effettivi, ripetizioni, grafici carichi/peso corporeo e volume registrato. Il volume esclude serie senza peso o ripetizioni e segnala i totali parziali; non inventa ripetizioni dei circuiti o moltiplicazioni per gamba.
-
-In Altro: installazione PWA e promemoria per pasti/integratori/allenamenti, timezone, giorni e rinvio 15/30/60. Le notifiche di sistema richiedono consenso e supporto del browser. Gli avvisi funzionano mentre l'app è aperta e connessa; non è attivo un servizio di push remoto a pagina chiusa. Il fallback in-app resta utilizzabile con notifiche negate. Android remoto richiede un'origine HTTPS privata: lo stack locale resta su loopback e non viene esposto pubblicamente.
-
-Con l'utente finale già creato, importare senza pubblicare il PDF:
-
-```sh
-docker compose stop frontend strapi
-docker compose run --rm --no-deps \
-  -v "$PWD/PULSE_Starter_Codex_Cloud/references:/private:ro" \
-  strapi node scripts/import-training.js \
-  '/private/Scheda-palestra.PDF' 'utente@example.com'
-docker compose up -d --no-build --wait
-```
-
-Tutte le serie partono con carico `null` (da impostare). I link sono candidati da revisionare; il recupero ambiguo della panca non riceve una durata automatica. L'import ripetuto per lo stesso utente/versione restituisce la scheda esistente.
-
-Se la porta 8080 è occupata, impostare `FRONTEND_PORT=8081` nel `.env` privato e aprire `http://localhost:8081`. Il binding resta soltanto locale. Per i test API usare `PULSE_TEST_URL=http://127.0.0.1:8081/api/pulse`; per smoke usare `FRONTEND_URL=http://127.0.0.1:8081`.
-
-### Test fase 3
-
-Il reset `backend/scripts/phase3-test-reset.js` richiede `PULSE_TEST_FIXTURES=1` e tocca solo i dati allenamento/promemoria dei due utenti sintetici esistenti; non usarlo sugli account personali. Eseguirlo nel container con Strapi fermo, come le altre fixture, prima del test API iniziale.
-
-```sh
-PULSE_TEST_CREDENTIALS=/percorso/privato/credentials.json PULSE_TEST_URL=http://127.0.0.1:8081/api/pulse node tests/phase3-integration.mjs
-# Subito dopo un riavvio senza rigenerare fixture:
-PULSE_TEST_CREDENTIALS=/percorso/privato/credentials.json node tests/phase3-persistence.mjs
-PULSE_TEST_CREDENTIALS=/percorso/privato/credentials.json node tests/phase3-reminders.mjs
-cd frontend
-PULSE_TEST_CREDENTIALS=/percorso/privato/credentials.json npm run test:e2e
-```
-
-Gli scenari PWA/notifiche usano la build locale su 8081; i test delle pagine usano Vite su 5173. Installare i browser con `npx playwright install chromium` sul nuovo PC. La suite notifiche usa Chromium completo. Le revisioni video sono separate dai programmi: [docs/VIDEO_REVIEW.md](docs/VIDEO_REVIEW.md).
-
-## Preparazione produzione — fase4
-
-- Frontend/PWA: `https://pulse.vezzo.vp360web.it`; backend/admin: `https://apipulse.vezzo.vp360web.it/admin`. API personale same-origin tramite `/api` sul frontend.
-- `compose.production.yml` è separato dal Compose locale: rete DB privata, ruolo applicativo non superuser, manutenzione distinta, healthcheck, log ruotati e immagini per digest. Default **loopback + CA interna**, senza pubblicazione accidentale.
-- `infra/preflight.js` controlla configurazione senza stampare segreti; il profilo pubblico verifica anche i DNS. I due domini erano NXDOMAIN al controllo del16 novembre2026: nessun record è stato modificato.
-- Backup completi cifrati GPG, timer systemd, retention, rsync/SSH verificato e restore in volumi nuovi: procedure in DEPLOYMENT.md. Copia su un server esterno reale da configurare e collaudare con le proprie credenziali.
-- Audit backend **34→25** (high23→5); Zod4/Hono corretti, due low ritirati dal registro e rischi residui descritti senza nasconderli. Nessun upgrade forzato incompatibile. Frontend0.
-- [Checklist Chrome Android](docs/ANDROID_CHECKLIST.md): installazione e prova fisica ancora manuali. Notifiche restano in-app/di sistema a pagina aperta, senza push remoto in background.
-
-Sviluppo locale invariato: `docker compose up -d --build --wait`. I dati personali esistenti vanno migrati mediante backup/restore, senza ricreare utenti o ripetere gli import. Fase5 (video3D e nuova dieta) non implementata; grafica, dieta e link esistenti preservati.
+[MIT](LICENSE)

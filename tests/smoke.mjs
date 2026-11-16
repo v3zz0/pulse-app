@@ -9,5 +9,6 @@ response=await fetch(backend+'/admin'); assert.equal(response.status,200);
 response=await fetch(backend+'/api/auth/local/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'smoke-test',email:'smoke@example.invalid',password:'Synthetic-test-only-123!'})});
 assert.equal(response.status,400); assert.equal((await response.json()).error.message,"Register action is currently disabled");
 response=await fetch(backend+'/api/users/me'); assert.equal(response.status,403);
-response=await fetch(frontend+'/api/users/me'); assert.equal(response.status,403);
+response=await fetch(frontend+'/api/users/me'); assert.equal(response.status,404);
+response=await fetch(frontend+'/admin'); assert.equal(response.status,404);
 console.log('PASS: frontend, deep link, health Strapi, admin, registrazione chiusa, accesso anonimo negato e proxy API.');

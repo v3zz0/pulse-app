@@ -1,3 +1,0 @@
-# Existing read-only mount point, replaced by TLS_CONFIG in Compose.
-# Safe default if Caddyfile is validated directly.
-tls internal

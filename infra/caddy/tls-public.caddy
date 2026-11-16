@@ -1,6 +1,0 @@
-# Enable only after explicit deployment approval, DNS/firewall checks and ACME email setup.
-tls {
- issuer acme {
-  email {$ACME_EMAIL}
- }
-}

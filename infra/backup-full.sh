@@ -45,11 +45,7 @@ git -c safe.directory="$PULSE_ROOT" rev-parse HEAD > "$work/config/source-commit
 git -c safe.directory="$PULSE_ROOT" status --porcelain > "$work/config/worktree-status.txt"
 "${compose[@]}" images --format json > "$work/config/images.json"
 if [[ -n ${PULSE_CONFIG:-} ]]; then cp "$PULSE_CONFIG" "$work/config/backup-config.sh"; fi
-# Includes Caddy certificates, ACME account and internal CA keys when the proxy exists.
-if "${compose[@]}" config --services | grep -qx proxy; then
- "${compose[@]}" run --rm --no-deps -T --entrypoint tar proxy -C /data -cf - . > "$work/caddy-data.tar"
-fi
-(cd "$work"; sha256sum database.dump database-counts.tsv uploads.tar > SHA256SUMS; find config -type f -exec sha256sum '{}' + >> SHA256SUMS; [[ ! -f caddy-data.tar ]] || sha256sum caddy-data.tar >> SHA256SUMS)
+(cd "$work"; sha256sum database.dump database-counts.tsv uploads.tar > SHA256SUMS; find config -type f -exec sha256sum '{}' + >> SHA256SUMS)
 tar -C "$work" -cf - . | gpg --batch --yes --trust-model always --recipient "$BACKUP_RECIPIENT" --encrypt --output "$BACKUP_DIR/.$name.pending"
 mv "$BACKUP_DIR/.$name.pending" "$BACKUP_DIR/$name"
 if ((resume)); then "${compose[@]}" up -d --no-build --wait frontend strapi >/dev/null; resume=0; fi

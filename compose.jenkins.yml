@@ -1,4 +1,4 @@
-# PULSE su docker-lavoro, avviato da Jenkins (senza Caddy: l'HTTPS lo fa Nginx Proxy Manager).
+# PULSE in produzione, avviato da Jenkins. L'HTTPS lo fa un reverse proxy davanti (es. Nginx Proxy Manager).
 # Le porte sono pubblicate solo sull'IP LAN della VM (PULSE_BIND_IP), mai su 0.0.0.0.
 name: pulse-production
 x-logging: &logging

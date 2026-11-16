@@ -1,15 +1,22 @@
-# PULSE
+# AGENTS.md
 
-Usare lo stesso checkout: task cloud già isolati, niente worktree salvo richiesta.
-Leggere PULSE_Starter_Codex_Cloud/PULSE_PROMPT_CODEX.md, IMPLEMENTATION_PLAN.md e docs/DATA_MODEL.md.
-Solo Vue 3, JavaScript, Strapi 5, PostgreSQL, Docker; niente TypeScript nei sorgenti o config del progetto.
-Preservare demo e PDF originali. Non pubblicare PDF, segreti, dati clinici o seed personali negli asset o immagini.
-Frontend: cd frontend && npm ci && npm run build && npm test; npm run test:e2e per browser.
-Backend: cd backend && npm ci && npm run build && npm test. Configurazione PostgreSQL obbligatoria.
-Compose: node infra/init-env.js solo se .env manca; docker compose up -d --build --wait.
-Aggiornare docs/VALIDATION.md con risultati reali. Non spacciare demo, test non eseguiti o placeholder per funzionalità persistenti.
-Non confondere carico standard e peso effettivo. Ogni operazione personale futura richiede ownership server-side.
+Notes for AI coding agents (and humans) working on this repository.
 
-Workflow Git: lavorare su main, sincronizzare origin/main prima delle attività. Nessun nuovo branch o PR. Dopo ogni attività completata eseguire build/test, commit descrittivo, push non forzato su origin/main e verifica SHA remoto. Se il push è negato fermarsi e spiegare, senza creare PR.
+## Stack
+- Vue 3 (JavaScript) + Strapi 5 (JavaScript) + PostgreSQL 17 + Docker Compose.
+- No TypeScript in sources or config.
 
-Fase 2: leggere docs/STRAPI_GUIDE.md. Test API/browser con fixture sintetiche e credenziali solo in file privati fuori dal repository. Non usare account personali nei test. Import PDF esplicito per utente, mai asset pubblico.
+## Commands
+- Frontend: `cd frontend && npm ci && npm run build && npm test` (browser tests: `npm run test:e2e`).
+- Backend: `cd backend && npm ci && npm run build && npm test` (PostgreSQL required).
+- Local stack: `node infra/init-env.js` (only if `.env` is missing), then `docker compose up -d --build --wait`.
+
+## Read first
+- `docs/DATA_MODEL.md`, `docs/STRAPI_GUIDE.md`, `docs/SECURITY.md`.
+
+## Rules
+- Never commit `.env*`, PDFs, database dumps, keys or any personal/health data. Use synthetic users in tests.
+- Every personal operation must check ownership on the server.
+- Do not mix the standard load of an exercise with the weight actually lifted.
+- Work on `main`, run build and tests before committing, no force push.
+- Record real results in `docs/VALIDATION.md`; never present demos or untested code as working features.
