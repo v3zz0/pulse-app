@@ -1,7 +1,18 @@
 <script setup>
+import { watch } from "vue";
+import { useWorkout } from "./stores/workout";
+import Reminders from "./Reminders.vue";
 import Icon from "./components/Icon.vue";
 import { useAuth } from "./stores/auth";
-const auth = useAuth();
+const auth = useAuth(),
+  workout = useWorkout();
+watch(
+  () => auth.user?.id,
+  (id) => {
+    if (id) workout.init();
+  },
+  { immediate: true },
+);
 const tabs = [
   ["/", "home", "Oggi"],
   ["/dieta", "food", "Dieta"],
@@ -33,7 +44,18 @@ const tabs = [
       <div class="avatar">A</div>
     </div>
   </header>
-  <main><RouterView /></main>
+  <main>
+    <section
+      v-if="auth.user && workout.active && $route.path !== '/allenati'"
+      class="card resume-card"
+    >
+      <h2>Riprendi allenamento · {{ workout.active.day }}</h2>
+      <RouterLink class="btn primary" to="/allenati"
+        >Riprendi allenamento</RouterLink
+      >
+    </section>
+    <RouterView /><Reminders v-if="auth.user" />
+  </main>
   <p class="footer-note">PULSE 2.1 · Il tuo spazio privato</p>
   <nav v-if="auth.user" class="bottom-nav" aria-label="Navigazione principale">
     <RouterLink

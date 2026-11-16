@@ -42,7 +42,7 @@ Home su dati PostgreSQL; ON/OFF; Mangiato/annullamento; composizioni alternative
 
 Pasti e note del PDF sono conservati, incluse bevande/pre-workout/pre-letto, limiti di frequenza e note generali. Le quantità condivise o ambigue sono marcate da verificare e il testo originale è consultabile: l'importazione tecnica non è una nuova validazione nutrizionale. La spesa elenca quantità testuali per porzione; non converte unità o somma ingredienti alternativi.
 
-Allenamento, grafici settimanali, PWA e notifiche appartengono alla fase 3 e non sono simulati come attivi. L'admin gestisce i cataloghi; per i pasti il formato attuale è JSON strutturato, documentato con un esempio sintetico in [docs/STRAPI_GUIDE.md](docs/STRAPI_GUIDE.md).
+Allenamento completo, storico/grafici, ripresa offline, PWA e promemoria sono ora operativi nella fase 3, con i limiti di consegna notifiche descritti sotto. L'admin gestisce i cataloghi; per i pasti il formato attuale è JSON strutturato, documentato con un esempio sintetico in [docs/STRAPI_GUIDE.md](docs/STRAPI_GUIDE.md).
 
 ## Sviluppo e test
 
@@ -85,9 +85,15 @@ docker compose up -d --no-build --wait
 
 HTTPS, proxy affidabile e cookie Secure dietro proxy, backup completi, migrazioni e deploy sul server saranno collaudati nella fase 4. L'esempio Caddy è soltanto un riferimento da adattare. Audit e limiti reali in [docs/VALIDATION.md](docs/VALIDATION.md); non esporre in produzione prima della revisione sicurezza.
 
-## Fase 3 in corso
+## Allenamento, PWA e promemoria
 
-Piano operativo e criteri di completamento: [docs/PHASE3.md](docs/PHASE3.md). Il primo incremento aggiunge l'import privato della scheda A/B/C nel Content Manager; la schermata di allenamento resta non operativa finché sessioni e salvataggio non sono implementati.
+Stato e collaudi: [docs/PHASE3.md](docs/PHASE3.md). Da Allenati avviare la scheda completa A/B/C; Home mette in evidenza la sessione da riprendere. Ogni serie permette peso registrato, completamento senza peso o salto. Il carico della seduta non aggiorna lo standard: usare «Aggiorna carico standard» e confermare. Gli aggiornamenti standard valgono per le prossime sessioni, senza riscrivere quelle già iniziate o concluse.
+
+Il recupero parte automaticamente quando la fonte indica secondi non ambigui. Timer manuale, pausa e ripresa usano timestamp persistenti. Ogni modifica va prima in IndexedDB e poi nel backend; il messaggio di sincronizzazione distingue bozza locale e salvataggio server. Avvio di una nuova sessione e cambio standard richiedono rete. Se c'è un conflitto, scaricare una copia della bozza prima di scegliere la versione server. Logout rimuove i dati locali: attendere la sincronizzazione prima di uscire se si vogliono mantenere modifiche offline sul server.
+
+Progressi mostra storico, pesi effettivi, ripetizioni, grafici carichi/peso corporeo e volume registrato. Il volume esclude serie senza peso o ripetizioni e segnala i totali parziali; non inventa ripetizioni dei circuiti o moltiplicazioni per gamba.
+
+In Altro: installazione PWA e promemoria per pasti/integratori/allenamenti, timezone, giorni e rinvio 15/30/60. Le notifiche di sistema richiedono consenso e supporto del browser. Gli avvisi funzionano mentre l'app è aperta e connessa; non è attivo un servizio di push remoto a pagina chiusa. Il fallback in-app resta utilizzabile con notifiche negate. Android remoto richiede un'origine HTTPS privata: lo stack locale resta su loopback e non viene esposto pubblicamente.
 
 Con l'utente finale già creato, importare senza pubblicare il PDF:
 
@@ -103,3 +109,18 @@ docker compose up -d --no-build --wait
 Tutte le serie partono con carico `null` (da impostare). I link sono candidati da revisionare; il recupero ambiguo della panca non riceve una durata automatica. L'import ripetuto per lo stesso utente/versione restituisce la scheda esistente.
 
 Se la porta 8080 è occupata, impostare `FRONTEND_PORT=8081` nel `.env` privato e aprire `http://localhost:8081`. Il binding resta soltanto locale. Per i test API usare `PULSE_TEST_URL=http://127.0.0.1:8081/api/pulse`; per smoke usare `FRONTEND_URL=http://127.0.0.1:8081`.
+
+### Test fase 3
+
+Il reset `backend/scripts/phase3-test-reset.js` richiede `PULSE_TEST_FIXTURES=1` e tocca solo i dati allenamento/promemoria dei due utenti sintetici esistenti; non usarlo sugli account personali. Eseguirlo nel container con Strapi fermo, come le altre fixture, prima del test API iniziale.
+
+```sh
+PULSE_TEST_CREDENTIALS=/percorso/privato/credentials.json PULSE_TEST_URL=http://127.0.0.1:8081/api/pulse node tests/phase3-integration.mjs
+# Subito dopo un riavvio senza rigenerare fixture:
+PULSE_TEST_CREDENTIALS=/percorso/privato/credentials.json node tests/phase3-persistence.mjs
+PULSE_TEST_CREDENTIALS=/percorso/privato/credentials.json node tests/phase3-reminders.mjs
+cd frontend
+PULSE_TEST_CREDENTIALS=/percorso/privato/credentials.json npm run test:e2e
+```
+
+Gli scenari PWA/notifiche usano la build locale su 8081; i test delle pagine usano Vite su 5173. Installare i browser con `npx playwright install chromium` sul nuovo PC. La suite notifiche usa Chromium completo. Le revisioni video sono separate dai programmi: [docs/VIDEO_REVIEW.md](docs/VIDEO_REVIEW.md).

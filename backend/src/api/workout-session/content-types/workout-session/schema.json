@@ -1,0 +1,69 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pulse_workout_sessions",
+  "info": {
+    "singularName": "workout-session",
+    "pluralName": "workout-sessions",
+    "displayName": "Allenamenti"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "uniqueKey": {
+      "type": "string",
+      "unique": true,
+      "required": true
+    },
+    "activeKey": {
+      "type": "string",
+      "unique": true
+    },
+    "clientId": {
+      "type": "string",
+      "required": true
+    },
+    "programId": {
+      "type": "integer",
+      "required": true
+    },
+    "day": {
+      "type": "string",
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "active",
+        "completed"
+      ],
+      "default": "active"
+    },
+    "startedAt": {
+      "type": "datetime"
+    },
+    "completedAt": {
+      "type": "datetime"
+    },
+    "snapshot": {
+      "type": "json",
+      "required": true
+    },
+    "timer": {
+      "type": "json"
+    },
+    "operations": {
+      "type": "json"
+    },
+    "revision": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

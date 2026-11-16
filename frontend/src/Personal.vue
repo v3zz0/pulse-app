@@ -1,4 +1,5 @@
 <script setup>
+import Pwa from "./Pwa.vue";
 import { onMounted, ref, computed } from "vue";
 import { api, send } from "./api";
 import { localDate } from "./stores/day";
@@ -175,4 +176,5 @@ onMounted(load);
   <button class="btn ghost wide" style="margin-top: 14px" @click="auth.logout">
     Esci
   </button>
+<Pwa />
 </template>

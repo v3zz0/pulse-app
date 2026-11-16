@@ -6,7 +6,8 @@ import Home from "./Home.vue";
 import Login from "./Login.vue";
 import Nutrition from "./Nutrition.vue";
 import Personal from "./Personal.vue";
-import Placeholder from "./Placeholder.vue";
+import Workout from "./Workout.vue";
+import Progress from "./Progress.vue";
 import { useAuth } from "./stores/auth";
 import "./style.css";
 const pinia = createPinia();
@@ -17,11 +18,8 @@ const router = createRouter({
     { path: "/login", component: Login },
     { path: "/dieta", component: Nutrition },
     { path: "/altro", component: Personal },
-    ...["allenati", "progressi"].map((section) => ({
-      path: "/" + section,
-      component: Placeholder,
-      props: { section },
-    })),
+    { path: "/allenati", component: Workout },
+    { path: "/progressi", component: Progress },
     { path: "/:pathMatch(.*)*", redirect: "/" },
   ],
 });
@@ -32,3 +30,8 @@ router.beforeEach(async (to) => {
   if (auth.user && to.path === "/login") return "/";
 });
 createApp(App).use(pinia).use(router).mount("#app");
+
+new BroadcastChannel("pulse-auth").onmessage = () => location.assign("/login");
+
+if (import.meta.env.PROD && "serviceWorker" in navigator)
+  navigator.serviceWorker.register("/sw.js").catch(() => {});

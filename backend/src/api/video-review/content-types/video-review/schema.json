@@ -1,0 +1,50 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pulse_video_reviews",
+  "info": {
+    "singularName": "video-review",
+    "pluralName": "video-reviews",
+    "displayName": "Revisioni video"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "uniqueKey": {
+      "type": "string",
+      "unique": true,
+      "required": true
+    },
+    "programId": {
+      "type": "integer"
+    },
+    "url": {
+      "type": "string",
+      "required": true
+    },
+    "confirmed": {
+      "type": "boolean",
+      "default": false
+    },
+    "title": {
+      "type": "string",
+      "required": false
+    },
+    "basis": {
+      "type": "string",
+      "required": false
+    },
+    "note": {
+      "type": "text"
+    },
+    "checkedAt": {
+      "type": "datetime"
+    }
+  }
+}

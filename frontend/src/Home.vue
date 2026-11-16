@@ -166,21 +166,20 @@ onUnmounted(() => clearInterval(interval));
               <div class="focus-label">02 · ALLENAMENTO</div>
               <h2>Allenamento</h2>
             </div>
-            <span class="pill grey">SCHEDA A</span>
+            <span class="pill grey">A / B / C</span>
           </div>
           <div class="meal-preview">
             <div class="action-icon"><Icon name="gym" :size="24" /></div>
             <div class="mealinfo">
-              <h3>Petto · Tricipiti · Addome</h3>
+              <h3>La tua scheda completa</h3>
               <p>Carichi da impostare, recuperi e note del trainer</p>
             </div>
           </div>
-          <button class="btn primary wide" disabled>
+          <button class="btn primary wide" @click="router.push('/allenati')">
             <Icon name="bolt" :size="15" /> Inizia allenamento
           </button>
           <div class="source-note">
-            Disponibile nella fase allenamento. La scheda resterà completa, con
-            salto di singole serie ed esercizi.
+            Apri la scheda completa A/B/C. Puoi saltare singole serie ed esercizi.
           </div>
         </section>
         <div class="home-compact-grid">
@@ -228,7 +227,7 @@ onUnmounted(() => clearInterval(interval));
               <div class="focus-label">04 · PROMEMORIA</div>
               <h2>Non dimenticarti</h2>
             </div>
-            <span class="pill grey">NON ATTIVI</span>
+            <span class="pill grey">CONFIGURABILI</span>
           </div>
           <div class="soft-row">
             <div>
@@ -241,16 +240,16 @@ onUnmounted(() => clearInterval(interval));
                 }}
               </div>
             </div>
-            <button class="btn secondary sm" disabled>Rimanda</button>
+            <button class="btn secondary" @click="router.push('/altro')">Configura</button>
           </div>
           <div class="soft-row">
             <div>
               <b>Integratori</b>
               <div class="meta">{{ intakes.length }} assunzioni registrate</div>
             </div>
-            <button class="btn secondary sm" disabled>Gestisci</button>
+            <button class="btn secondary sm" @click="router.push('/altro')">Gestisci</button>
           </div>
-          <div class="source-note">Notifiche previste nella fase 3.</div>
+          <div class="source-note">Promemoria configurabili in Altro; avvisi mentre l’app è aperta.</div>
         </section>
       </div>
     </div>

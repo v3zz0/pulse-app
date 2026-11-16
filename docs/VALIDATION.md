@@ -1,3 +1,35 @@
+# Fase 3 — consegna funzionale e collaudo, 16 novembre 2026
+
+## Implementazione e dati preservati
+
+Main sincronizzato con origin prima delle modifiche; checkout iniziale pulito sul commit a7e8930. Nessun branch/PR o deploy pubblico. Import A/B/C esistente preservato, senza rieseguire l'importazione. Backup PostgreSQL privato creato prima dei nuovi schemi (`backups/pulse-20261116T112635Z.dump`, ignorato da Git). Nessun reset di dati personali: solo fixture allenamento dei due utenti sintetici inizializzate esplicitamente per i test.
+
+Sessioni complete, carichi standard separati, risultati espliciti recorded/unlogged/skipped, salto esercizi, timer automatici/manuali con pausa/ripresa, autosalvataggio IndexedDB + backend, retry idempotenti e gestione visibile dei conflitti. Sessioni concluse immutabili via API. Storico, grafici peso corporeo/carichi registrati/volume e riepilogo sette giorni. Manifest, icone e service worker installabile, cache della sola shell. Promemoria personali e notifiche di sistema con consenso durante l'apertura dell'app. Revisioni video separate e fondate sui metadati ufficiali; cinque associazioni non confermate, dettagli in VIDEO_REVIEW.md.
+
+## Test reali superati
+
+- Build Vite, admin Strapi e immagini Docker riuscite. Stack finale avviato con Compose ordinario, senza mount di sviluppo: postgres/strapi/frontend healthy su rete DB privata e porte loopback 1337/8081.
+- Backend: **5 file test passati**, comprese le fonti PDF originali, regole carichi/volume/timer e promemoria/timezone. Frontend: **1 file test passato** per mancato falso salvataggio in caso di errore server.
+- API fase 3 con due utenti sintetici: **PASS** per owner/anonimo/CSRF, avvio e retry concorrenti con UUID stabile, rifiuto seconda sessione attiva, serie/esercizi saltati, recorded/unlogged, conclusione, revisioni, replay di operazioni, conflitti e immutabilità. Verificato volume 400 da 50 kg × 8 ripetizioni registrate; nessun volume attribuito alla serie senza peso.
+- Caso obbligatorio **60 kg standard → 50 temporanei → completata senza registrare peso → nuova sessione ancora 60 kg: PASS via API e via UI browser**. L'eseguito della prima serie resta null, senza falsi 60/50 kg. Aggiornamento esplicito standard e conferma/revisione verificati; la modifica non altera gli snapshot attivi o storici.
+- Timer: avvio automatico quando la fonte indica un recupero numerico, avvio manuale, pausa e ripresa. Recupero ambiguo della panca resta manuale. Confronto esatto di endAt e revisione prima/dopo riavvio Strapi, poi prima/dopo **riavvio reale PostgreSQL + Strapi/frontend**, senza rigenerare fixture: **PASS**. Presenti ancora standard60, sessione attiva, storico unlogged e configurazioni promemoria.
+- Browser: **12 scenari passati, 0 saltati**, con worker singolo su 360/390/1440 px. Home/nutrizione, esecuzione, ricarica, perdita rete/ripresa, timer, storico e grafico peso. Screenshot mobile e desktop ispezionati; nessun overflow nei controlli eseguiti e nessun pageerror negli scenari workout/PWA che lo rilevano.
+- Browser concorrenza: due tab coordinate, operazione applicata dal server con risposta persa e retry senza doppio incremento, conflitto da altro dispositivo durante offline, download della bozza e scelta versione server, logout con pulizia IndexedDB in entrambe le tab. Simulata memoria locale non disponibile: nessun falso completamento persistente dichiarato, errore visibile e rollback dello stato locale.
+- PWA di produzione: `Page.getInstallabilityErrors` Chromium restituisce lista vuota a tutte e tre le dimensioni. Manifest/icone verificati, riapertura completa della pagina offline dopo una serie, coda mantenuta e sincronizzata al ritorno rete. Ispezione CacheStorage: solo shell/asset, nessuna API o PDF.
+- Notifiche: **notifica reale tramite service worker in Chromium completo con consenso concesso**, rinvio15 e disattivazione da UI passati. Test regole/API per rinvii15/30/60 validati e soppressione dopo consumo, assunzione o avvio allenamento. La headless shell nega il permesso notifiche: lo scenario usa il browser Chromium completo, senza simulare la chiamata showNotification.
+- Regressione API fase 2 e smoke stack sulle immagini finali dopo riavvio: **PASS**. Login/logout revocabile, ownership, dieta8/6, consumi, conflitti, preferenze, peso, assunzioni, domani/spesa, frontend/deep link/admin/health e accesso pubblico negato preservati.
+
+## Limiti espliciti
+
+- Promemoria in-app e notifiche di sistema **mentre la pagina è aperta e connessa**, verifica ogni30 secondi. Browser/OS possono sospendere le schede. Non è implementato un canale Web Push remoto con consegna a pagina chiusa; la UI lo dice esplicitamente. Il consenso negato/non supportato mantiene il fallback in-app. La notifica usa testo generico senza dettagli nutrizionali.
+- Installabilità Chromium verificata; installazione su Android fisico o nel menu OS desktop non eseguita da questo ambiente. Android che accede al PC richiede HTTPS privato, da predisporre nella fase server; non è stata aperta alcuna porta pubblica.
+- Cinque associazioni video restano da revisionare; conferme limitate a titolo ufficiale e movimento candidato, non alla visione integrale o a una certificazione della tecnica. Le sessioni vecchie conservano le revisioni del proprio snapshot.
+- Volume parziale quando mancano peso o ripetizioni; non si deducono kg dallo standard e non si moltiplicano automaticamente circuiti o lavoro per gamba. Nessuna misura di massa muscolare stimata.
+- Prima sessione, accesso online e modifica standard richiedono rete. La ripresa offline riguarda una sessione già aperta e memorizzata sul dispositivo. Non cambiare manualmente gli identificatori tecnici in admin. Logout elimina bozze locali: sincronizzare prima di uscire per conservare sul server eventuali modifiche ancora solo locali.
+- Audit completo finale: frontend 0; backend 34 (23 high, 9 moderate, 2 low, 0 critical), invariato. Hardening dipendenze/HTTPS, restore finale e collaudo dispositivi restano fase4. Nessun aggiornamento forzato o cambio stack.
+
+---
+
 # Verifica sul nuovo PC e avvio fase 3 — 16 novembre 2026
 
 ## Configurazione e fase 2 riconfermata

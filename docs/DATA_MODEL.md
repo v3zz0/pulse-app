@@ -46,4 +46,13 @@ Le chiavi univoche includono l'utente; le giornate hanno revisione per concorren
 
 `training-program` conserva owner, hash/versione import, stato di revisione, giornate JSON e defaticamento comune. Il JSON contiene blocchi ordinati, fasi, serie identificate in modo deterministico, ripetizioni e note fonte, recupero raw/secondi, movimenti del circuito e annotazioni video candidate. Carichi iniziali null; nessun risultato eseguito viene creato dall'import. Nessun endpoint CRUD generico esposto. Import transazionale con advisory lock per owner/hash/versione, così due import concorrenti non creano due versioni uguali.
 
-StandardLoad, WorkoutSession, risultati, timer e reminder della tabella progettuale restano da implementare: la presenza del programma nel database non significa che l'allenamento operativo sia già disponibile. Contratti e collaudi previsti in PHASE3.md.
+Questo era il perimetro del primo incremento; l’implementazione successiva è descritta qui sotto e in PHASE3.md.
+
+## Implementazione effettiva fase 3
+
+- `standard-load`: owner, programId, setKey, kg nullable, revisione e uniqueKey owner/programma/serie. La modifica esplicita ha un endpoint dedicato e non legge automaticamente i risultati.
+- `workout-session`: UUID client per owner, activeKey univoca (null alla conclusione), stato/revisione, snapshot JSON del programma e delle serie, timer endAt/pausedRemaining e log degli ID operazione con hash del payload. Lock transazionale per owner e vincoli univoci serializzano avvio e scrittura; replay dello stesso payload non aggiunge un'altra serie o sessione. Ogni serie conserva standardAtStart, draftKg, actualKg, actualReps, stato e completedAt; lo storico concluso è immutabile tramite API. Un indice univoco nullable su activeKey impedisce due sessioni attive per owner nell'API.
+- `reminder`: configurazione JSON per kind/target/ora/timezone/giorni, stato dell'occorrenza locale, revisione e chiave per owner/UUID. Lettura delle azioni già completate prima della proposta. Nessuna PushSubscription: il canale attuale è in-app/notifica di sistema con pagina aperta.
+- `video-review`: owner, programId, URL, titolo, base della verifica, nota e data. Overlay per le nuove sessioni e per l'anteprima; non modifica il programma originale né snapshot storici.
+
+La coda IndexedDB è separata per owner, verificato nuovamente tramite /me prima di inviare dati. Web Locks e BroadcastChannel coordinano le schede dello stesso browser; altre installazioni usano revisioni server e conflitti espliciti. I risultati delle serie sono uno snapshot JSON transazionale, anziché righe SetResult separate; questo conserva insieme schema e fonte senza introdurre aggiornamenti parziali non atomici. Non modificare manualmente activeKey, uniqueKey, revisioni o log operazioni in admin.

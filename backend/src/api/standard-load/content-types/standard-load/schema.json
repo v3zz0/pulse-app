@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pulse_standard_loads",
+  "info": {
+    "singularName": "standard-load",
+    "pluralName": "standard-loads",
+    "displayName": "Carichi standard"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "uniqueKey": {
+      "type": "string",
+      "unique": true,
+      "required": true
+    },
+    "programId": {
+      "type": "integer",
+      "required": true
+    },
+    "setKey": {
+      "type": "string",
+      "required": true
+    },
+    "kg": {
+      "type": "decimal"
+    },
+    "revision": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}
