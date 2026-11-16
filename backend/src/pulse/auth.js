@@ -106,4 +106,76 @@ async function logout(ctx, strapi) {
   ctx.cookies.set(cookie, null, cookieOptions(ctx));
   ctx.status = 204;
 }
-module.exports = { login, logout, requireUser };
+async function updateProfile(ctx, strapi, owner) {
+  const { username, currentPassword, newPassword } = ctx.request.body || {};
+  if (typeof username !== "string" || !/^[a-zA-Z0-9_.-]{3,64}$/.test(username))
+    fail(
+      "Usa da 3 a 64 lettere, numeri, punti, trattini o underscore per il nome utente",
+    );
+  if (
+    typeof currentPassword !== "string" ||
+    !currentPassword ||
+    currentPassword.length > 512
+  )
+    fail("Inserisci la password attuale");
+  if (
+    newPassword !== undefined &&
+    (typeof newPassword !== "string" ||
+      newPassword.length < 12 ||
+      Buffer.byteLength(newPassword, "utf8") > 72)
+  )
+    fail(
+      "La nuova password deve avere almeno 12 caratteri e non superare 72 byte",
+    );
+  let bucketKeys;
+  try {
+    bucketKeys = await limit.consume(strapi, ctx.ip, `profile:${owner.id}`);
+  } catch (e) {
+    if (e.retryAfter) ctx.set("Retry-After", String(e.retryAfter));
+    throw e;
+  }
+  const user = await strapi.db.transaction(async ({ trx }) => {
+    await trx.raw("SELECT pg_advisory_xact_lock(hashtext(?))", [
+      "pulse-profile-update",
+    ]);
+    const repo = strapi.db.query("plugin::users-permissions.user");
+    const fresh = await repo.findOne({ where: { id: owner.id } });
+    const tokenHash = hash(ctx.cookies.get(cookie, { signed: false }) || "");
+    const active = await sessions(strapi).findOne({ where: { tokenHash } });
+    if (!active || !fresh || fresh.blocked || !fresh.confirmed)
+      fail("Sessione scaduta", 401);
+    const service = strapi.plugin("users-permissions").service("user");
+    if (!(await service.validatePassword(currentPassword, fresh.password)))
+      fail("Password attuale non corretta", 403);
+    const taken = await repo.findOne({
+      where: {
+        id: { $ne: fresh.id },
+        $or: [{ username: { $eqi: username } }, { email: { $eqi: username } }],
+      },
+    });
+    if (taken) fail("Nome utente non disponibile", 409);
+    const data = { username };
+    if (newPassword !== undefined)
+      Object.assign(
+        data,
+        await service.ensureHashedPasswords({ password: newPassword }),
+      );
+    const updated = await repo.update({ where: { id: fresh.id }, data });
+    if (newPassword !== undefined) {
+      await sessions(strapi).deleteMany({
+        where: { owner: fresh.id, tokenHash: { $ne: tokenHash } },
+      });
+      // Invalidate any previously issued password-reset token.
+      await strapi.db
+        .query("plugin::users-permissions.user")
+        .update({
+          where: { id: fresh.id },
+          data: { resetPasswordToken: null },
+        });
+    }
+    return updated;
+  });
+  await limit.success(strapi, bucketKeys);
+  ctx.body = { user: { id: user.id, username: user.username } };
+}
+module.exports = { login, logout, requireUser, updateProfile };

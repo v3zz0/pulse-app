@@ -37,11 +37,17 @@ const tabs = [
             stroke="currentColor"
             stroke-width="2.3"
           /></svg></span
-      >PULSE<small>2.1</small>
+      >PULSE
     </div>
     <div class="topright">
-      <div class="demochip"><span class="demo-dot"></span>PRIVATO</div>
-      <div class="avatar">A</div>
+      <RouterLink
+        v-if="auth.user"
+        to="/account"
+        class="avatar"
+        aria-label="Il tuo account"
+        :title="auth.user.username"
+        >{{ auth.user.username?.slice(0, 1).toUpperCase() }}</RouterLink
+      >
     </div>
   </header>
   <main>
@@ -56,7 +62,7 @@ const tabs = [
     </section>
     <RouterView /><Reminders v-if="auth.user" />
   </main>
-  <p class="footer-note">PULSE 2.1 · Il tuo spazio privato</p>
+  <p class="footer-note">PULSE · Il tuo spazio privato</p>
   <nav v-if="auth.user" class="bottom-nav" aria-label="Navigazione principale">
     <RouterLink
       v-for="[path, icon, label] in tabs"

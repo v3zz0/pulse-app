@@ -7,6 +7,7 @@ import Home from "./Home.vue";
 import Login from "./Login.vue";
 import Nutrition from "./Nutrition.vue";
 import Personal from "./Personal.vue";
+import Account from "./Account.vue";
 import Workout from "./Workout.vue";
 import Progress from "./Progress.vue";
 import { useAuth } from "./stores/auth";
@@ -19,6 +20,7 @@ const router = createRouter({
     { path: "/login", component: Login },
     { path: "/dieta", component: Nutrition },
     { path: "/altro", component: Personal },
+    { path: "/account", component: Account },
     { path: "/allenati", component: Workout },
     { path: "/progressi", component: Progress },
     { path: "/:pathMatch(.*)*", redirect: "/" },

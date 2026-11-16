@@ -10,6 +10,7 @@ module.exports = {
     route("POST", "/login", "login"),
     route("POST", "/logout", "logout"),
     route("GET", "/me", "me"),
+    route("PUT", "/profile", "profile"),
     route("GET", "/nutrition", "nutrition"),
     route("GET", "/days/:day", "day"),
     route("PUT", "/days/:day", "updateDay"),

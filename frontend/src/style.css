@@ -5,7 +5,7 @@
 @media(max-width:370px){#app{padding:0 13px 120px}.brand{font-size:21px}.hero-val strong{font-size:56px}.meal-preview{gap:9px}.card{padding:15px}.set-row,.set-header{grid-template-columns:28px 1fr 58px 65px;gap:5px}.kg-controls button{padding:7px}.kg-controls span{font-size:11px}.btn{font-size:12px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
 
-/* PULSE 2.1 · mobile-first design extensions */
+/* PULSE · mobile-first design extensions */
 .brand .mark{height:35px;width:35px;border:0;transform:none;background:#123A33;border-radius:11px}
 .brand{letter-spacing:-1.5px}
 .brand small{letter-spacing:.6px;font-size:8px;border:1px solid #2A6959;border-radius:5px;padding:3px 4px;margin-left:4px}
@@ -81,3 +81,5 @@ a.navitem{text-decoration:none}button:disabled{opacity:.5;cursor:not-allowed}.ph
 .todayline>label{min-width:0;flex:1}.todayline .switch-seg{flex-shrink:0}
 .card{min-width:0}.field{min-width:0;max-width:100%}
 .mint{color:var(--accent)}.workout-block{margin-top:14px}.training-preview{padding:14px 0;border-bottom:1px solid var(--line)}summary{cursor:pointer;font-weight:800;overflow-wrap:anywhere}.session-set{padding:14px 0;border-top:1px solid var(--line)}.set-buttons,.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.set-buttons .btn{flex:1;min-width:130px}.btnrow .field{width:120px}.video-list{display:grid;gap:8px;margin:12px 0}.rest-panel{padding:16px;border:1px solid var(--accent);border-radius:15px;margin:12px 0}.rest-panel b{font-size:26px}.resume-card{margin-bottom:14px;border-color:var(--accent)}.workout-block .card-head{align-items:flex-start}.workout-block h2{overflow-wrap:anywhere}.workout-block .textbutton{flex-shrink:0;max-width:140px}.training-preview .setting-row{gap:8px;flex-wrap:wrap}.griddash{margin-top:14px}.chart{max-height:250px}.reminder-row{border-top:1px solid var(--line);padding:14px 0}.reminder-row .field{margin-bottom:9px}@media(max-width:420px){.workout-block .card-head{display:block}.set-buttons .btn{min-width:100%;}.field-row{gap:8px}}
+
+.avatar{text-decoration:none}.account-form{max-width:650px;margin:0 auto}.account-form .field{margin-bottom:16px}.account-form .btn{margin-top:10px}

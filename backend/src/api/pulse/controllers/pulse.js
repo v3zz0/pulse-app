@@ -77,6 +77,7 @@ const presentDay = (entry) => ({
 module.exports = {
   login: handler(auth.login),
   logout: handler(auth.logout),
+  profile: guarded((ctx, user) => auth.updateProfile(ctx, strapi, user)),
   me: guarded(async (ctx, user) => {
     ctx.body = { user: safeUser(user) };
   }),

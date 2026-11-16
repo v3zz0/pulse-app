@@ -1,3 +1,16 @@
+# Account personale e marchio senza versione — 16 novembre 2026
+
+- Main inizialmente pulito sul commit `3ef4672`; sincronizzazione `origin/main` confermata senza aggiornamenti. Nessun deploy remoto.
+- Rimossi versione visibile da logo, Home e footer e badge PRIVATO dall’header. Avatar con iniziale del nome utente, link accessibile a `/account`; form nello stile PULSE esistente.
+- `PUT /api/pulse/profile`: ownership ricavata dalla sessione, controllo origine e password attuale, limite persistente dei tentativi, username univoco case-insensitive e validazione server. Nuova password facoltativa, hash nativo Strapi, transazione e revoca delle altre sessioni PULSE al cambio password. Nessuna modifica a dieta, scheda o carichi.
+- Build frontend/backend native e Docker **PASS**; test backend 6 file e frontend 1 file **PASS**. Build nativa Strapi con XDG_CONFIG_HOME temporaneo per il sandbox; nessuna configurazione personale sovrascritta. Stack locale ricostruito sui volumi esistenti, tre servizi healthy.
+- Nuovo test account **PASS a 360/390/1440 px** su immagini locali: cambio username e persistenza al reload, cambio password, accesso con nuovo username/password e rifiuto della vecchia password, revoca degli altri accessi, unicità, password debole/errata e origine ostile rifiutate, secondo utente invariato, nessun errore pagina/overflow. Credenziali dei soli due utenti sintetici ripristinate nel finally. Screenshot mobile ispezionato.
+- Prima regressione completa: 14/15 passati, errore intermittente del test già esistente sul rinvio promemoria; prova diagnostica isolata successiva PASS. Nessuna modifica ai promemoria applicata in questa attività. Seconda esecuzione: 14/15, promemoria PASS e timeout workout desktop perché tutte le serie della sessione sintetica erano state consumate dalle ripetizioni (pagina: 0 serie da gestire). Sessione sintetica conclusa via API e nuova A avviata, storico conservato; nessun reset o modifica a utenti personali.
+
+- Ultima regressione: **14/15 PASS** (account su tre viewport, nutrizione, workout, concorrenza e PWA); il test notifiche ha avuto un timeout, dopo il precedente PASS isolato. Instabilità notifiche aperta e non attribuita come risolta dal lavoro account.
+
+---
+
 # Fase4 — sicurezza e preparazione deployment, 16 novembre2026
 
 ## Stato e perimetro

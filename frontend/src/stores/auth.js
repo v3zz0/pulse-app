@@ -22,6 +22,10 @@ export const useAuth = defineStore("auth", {
       await write("identity", this.user);
       this.checked = true;
     },
+    async updateProfile(values) {
+      this.user = (await send("/profile", values)).user;
+      await write("identity", this.user);
+    },
     async logout() {
       return exclusive(async () => {
         await send("/logout", {}, "POST");

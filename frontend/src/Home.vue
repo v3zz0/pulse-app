@@ -46,7 +46,7 @@ onUnmounted(() => clearInterval(interval));
       <h1>La tua giornata<span style="color: var(--accent)">.</span></h1>
       <p>Prima mangia e allenati, poi pensa alle statistiche.</p>
     </div>
-    <span class="pill">PULSE 2.1</span>
+    <span class="pill">PULSE</span>
   </div>
   <div class="source-note phase-note">
     Piano storico del 17/09/2026, validità originale 30–40 giorni: da rivedere
