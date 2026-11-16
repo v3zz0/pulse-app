@@ -33,3 +33,7 @@ Build frontend/backend; PostgreSQL e Strapi avviabili; pannello nativo disponibi
 - Estratte 29 annotazioni URL con pagina e testo riga in `docs/reference-inventory.json`. I rettangoli delle annotazioni sono fuori dai limiti della pagina: le associazioni candidate seguono l'ordine delle righe LINK e sono da verificare manualmente, non una certificazione del contenuto video; URL non visitati. Dip e dip zavorrati, trazioni, reverse wrist curl e altri casi senza link esplicito non devono ricevere link inventati.
 
 Gli originali contengono dati personali: repository privato, nessuna copia in public, immagini o seed di produzione. Le quantità demo derivano dall'HTML e restano segnalate come esempi parziali.
+
+## Avvio fase 3 — 16 novembre 2026
+
+Piano dettagliato in `docs/PHASE3.md`. Primo incremento implementato: import privato A/B/C, collezione nativa Strapi, nessun carico inventato, circuito esplicito e annotazioni video da verificare. Sessioni, standard persistenti separati, timer, IndexedDB, storico/grafici, installazione PWA e promemoria restano aperti: fase 3 non conclusa.

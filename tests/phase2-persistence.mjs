@@ -5,7 +5,7 @@ const [user] = JSON.parse(
     process.env.PULSE_TEST_CREDENTIALS || "/tmp/pulse-test/credentials.json",
   ),
 );
-const base = "http://127.0.0.1:8080/api/pulse";
+const base = process.env.PULSE_TEST_URL || "http://127.0.0.1:8080/api/pulse";
 const login = await fetch(base + "/login", {
   method: "POST",
   headers: { "Content-Type": "application/json" },

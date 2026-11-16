@@ -41,3 +41,9 @@ Questo è un progetto, non una dichiarazione di tabelle già implementate. Usare
 Le collezioni presenti sono nutrition-plan, daily-plan, food-preference, weight-entry, supplement-product, supplement-intake e pulse-session. I pasti/gruppi/opzioni sono un JSON versionato nel piano e uno snapshot nella giornata, anziché le tabelle separate inizialmente proposte: questo semplifica l'import e conserva la fonte, ma l'editing admin è attualmente JSON. La guida `STRAPI_GUIDE.md` descrive chiavi e responsabilità.
 
 Le chiavi univoche includono l'utente; le giornate hanno revisione per concorrenza ottimistica. Consumi annullabili, nessuna sostituzione su pasto già consumato. Assunzioni distinguibili per prodotto/data/orario; nessuna dose precompilata dal piano storico. I registri utente sono accessibili solo tramite endpoint protetti da sessione, senza REST CRUD generico. Lo schema allenamento resta progettuale per fase 3.
+
+## Primo incremento fase 3 effettivamente presente
+
+`training-program` conserva owner, hash/versione import, stato di revisione, giornate JSON e defaticamento comune. Il JSON contiene blocchi ordinati, fasi, serie identificate in modo deterministico, ripetizioni e note fonte, recupero raw/secondi, movimenti del circuito e annotazioni video candidate. Carichi iniziali null; nessun risultato eseguito viene creato dall'import. Nessun endpoint CRUD generico esposto. Import transazionale con advisory lock per owner/hash/versione, così due import concorrenti non creano due versioni uguali.
+
+StandardLoad, WorkoutSession, risultati, timer e reminder della tabella progettuale restano da implementare: la presenza del programma nel database non significa che l'allenamento operativo sia già disponibile. Contratti e collaudi previsti in PHASE3.md.

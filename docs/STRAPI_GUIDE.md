@@ -78,3 +78,9 @@ I pasti sono attualmente un campo JSON versionato, per mantenere insieme la font
 ## Verifiche
 
 `npm test` in backend; `npm run build` in entrambi i progetti. Test integrazione: `node tests/phase2-integration.mjs` con fixture isolate, mai credenziali personali. I limiti dell'import e le vulnerabilità residue sono riportati in VALIDATION.md: non considerare un piano storico una prescrizione attuale.
+
+## Schede allenamento — primo incremento fase 3
+
+La collezione **Schede allenamento** contiene owner, hash/versione import, giornate JSON, defaticamento e rapporto. Il parser `backend/src/pulse/import-training.js` legge esclusivamente il PDF verificato: import manuale tramite `backend/scripts/import-training.js`. Non sono esposte rotte REST CRUD generiche.
+
+`days.A/B/C` contiene blocchi ordinati con ID stabili, fase, testo originale, ripetizioni, recupero originale e secondi, note e video candidati. `sets` contiene le singole serie con `standardKg: null`; il circuito conserva tre serie e tre movimenti, non nove serie indipendenti. `cooldown` è comune a ogni giornata, 180 secondi. I video mantengono `reviewRequired: true`: non impostare reviewed senza verificare contenuto e associazione. Le modifiche alle versioni utilizzate dovranno passare da nuove versioni per preservare lo storico; l'esecuzione delle sessioni è ancora da implementare.

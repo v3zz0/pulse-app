@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pulse_training_programs",
+  "info": {
+    "singularName": "training-program",
+    "pluralName": "training-programs",
+    "displayName": "Schede allenamento"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "sourceHash": {
+      "type": "string",
+      "required": true
+    },
+    "importVersion": {
+      "type": "integer",
+      "required": true
+    },
+    "reviewStatus": {
+      "type": "enumeration",
+      "enum": ["needs-review", "reviewed"],
+      "default": "needs-review"
+    },
+    "days": {
+      "type": "json",
+      "required": true
+    },
+    "cooldown": {
+      "type": "json",
+      "required": true
+    },
+    "importReport": {
+      "type": "json"
+    }
+  }
+}

@@ -84,3 +84,22 @@ docker compose up -d --no-build --wait
 `docker compose down` conserva i volumi; non usare `-v` sui dati da mantenere. Prima di aggiornare Strapi o schemi, fare backup e provare su una copia: il rollback del codice non ripristina automaticamente il database. Non stampare `docker compose config` risolto nei log: usare `--quiet`.
 
 HTTPS, proxy affidabile e cookie Secure dietro proxy, backup completi, migrazioni e deploy sul server saranno collaudati nella fase 4. L'esempio Caddy è soltanto un riferimento da adattare. Audit e limiti reali in [docs/VALIDATION.md](docs/VALIDATION.md); non esporre in produzione prima della revisione sicurezza.
+
+## Fase 3 in corso
+
+Piano operativo e criteri di completamento: [docs/PHASE3.md](docs/PHASE3.md). Il primo incremento aggiunge l'import privato della scheda A/B/C nel Content Manager; la schermata di allenamento resta non operativa finché sessioni e salvataggio non sono implementati.
+
+Con l'utente finale già creato, importare senza pubblicare il PDF:
+
+```sh
+docker compose stop frontend strapi
+docker compose run --rm --no-deps \
+  -v "$PWD/PULSE_Starter_Codex_Cloud/references:/private:ro" \
+  strapi node scripts/import-training.js \
+  '/private/Scheda-palestra.PDF' 'utente@example.com'
+docker compose up -d --no-build --wait
+```
+
+Tutte le serie partono con carico `null` (da impostare). I link sono candidati da revisionare; il recupero ambiguo della panca non riceve una durata automatica. L'import ripetuto per lo stesso utente/versione restituisce la scheda esistente.
+
+Se la porta 8080 è occupata, impostare `FRONTEND_PORT=8081` nel `.env` privato e aprire `http://localhost:8081`. Il binding resta soltanto locale. Per i test API usare `PULSE_TEST_URL=http://127.0.0.1:8081/api/pulse`; per smoke usare `FRONTEND_URL=http://127.0.0.1:8081`.

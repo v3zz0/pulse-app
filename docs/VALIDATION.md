@@ -1,3 +1,32 @@
+# Verifica sul nuovo PC e avvio fase 3 — 16 novembre 2026
+
+## Configurazione e fase 2 riconfermata
+
+Checkout iniziale pulito su main, fetch origin riuscito e HEAD allineato a origin/main prima delle modifiche. Repository effettivo nella sottocartella pulse-app. Node 24.15.0, npm 11.12.1, Docker Compose 2.40.3. File .env inizialmente assente: generato con infra/init-env.js, permessi 0600, ignorato da Git. Dipendenze installate con npm ci; le installazioni incomplete dopo l'interruzione sono state ripetute prima dei test validi.
+
+Porta 8080 occupata da un altro servizio: frontend configurabile tramite FRONTEND_PORT, impostato a 8081 soltanto nel .env locale. PostgreSQL privato e frontend/Strapi su loopback. Nessun deploy pubblico.
+
+- Build frontend e admin Strapi riuscite. Frontend: 1 file test passato; backend: 3 file test passati, inclusi import dieta e palestra originali.
+- Fixture con due utenti sintetici, credenziali casuali solo in /tmp/pulse-phase3-test/credentials.json con permessi 0600; nessun account personale usato.
+- API fase 2: PASS per login/logout revocabile, isolamento owner, CSRF, conflitti, dieta, consumi, preferenze, peso, assunzioni, domani e spesa. Smoke frontend/deep link/admin/health/registrazione chiusa/anonimo: PASS.
+- Chromium Playwright: 3 scenari passati, zero saltati, a 360/390/1440 px. Screenshot mobile 390 ispezionato; nessun pageerror rilevato nei flussi testati e controllo overflow dieta passato.
+- Arresto e riavvio Strapi/frontend senza rigenerare fixture, poi phase2-persistence.mjs: PASS per peso, consumi, domani/spesa e assunzioni PostgreSQL. Tre container healthy alla verifica finale.
+- npm ci frontend: 0 vulnerabilità. Backend: ancora 34 (23 high, 9 moderate, 2 low). Nessun aggiornamento forzato o cambio stack applicato.
+
+La fase 2 è confermata conclusa nel perimetro già documentato; rimangono i limiti della fonte, dell'editing JSON e dell'audit descritti sotto.
+
+## Primo incremento fase 3
+
+Import privato esplicito della scheda A/B/C e collezione nativa Strapi Schede allenamento. Parser limitato allo SHA256 verificato: nessun programma personale incluso in public o nelle immagini. Le immagini contengono il parser, non il PDF o i suoi dati importati.
+
+Test sorgente PASS: 11/12/8 blocchi, 23/27/25 serie; carichi iniziali null, warm-up/top set/back-off/CED, note, ripetizioni per gamba, circuito unico con tre movimenti 5+5+5 per tre giri e defaticamento comune 180 secondi. Recupero panca 1/2' conservato con seconds=null e revisione richiesta. Tutte le 29 annotazioni video sono candidate da verificare; contenuto video non visitato né certificato. Nessun link assegnato ai blocchi senza LINK.
+
+Import PostgreSQL con due utenti sintetici: PASS per record distinti, conteggio, idempotenza. Dopo arresto/riavvio, schede ancora presenti e retry concorrenti sul codice finale montato in sola lettura: PASS. Gli import serializzano per owner/hash/versione tramite advisory lock nella transazione. Il test non espone endpoint pubblici per le schede.
+
+Fase 3 ancora aperta: allenamento operativo, carichi standard separati, serie eseguite/saltate/senza peso, timer, IndexedDB, storico/grafici, installazione PWA e promemoria. Sequenza e criteri in PHASE3.md. Allenamento rapido escluso. Nessuna funzionalità futura dichiarata operativa.
+
+---
+
 # Validazione fase 2 — 16 novembre 2026
 
 ## Funzioni implementate
