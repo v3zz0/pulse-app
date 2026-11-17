@@ -398,31 +398,33 @@ onUnmounted(() => clearInterval(interval));
       }}
       · {{ completedCount }} serie gestite · {{ pending }} da fare
     </p>
-    <p v-if="w.pendingImports?.length" class="source-note">
-      Versioni CSV ancora in bozza: {{ w.pendingImports.length }}.
-      L’importazione da sola non cambia la scheda attiva: attivala da Altro.
-    </p>
-    <details v-if="w.program" class="program-version">
-      <summary>
-        Piano attivo: {{ w.program.provenance }} · versione
-        {{ w.program.version || "precedente" }} · riferimento {{ selectedDay }}
-      </summary>
-      <p>
-        Le versioni importate si attivano da Altro → Gestisci scheda
-        allenamento. Il trasferimento dei carichi precedenti richiede conferma e
-        può sostituire quelli della nuova versione.
+    <div v-if="w.program || w.pendingImports?.length" class="program-information">
+      <p v-if="w.pendingImports?.length" class="source-note">
+        Versioni CSV ancora in bozza: {{ w.pendingImports.length }}.
+        L’importazione da sola non cambia la scheda attiva: attivala da Altro.
       </p>
-      <p v-if="w.pendingImports?.length">
-        {{ w.pendingImports.length }} versioni CSV recenti sono ancora in bozza:
-        {{
-          w.pendingImports.map((p) => p.title + " · v" + p.version).join(", ")
-        }}.
-      </p>
-      <p>
-        I carichi della sessione sono quelli presenti all’avvio; aggiornare lo
-        standard vale per la prossima sessione.
-      </p>
-    </details>
+      <details v-if="w.program" class="program-version">
+        <summary>
+          Piano attivo: {{ w.program.provenance }} · versione
+          {{ w.program.version || "precedente" }} · riferimento {{ selectedDay }}
+        </summary>
+        <p>
+          Le versioni importate si attivano da Altro → Gestisci scheda
+          allenamento. Il trasferimento dei carichi precedenti richiede conferma e
+          può sostituire quelli della nuova versione.
+        </p>
+        <p v-if="w.pendingImports?.length">
+          {{ w.pendingImports.length }} versioni CSV recenti sono ancora in bozza:
+          {{
+            w.pendingImports.map((p) => p.title + " · v" + p.version).join(", ")
+          }}.
+        </p>
+        <p>
+          I carichi della sessione sono quelli presenti all’avvio; aggiornare lo
+          standard vale per la prossima sessione.
+        </p>
+      </details>
+    </div>
   </section>
   <p v-else-if="w.ready && !w.program" class="empty">
     Nessuna scheda attiva. Controlla le versioni importate in Altro.

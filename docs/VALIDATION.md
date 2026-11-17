@@ -1,3 +1,9 @@
+# Spaziatura della scheda in Allenati — 18 novembre 2026
+
+La card di anteprima e sessione attiva separa intestazione, conteggi, azione principale e informazioni sul piano. Build Vite e tre file di test frontend superati. Regressione Allenati su Chromium **3/3**. Nella card di anteprima, spazio verticale misurato di 16 px a 360 e 390 px e di 22 px a 1440 px. Il pulsante di avvio misura 51 px in altezza. Nessun overflow orizzontale in queste prove.
+
+---
+
 # Editor visuali e Progressi — 18 novembre 2026
 
 - Fase 1. Editor Allenati e Dieta collegati ai normali percorsi di creazione, modifica, duplicazione, conferma di eliminazione e attivazione. Collaudo API prima di estendere Progressi. Test con due utenti sintetici per sessioni, proprietà del piano e della libreria, modifiche concorrenti, richieste ripetute, Flow per esercizio o movimento, ordine, timer e carichi distinti. L’editing a sessione attiva e l’eliminazione successiva hanno conservato gli snapshot.
