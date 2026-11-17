@@ -90,7 +90,11 @@ async function refreshNow() {
               body: "Hai un promemoria da controllare in PULSE.",
               tag: "pulse-" + r.id + "-" + r.date,
               icon: "/icons/pulse-192.png",
-              data: { url: "/" },
+              data: {
+                url: "/",
+                kind: r.settings.kind,
+                target: r.settings.target,
+              },
             },
           );
           await send("/reminders/" + r.id, {

@@ -115,3 +115,5 @@ Plan imports, exports and version management are available in **Altro → Piani 
 - Confirm exact standard-load transfers between workout versions; no fuzzy exercise matching
 
 See [CSV_AI_GUIDE.md](docs/CSV_AI_GUIDE.md) for formats, limits and safe imports. Server upgrade requires a verified backup and explicit authorization before production schema changes.
+
+Workout draft proposals, offline cancellation and the Jenkins update procedure: [WORKOUT_SESSIONS.md](docs/WORKOUT_SESSIONS.md).

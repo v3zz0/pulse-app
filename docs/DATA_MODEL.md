@@ -72,3 +72,9 @@ Le giornate conservano FK plan e snapshot. L’applicazione esplicita di un altr
 I totali sono calcolati dagli ingredienti selezionati: sconosciuto resta null; somma nota esposta separatamente dai totali completi. Nessuna conversione implicita ml/g/pezzi o crudo/cotto. Fonti/valori non vengono certificati tramite lookup automatico. La revisione del proprietario non aggiorna gli snapshot delle giornate già salvate.
 
 Carichi nuova versione distinti tramite programId; nessun aggiornamento dello storico. Il trasferimento richiede corrispondenze esatte e anteprima firmata valida; nessun confronto per somiglianza del nome.
+
+## Bozze e annullamento sessioni — 17 novembre 2026
+
+`workout-session.status` ammette active/completed/cancelled e aggiunge cancelledAt nullable. activeKey viene liberata in entrambi gli stati terminali; non vengono cancellate righe. GET per clientId filtra sempre owner. L’annullamento confermato usa lo snapshot corrente sotto lock, anche se revision è obsoleta, e non può trasformare completed in cancelled. Replay e operazioni obsolete non riattivano cancelled. Storico e riepiloghi interrogano solo completed; le metriche di cancelled sono vuote.
+
+Nei JSON attivi draftReps e repProposal sono distinti da actualReps. Le proposte esatte non sono risultati. Gli aggiornamenti pending sono parziali, non sovrascrivono l’altro campo. IndexedDB e rete usano lock distinti; l’ack ri-legge la coda locale sotto lock prima di rimuovere la sola operazione corrispondente. La conferma di annullamento ritira soltanto le operazioni della stessa sessione. Guida e rilascio: [WORKOUT_SESSIONS.md](WORKOUT_SESSIONS.md).

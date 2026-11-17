@@ -3,6 +3,7 @@ const guard = require("../../../pulse/guarded");
 const { fail } = require("../../../pulse/validation");
 const {
   kg,
+  prepareDrafts,
   createSnapshot,
   applyOperation,
   metrics,
@@ -24,7 +25,9 @@ const present = (r) =>
         status: r.status,
         startedAt: r.startedAt,
         completedAt: r.completedAt,
-        snapshot: r.snapshot,
+        cancelledAt: r.cancelledAt,
+        snapshot:
+          r.status === "active" ? prepareDrafts(r.snapshot) : r.snapshot,
         timer: r.timer,
         revision: r.revision,
         metrics: metrics(r),
@@ -200,6 +203,13 @@ module.exports = {
       );
     }),
   ),
+  session: guard(async (ctx, user, app) => {
+    const s = await q(app, "workout-session").findOne({
+      where: { owner: user.id, clientId: uuid(ctx.params.clientId) },
+    });
+    if (!s) fail("Sessione inesistente", 404);
+    ctx.body = present(s);
+  }),
   operation: guard(async (ctx, user, app) =>
     lock(app, user.id, async () => {
       const clientId = uuid(ctx.params.clientId),
@@ -218,13 +228,28 @@ module.exports = {
         ctx.body = present(s);
         return;
       }
+      if (
+        s.status === "cancelled" &&
+        b.action === "cancel" &&
+        b.confirm === true
+      ) {
+        ctx.body = present(s);
+        return;
+      }
       if (s.status !== "active") fail("Sessione conclusa immutabile", 409);
-      if (!Number.isInteger(b.revision) || b.revision !== s.revision)
+      // A confirmed cancellation is a terminal intent: apply it to the latest
+      // server snapshot, even when another device has advanced the revision.
+      if (
+        !Number.isInteger(b.revision) ||
+        b.revision < 0 ||
+        (b.action !== "cancel" && b.revision !== s.revision)
+      )
         fail("Conflitto: sessione modificata altrove", 409);
       const data = applyOperation(s, b);
       data.revision = s.revision + 1;
       data.operations = [...(s.operations || []), { id: opId, hash: digest }];
-      if (data.status === "completed") data.activeKey = null;
+      if (["completed", "cancelled"].includes(data.status))
+        data.activeKey = null;
       ctx.body = present(
         await repo.update({ where: { id: s.id, owner: user.id }, data }),
       );

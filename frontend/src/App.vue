@@ -52,7 +52,11 @@ const tabs = [
   </header>
   <main>
     <section
-      v-if="auth.user && workout.active && $route.path !== '/allenati'"
+      v-if="
+        auth.user &&
+        workout.active?.status === 'active' &&
+        $route.path !== '/allenati'
+      "
       class="card resume-card"
     >
       <h2>Riprendi allenamento · {{ workout.active.day }}</h2>

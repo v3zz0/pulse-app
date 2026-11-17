@@ -9,6 +9,7 @@ module.exports = {
     route("GET", "/training", "overview"),
     route("PUT", "/training/standard", "standard"),
     route("POST", "/training/sessions", "start"),
+    route("GET", "/training/sessions/:clientId", "session"),
     route("PUT", "/training/sessions/:clientId", "operation"),
   ],
 };

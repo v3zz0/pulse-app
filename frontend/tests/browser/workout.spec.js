@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import fs from "node:fs";
+import { ensurePendingWorkout } from "./workout-fixture";
 const [user] = JSON.parse(
   fs.readFileSync(
     process.env.PULSE_TEST_CREDENTIALS ||
@@ -22,6 +23,7 @@ test("scheda completa, peso temporaneo, timer, offline/reload, sync e storico", 
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await login(page);
+  await ensurePendingWorkout(page, user);
   await expect(
     page.getByRole("heading", { name: /Riprendi allenamento/ }),
   ).toBeVisible();
@@ -43,6 +45,13 @@ test("scheda completa, peso temporaneo, timer, offline/reload, sync e storico", 
   await expect(page.getByTestId("workout-sync")).toHaveText(
     "Tutte le modifiche sincronizzate",
   );
+  const reps = set.getByLabel("Ripetizioni effettive");
+  if ((await reps.count()) && (await reps.inputValue()) === "") {
+    await reps.fill("8");
+    await expect(page.getByTestId("workout-sync")).toHaveText(
+      "Tutte le modifiche sincronizzate",
+    );
+  }
   await context.setOffline(true);
   await set
     .getByRole("button", { name: "Completa senza peso", exact: true })

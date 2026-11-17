@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import fs from "node:fs";
+import { ensurePendingWorkout } from "./workout-fixture";
 const [user] = JSON.parse(
   fs.readFileSync(
     process.env.PULSE_TEST_CREDENTIALS ||
@@ -19,6 +20,7 @@ test("PWA produzione: installabilità, cache solo shell e ripresa offline dopo r
   await expect(
     page.getByRole("heading", { name: "La tua giornata." }),
   ).toBeVisible();
+  await ensurePendingWorkout(page, user);
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
   const cdp = await context.newCDPSession(page);
@@ -46,6 +48,13 @@ test("PWA produzione: installabilità, cache solo shell e ripresa offline dopo r
   const id = await pendingSet.getAttribute("data-testid");
   expect(id).toBeTruthy();
   const first = page.getByTestId(id);
+  const reps = first.getByLabel("Ripetizioni effettive");
+  if ((await reps.count()) && (await reps.inputValue()) === "") {
+    await reps.fill("8");
+    await expect(page.getByTestId("workout-sync")).toHaveText(
+      "Tutte le modifiche sincronizzate",
+    );
+  }
   await context.setOffline(true);
   await first
     .getByRole("button", { name: "Completa senza peso", exact: true })

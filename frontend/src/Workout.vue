@@ -4,6 +4,17 @@ import { useWorkout } from "./stores/workout";
 import { useAuth } from "./stores/auth";
 import { useRouter } from "vue-router";
 const router = useRouter();
+const menuOpen = ref(false),
+  cancelOpen = ref(false),
+  cancelDialog = ref(null);
+watch(
+  cancelOpen,
+  (open) => {
+    if (open) cancelDialog.value?.showModal();
+    else cancelDialog.value?.close();
+  },
+  { flush: "post" },
+);
 function reauthenticate() {
   useAuth().user = null;
   router.push("/login");
@@ -13,6 +24,13 @@ const w = useWorkout(),
   error = ref(""),
   seconds = ref(60),
   now = ref(Date.now());
+watch(
+  () => `${w.active?.clientId}:${w.active?.status}`,
+  () => {
+    menuOpen.value = false;
+    cancelOpen.value = false;
+  },
+);
 let interval;
 watch(
   () => w.program?.id,
@@ -57,8 +75,7 @@ function draft(s, field, event) {
       action: "set",
       setId: s.id,
       status: "pending",
-      draftKg: field === "kg" ? value : s.draftKg,
-      actualReps: field === "reps" ? value : s.actualReps,
+      [field === "kg" ? "draftKg" : "draftReps"]: value,
     }),
   );
 }
@@ -68,10 +85,33 @@ function result(s, status) {
       action: "set",
       setId: s.id,
       status,
-      actualKg: status === "recorded" ? s.draftKg : null,
-      actualReps: s.actualReps,
+      useDraft: true,
     }),
   );
+}
+const draftReps = (s) =>
+  Object.hasOwn(s, "draftReps") ? s.draftReps : s.actualReps;
+const registered = computed(
+  () =>
+    w.active?.snapshot.blocks
+      .flatMap((b) => b.sets)
+      .filter((s) => ["recorded", "unlogged"].includes(s.status)).length || 0,
+);
+async function cancelWorkout() {
+  await run(async () => {
+    const cancelledDay = w.active.day;
+    await w.act({ action: "cancel", confirm: true });
+    cancelOpen.value = false;
+    menuOpen.value = false;
+    const registration = await navigator.serviceWorker?.getRegistration();
+    const notifications = await registration?.getNotifications();
+    for (const n of notifications || [])
+      if (
+        (n.data?.kind === "workout" && n.data?.target === cancelledDay) ||
+        (n.title === "PULSE · Allenamento" && !n.data?.kind)
+      )
+        n.close();
+  });
 }
 function resolveConflict() {
   if (
@@ -126,11 +166,15 @@ onUnmounted(() => clearInterval(interval));
   </button>
   <p role="status" data-testid="workout-sync">
     {{
-      w.queue.length
-        ? `${w.queue.length} modifiche salvate sul dispositivo · invio in attesa`
-        : w.ready
-          ? "Tutte le modifiche sincronizzate"
-          : "Caricamento…"
+      w.saving
+        ? "Salvataggio sul dispositivo…"
+        : w.syncing
+          ? "Sincronizzazione…"
+          : w.queue.length
+            ? `${w.queue.length} modifiche salvate sul dispositivo · invio in attesa`
+            : w.ready
+              ? "Tutte le modifiche sincronizzate"
+              : "Caricamento…"
     }}
   </p>
   <button
@@ -143,7 +187,11 @@ onUnmounted(() => clearInterval(interval));
   <button v-if="w.conflict" class="btn secondary" @click="resolveConflict">
     Scarica bozza e usa versione server
   </button>
-  <template v-if="!w.active">
+  <p v-if="w.active?.status === 'cancelled'" class="note" role="status">
+    Allenamento annullato sul dispositivo. Attendi la sincronizzazione prima di
+    iniziarne un altro.
+  </p>
+  <template v-if="!w.active || w.active.status === 'cancelled'">
     <section v-if="w.program" class="card">
       <h2>{{ w.program.title }}</h2>
       <p class="source-note">
@@ -208,7 +256,29 @@ onUnmounted(() => clearInterval(interval));
     </p>
   </template>
   <template v-else>
-    <section class="card">
+    <section class="card active-workout-head">
+      <div v-if="w.active.status === 'active'" class="workout-menu">
+        <button
+          class="btn secondary workout-menu-trigger"
+          aria-label="Menu allenamento"
+          :aria-expanded="menuOpen"
+          @click="menuOpen = !menuOpen"
+        >
+          ⋮
+        </button>
+        <div v-if="menuOpen" role="menu" class="workout-menu-items">
+          <button
+            class="btn secondary danger"
+            role="menuitem"
+            @click="
+              cancelOpen = true;
+              menuOpen = false;
+            "
+          >
+            Annulla allenamento
+          </button>
+        </div>
+      </div>
       <h2>
         Scheda {{ w.active.day }} ·
         {{
@@ -273,6 +343,33 @@ onUnmounted(() => clearInterval(interval));
         </button>
       </div>
     </section>
+    <dialog
+      ref="cancelDialog"
+      class="card workout-modal"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="cancel-title"
+      aria-describedby="cancel-description"
+      @cancel.prevent="cancelOpen = false"
+    >
+      <h2 id="cancel-title">Annullare questo allenamento?</h2>
+      <p id="cancel-description">
+        {{ registered ? `Hai già completato ${registered} serie. ` : "" }}La
+        sessione sarà annullata e non conterà nello storico completato o nelle
+        statistiche. I carichi standard restano invariati.
+      </p>
+      <p class="smallmuted">
+        Senza connessione, l’annullamento viene salvato sul dispositivo e
+        inviato appena possibile.
+      </p>
+      <div class="btnrow">
+        <button autofocus class="btn secondary" @click="cancelOpen = false">
+          Torna all’allenamento</button
+        ><button class="btn secondary danger" @click="cancelWorkout">
+          Annulla definitivamente
+        </button>
+      </div>
+    </dialog>
     <section
       v-for="b in w.active.snapshot.blocks"
       :key="b.id"
@@ -330,7 +427,7 @@ onUnmounted(() => clearInterval(interval));
       >
         <div class="set-foot">
           <b
-            >Serie {{ i + 1 }} · {{ s.reps
+            >Serie {{ i + 1 }} · {{ s.kind || b.phase }} · Obiettivo: {{ s.reps
             }}{{ s.toFailure ? " · cedimento" : ""
             }}{{ s.perLeg ? " · per gamba" : "" }}</b
           ><span class="pill grey">{{ label[s.status] }}</span>
@@ -341,8 +438,8 @@ onUnmounted(() => clearInterval(interval));
         <p class="smallmuted">
           Standard all’avvio:
           {{
-            s.standardAtStart === null
-              ? "da impostare"
+            s.standardAtStart == null
+              ? "Imposta carico standard"
               : s.standardAtStart + " kg"
           }}
           <span v-if="s.previous">
@@ -360,21 +457,66 @@ onUnmounted(() => clearInterval(interval));
                 max="1500"
                 step="0.5"
                 :value="s.draftKg"
-                @change="draft(s, 'kg', $event)" /></label
-            ><label class="fieldlabel"
+                @input="draft(s, 'kg', $event)" /></label
+            ><label v-if="s.repProposal?.kind !== 'compound'" class="fieldlabel"
               >Ripetizioni effettive<input
                 class="field"
                 type="number"
                 min="0"
                 max="1000"
-                :value="s.actualReps"
-                @change="draft(s, 'reps', $event)"
+                :value="draftReps(s)"
+                @input="draft(s, 'reps', $event)"
             /></label>
           </div>
+          <p v-if="s.repProposal?.kind === 'compound'" class="smallmuted">
+            Ripetizioni dei singoli movimenti conservate come sopra. Nessun
+            totale viene registrato.
+          </p>
+          <div
+            v-if="s.repProposal?.kind === 'range'"
+            class="btnrow"
+            aria-label="Scelta rapida ripetizioni"
+          >
+            <span
+              >Previste {{ s.repProposal.min }}–{{ s.repProposal.max }}:</span
+            >
+            <label v-if="!s.repProposal.options.length" class="fieldlabel">
+              Scelta rapida ripetizioni previste
+              <select
+                class="field"
+                :value="draftReps(s) ?? ''"
+                @change="draft(s, 'reps', $event)"
+              >
+                <option value="">Scegli un valore</option>
+                <option
+                  v-for="n in s.repProposal.max - s.repProposal.min + 1"
+                  :key="n"
+                  :value="s.repProposal.min + n - 1"
+                >
+                  {{ s.repProposal.min + n - 1 }}
+                </option>
+              </select>
+            </label>
+            <button
+              v-for="n in s.repProposal.options"
+              :key="n"
+              class="btn secondary rep-choice"
+              :aria-label="`Proponi ${n} ripetizioni`"
+              @click="draft(s, 'reps', { target: { value: String(n) } })"
+            >
+              {{ n }}
+            </button>
+          </div>
+          <p v-if="s.repProposal?.kind === 'open'" class="smallmuted">
+            {{ s.reps }}: inserisci le ripetizioni effettivamente eseguite.
+          </p>
+          <p class="smallmuted">
+            I valori proposti restano una bozza fino al completamento.
+          </p>
           <div class="set-buttons">
             <button
               class="btn primary"
-              :disabled="s.draftKg === null || w.conflict"
+              :disabled="s.draftKg == null || w.conflict"
               @click="result(s, 'recorded')"
             >
               Completa e registra peso</button
@@ -463,3 +605,53 @@ onUnmounted(() => clearInterval(interval));
     </section>
   </template>
 </template>
+
+<style scoped>
+.active-workout-head {
+  position: relative;
+}
+.active-workout-head > h2 {
+  padding-right: 44px;
+}
+.workout-menu {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  z-index: 2;
+}
+.workout-menu-trigger {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px 12px;
+  font-size: 26px;
+}
+.workout-menu-items {
+  position: absolute;
+  right: 0;
+  top: 50px;
+  width: max-content;
+  max-width: 280px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #151e28;
+}
+.danger {
+  color: #ff9292;
+  border-color: #925050;
+}
+.workout-modal::backdrop {
+  background: #000b;
+}
+.workout-modal {
+  color: inherit;
+  margin: auto;
+  width: min(calc(100% - 36px), 540px);
+  max-height: 90dvh;
+  overflow: auto;
+}
+.rep-choice {
+  min-width: 44px;
+  min-height: 44px;
+}
+</style>

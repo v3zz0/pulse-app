@@ -17,11 +17,58 @@ function reps(value) {
     fail("Ripetizioni non valide");
   return value;
 }
-function timestamp(value, now) {
+function timestamp(value, now, maximumAge = 30 * 86400000) {
   const t = Date.parse(value);
-  if (!Number.isFinite(t) || t > now + 30000 || t < now - 30 * 86400000)
+  if (!Number.isFinite(t) || t > now + 30000 || t < now - maximumAge)
     fail("Timestamp non valido");
   return t;
+}
+// Suggestions belong to the draft, never to performed results.
+function repProposal(set, block) {
+  const raw = String(set.reps ?? "").trim();
+  if (set.movements?.length || block.movements?.length || /\+/.test(raw))
+    return { kind: "compound", text: raw };
+  if (set.toFailure || /ced|failure|amrap/i.test(raw))
+    return { kind: "open", text: raw };
+  if (/^\d+$/.test(raw) && Number(raw) <= 1000)
+    return { kind: "exact", text: raw, value: Number(raw) };
+  const match = raw.match(/^(\d+)\s*[-–—]\s*(\d+)$/);
+  const min = set.repsMin ?? (match ? Number(match[1]) : null);
+  const max = set.repsMax ?? (match ? Number(match[2]) : null);
+  if (
+    Number.isInteger(min) &&
+    Number.isInteger(max) &&
+    min >= 0 &&
+    max >= min &&
+    max <= 1000
+  )
+    return {
+      kind: "range",
+      text: raw,
+      min,
+      max,
+      options:
+        max - min <= 12
+          ? Array.from({ length: max - min + 1 }, (_, i) => min + i)
+          : [],
+    };
+  return { kind: "open", text: raw };
+}
+function prepareDrafts(snapshot) {
+  const copy = structuredClone(snapshot);
+  for (const block of copy.blocks)
+    for (const set of block.sets) {
+      if (set.status !== "pending") continue;
+      set.repProposal ??= repProposal(set, block);
+      if (!Object.hasOwn(set, "draftReps"))
+        set.draftReps =
+          set.actualReps ??
+          (set.repProposal.kind === "exact" ? set.repProposal.value : null);
+      set.actualReps = null;
+      if (!Object.hasOwn(set, "draftKg"))
+        set.draftKg = set.standardAtStart ?? null;
+    }
+  return copy;
 }
 function createSnapshot(program, day, loads, previous) {
   if (!Object.hasOwn(program.days, day)) fail("Scheda inesistente", 404);
@@ -34,6 +81,9 @@ function createSnapshot(program, day, loads, previous) {
         : (set.standardKg ?? null);
       delete set.standardKg;
       set.draftKg = set.standardAtStart;
+      set.repProposal = repProposal(set, block);
+      set.draftReps =
+        set.repProposal.kind === "exact" ? set.repProposal.value : null;
       set.actualKg = null;
       set.actualReps = null;
       set.status = "pending";
@@ -48,9 +98,13 @@ function createSnapshot(program, day, loads, previous) {
   };
 }
 function applyOperation(session, body, now = Date.now()) {
-  const snapshot = structuredClone(session.snapshot);
+  const snapshot = prepareDrafts(session.snapshot);
   let timer = structuredClone(session.timer || null);
-  const time = timestamp(body.occurredAt, now);
+  const time = timestamp(
+    body.occurredAt,
+    now,
+    body.action === "cancel" ? Infinity : undefined,
+  );
   const completedAt = new Date(time).toISOString();
   const sets = snapshot.blocks.flatMap((b) => b.sets);
   if (body.action === "set") {
@@ -60,13 +114,27 @@ function applyOperation(session, body, now = Date.now()) {
     if (!["pending", "recorded", "unlogged", "skipped"].includes(body.status))
       fail("Stato serie non valido");
     if (body.status === "pending") {
-      set.draftKg = kg(body.draftKg);
-      set.actualReps = reps(body.actualReps);
+      if (!Object.hasOwn(set, "draftReps"))
+        set.draftReps = set.actualReps ?? null;
+      if (Object.hasOwn(body, "draftKg")) set.draftKg = kg(body.draftKg);
+      if (Object.hasOwn(body, "draftReps") || Object.hasOwn(body, "actualReps"))
+        set.draftReps = reps(
+          Object.hasOwn(body, "draftReps") ? body.draftReps : body.actualReps,
+        );
+      set.actualReps = null;
     } else {
       set.status = body.status;
       set.actualKg =
         body.status === "recorded" ? kg(body.actualKg, false) : null;
       set.actualReps = body.status === "skipped" ? null : reps(body.actualReps);
+      if (body.status !== "skipped" && set.repProposal) {
+        if (set.repProposal.kind === "compound" && set.actualReps !== null)
+          fail(
+            "Conserva le ripetizioni dei singoli movimenti, senza un totale",
+          );
+        if (set.repProposal.kind !== "compound" && set.actualReps === null)
+          fail("Inserisci le ripetizioni effettivamente eseguite");
+      }
       set.completedAt = completedAt;
       if (body.status !== "skipped") {
         const block = snapshot.blocks.find((b) =>
@@ -79,6 +147,15 @@ function applyOperation(session, body, now = Date.now()) {
           };
       }
     }
+  } else if (body.action === "cancel") {
+    if (body.confirm !== true) fail("Conferma esplicita richiesta");
+    return {
+      snapshot,
+      timer: null,
+      status: "cancelled",
+      completedAt: null,
+      cancelledAt: new Date(now).toISOString(),
+    };
   } else if (body.action === "skip-block") {
     const block = snapshot.blocks.find((b) => b.id === body.blockId);
     if (!block) fail("Esercizio inesistente", 404);
@@ -129,7 +206,10 @@ function applyOperation(session, body, now = Date.now()) {
   return { snapshot, timer };
 }
 function metrics(session) {
-  const sets = session.snapshot.blocks.flatMap((b) => b.sets);
+  const sets =
+    session.status === "cancelled"
+      ? []
+      : session.snapshot.blocks.flatMap((b) => b.sets);
   const recorded = sets.filter((s) => s.status === "recorded");
   return {
     recorded: recorded.length,
@@ -146,4 +226,11 @@ function metrics(session) {
     ),
   };
 }
-module.exports = { kg, createSnapshot, applyOperation, metrics };
+module.exports = {
+  prepareDrafts,
+  repProposal,
+  kg,
+  createSnapshot,
+  applyOperation,
+  metrics,
+};

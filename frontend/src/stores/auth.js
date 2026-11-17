@@ -27,19 +27,22 @@ export const useAuth = defineStore("auth", {
       await write("identity", this.user);
     },
     async logout() {
-      return exclusive(async () => {
-        await send("/logout", {}, "POST");
-        await clearPrivate();
-        try {
-          const registration = await navigator.serviceWorker?.getRegistration();
-          for (const n of (await registration?.getNotifications()) || [])
-            n.close();
-        } catch {}
-        new BroadcastChannel("pulse-auth").postMessage("logout");
-        this.user = null;
-        this.checked = false;
-        location.assign("/login");
-      });
+      return navigator.locks.request("pulse-workout-sync", () =>
+        exclusive(async () => {
+          await send("/logout", {}, "POST");
+          await clearPrivate();
+          try {
+            const registration =
+              await navigator.serviceWorker?.getRegistration();
+            for (const n of (await registration?.getNotifications()) || [])
+              n.close();
+          } catch {}
+          new BroadcastChannel("pulse-auth").postMessage("logout");
+          this.user = null;
+          this.checked = false;
+          location.assign("/login");
+        }),
+      );
     },
   },
 });
