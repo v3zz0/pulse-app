@@ -105,6 +105,10 @@ Issues and pull requests are welcome. Before opening a PR run the build and test
 
 [MIT](LICENSE)
 
+**Training and nutrition editors**
+
+Create programs and diet plans directly from Allenati and Dieta. Manage saved plans under Altro, including duplication, activation, removal and CSV import/export. Training uses the Flow catalogue and a private exercise library. Progressi shows real weigh-ins, workout frequency and recorded loads. See the [editor guide and data model](docs/PLAN_EDITORS.md).
+
 **CSV plans and personal settings**
 
 Plan imports, exports and version management are available in **Altro → Piani e importazioni**.

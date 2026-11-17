@@ -211,3 +211,13 @@ Per il rollback preferire una correzione in avanti: il vecchio backend eliminava
 
    L’output atteso contiene la revisione del lock e `1257`.
 5. Dopo aver sincronizzato l’allenamento, chiudere tutte le finestre e schede PULSE e riaprire l’app. In Allenati, aprire una panca piana BB e controllare Flow e il comando **Cambia animazione**. Scaricare le animazioni della scheda aperta prima della prova senza connessione.
+
+## Rilascio degli editor e di Progressi
+
+1. Identificare la nuova revisione su `main` e annotare il commit e i tag delle immagini già in esecuzione. Usare il job PULSE, il progetto Compose, i volumi PostgreSQL e la credenziale `pulse-env` esistenti.
+2. Eseguire `infra/backup-full.sh` con la configurazione del server e verificare il nuovo archivio con `infra/restore-isolated.sh` in un ambiente isolato. Ottenere l’autorizzazione esplicita per l’avvio di Strapi con lo schema aggiornato.
+3. Avviare manualmente **Build Now** nel job Jenkins di PULSE associato a `main`. Il job valida Compose, ricostruisce frontend e backend, avvia i servizi con i volumi esistenti e verifica la loro salute. Strapi aggiunge la collezione degli esercizi personali e i campi nullable degli editor. Non servono reimport dei piani né cambiamenti ai file di configurazione di Flow.
+4. Una volta completato il job, verificare con un account dedicato che si aprano Allenati, Dieta e Progressi e che i programmi e lo storico esistenti siano disponibili. Provare salvataggio e riapertura di una scheda di test. Per la PWA, terminare l’eventuale allenamento e riaprire PULSE per adottare il nuovo bundle.
+5. In caso di problemi, usare l’inventario del backup per il recupero. Un rollback del solo codice non ripristina lo schema e può interpretare in modo diverso le nuove pianificazioni settimanali. Testare il ripristino in copia isolata e valutare le scritture successive al backup prima di intervenire sui volumi online.
+
+[Dettagli sugli editor e sullo schema](docs/PLAN_EDITORS.md)
