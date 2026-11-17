@@ -35,6 +35,19 @@ test("scheda completa, peso temporaneo, timer, offline/reload, sync e storico", 
   ).toBeVisible();
   await page.getByRole("link", { name: "Allenati", exact: true }).click();
   await expect(page.getByTestId("set-A:1:1")).toBeVisible();
+  const program = await page.request.get("/api/pulse/training").then((r) => r.json());
+  const [bench, , , incline] = program.program.days.A;
+  const benchCard = page.getByTestId("block-" + bench.id);
+  await benchCard.locator(".compact-ex-head").click();
+  await expect(benchCard.locator(".flow-player > img").first()).toBeVisible();
+  await expect(benchCard.getByText("Video originale")).toHaveCount(0);
+  await benchCard.locator(".compact-ex-head").click();
+  const inclineCard = page.getByTestId("block-" + incline.id);
+  await inclineCard.locator(".compact-ex-head").click();
+  await expect(inclineCard.getByText("Animazione non disponibile", { exact: true })).toBeVisible();
+  await expect(inclineCard.getByText("Video originale", { exact: true })).toBeVisible();
+  await expect(inclineCard.getByRole("link", { name: /Video/ })).toHaveCount(0);
+  await inclineCard.locator(".compact-ex-head").click();
   const id = await page
     .locator(".session-set")
     .filter({

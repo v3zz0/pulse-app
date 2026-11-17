@@ -15,8 +15,6 @@ let timer,
 const current = computed(() => data.value?.animation?.frames[frame.value]?.url);
 function animate() {
   clearInterval(timer);
-  frame.value = 0;
-  index = 0;
   if (!paused.value && ready.value) {
     timer = setInterval(() => {
       if (document.visibilityState !== "visible") return;
@@ -26,7 +24,11 @@ function animate() {
   }
 }
 function reduced() {
-  if (preference.matches) paused.value = true;
+  if (preference.matches) {
+    paused.value = true;
+    frame.value = 0;
+    index = 0;
+  }
   animate();
 }
 onMounted(async () => {
@@ -104,7 +106,7 @@ onUnmounted(() => {
   display: block;
   object-fit: contain;
   max-width: 100%;
-  background: #fff;
+  background: #19232d;
   border-radius: 12px;
   margin: 10px auto;
 }

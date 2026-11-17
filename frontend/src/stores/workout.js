@@ -489,6 +489,27 @@ export const useWorkout = defineStore("workout", {
         }),
       );
     },
+    async chooseFlow(choice) {
+      const owner = this.owner;
+      const programId = this.program.id;
+      const revision = this.program.flowRevision || 0;
+      return navigator.locks.request("pulse-workout-sync", async () => {
+        if (this.owner !== owner || useAuth().user?.id !== owner ||
+            (await api("/me")).user.id !== owner)
+          throw new Error("Account cambiato");
+        const changed = await send("/training/flow", {
+          ...choice, programId, revision, confirm: true,
+        });
+        await exclusive(async () => {
+          if (this.owner !== owner || useAuth().user?.id !== owner) return;
+          this.restore(await read(`workout:${owner}`));
+          if (this.program?.id !== programId) return;
+          Object.assign(this.program, changed);
+          await this.persist();
+        });
+        channel?.postMessage("changed");
+      });
+    },
     async standard(setId, value) {
       const owner = this.owner,
         programId = this.program?.id;

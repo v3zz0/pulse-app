@@ -5,11 +5,25 @@ const fs = require("node:fs/promises"),
   { sanitize } = require("./svg"),
   { fail } = require("../validation"),
   lock = require("../../../flow.lock.json");
+const { reviewed, uncertain } = require("./reviewed");
+const termsById = new Map();
+for (const [aliases, id] of reviewed) termsById.set(id, aliases.join(" "));
+for (const [alias, entry] of Object.entries(uncertain))
+  for (const id of entry.ids || [])
+    termsById.set(id, [termsById.get(id), alias].filter(Boolean).join(" "));
 const root = () =>
   path.resolve(
     process.env.FLOW_DATA_PATH ||
       path.resolve(__dirname, "../../../../storage/flow"),
   );
+function normalize(value) {
+  return String(value ?? "").normalize("NFKD").replace(/\p{Diacritic}/gu, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+function reusable(e) {
+  return e.animation?.license === "CC0-1.0" &&
+    e.provenance?.artworkLicense === "CC0-1.0";
+}
 let cached;
 async function catalog() {
   if (cached) return cached;
@@ -26,14 +40,16 @@ async function catalog() {
   }
   if (
     c.revision !== lock.revision ||
-    c.exercises.length !== lock.counts.exercises
+    !Array.isArray(c.exercises) || c.exercises.length !== lock.counts.exercises
   )
     fail("Catalogo Flow non valido", 503);
-  cached = c;
-  return c;
+  const animated = c.exercises.filter(reusable);
+  const byId = new Map(animated.map((e) => [e.id, e]));
+  cached = { ...c, animated, byId };
+  return cached;
 }
 async function exercise(id) {
-  if (!/^\d{4}$/.test(id)) fail("ID Flow non valido", 404);
+  if (typeof id !== "string" || !/^\d{4}$/.test(id)) fail("ID Flow non valido", 404);
   const c = await catalog(),
     e = c.exercises.find((e) => e.id === id);
   if (!e) fail("Esercizio Flow inesistente", 404);
@@ -41,7 +57,7 @@ async function exercise(id) {
     ...e,
     revision: lock.revision,
     repository: lock.repository,
-    animation: e.animation
+    animation: reusable(e)
       ? {
           ...e.animation,
           frames: e.animation.frames.map((f, i) => {
@@ -66,7 +82,7 @@ async function asset(revision, id, frame) {
   const c = await catalog(),
     key = `assets/${id}/${frame}`,
     meta = c.assets[key];
-  if (!meta) fail("Risorsa Flow inesistente", 404);
+  if (!meta || !c.byId.has(id)) fail("Risorsa Flow inesistente", 404);
   const raw = await fs
     .readFile(path.join(root(), revision, key))
     .catch(() => null);
@@ -78,4 +94,36 @@ async function asset(revision, id, frame) {
     fail("Integrità SVG Flow non valida", 503);
   return { raw, sha: meta.sha256 };
 }
-module.exports = { exercise, asset };
+async function animatedExercise(id) {
+  const e = await exercise(id);
+  if (!e.animation) fail("Animazione non disponibile", 404);
+  return e;
+}
+async function search(params) {
+  for (const field of ["q", "equipment", "muscle", "offset"])
+    if (params[field] !== undefined &&
+        (typeof params[field] !== "string" || params[field].length > 100))
+      fail("Ricerca non valida");
+  const c = await catalog();
+  const offset = Number(params.offset || 0);
+  if (!Number.isInteger(offset) || offset < 0 || offset > c.animated.length)
+    fail("Pagina non valida");
+  const words = normalize(params.q).split(" ").filter(Boolean);
+  const matched = c.animated.filter((e) => {
+    const label = normalize([
+      e.id, e.name, e.equipment, e.target, e.bodyPart, termsById.get(e.id),
+    ].join(" "));
+    return (!params.equipment || e.equipment === params.equipment) &&
+      (!params.muscle || e.target === params.muscle) && words.every((w) => label.includes(w));
+  });
+  const size = 18;
+  return {
+    items: matched.slice(offset, offset + size).map((e) => ({
+      id: e.id, name: e.name, equipment: e.equipment, muscle: e.target,
+    })),
+    next: offset + size < matched.length ? offset + size : null,
+    equipment: [...new Set(c.animated.map((e) => e.equipment))].sort(),
+    muscles: [...new Set(c.animated.map((e) => e.target))].sort(),
+  };
+}
+module.exports = { exercise, asset, catalog, animatedExercise, search, normalize };

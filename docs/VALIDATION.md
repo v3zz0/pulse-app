@@ -1,3 +1,17 @@
+# Associazioni Flow nelle schede esistenti — 17 novembre 2026
+
+Il dataset locale era presente, ma la scheda originale A/B/C conteneva zero flowId. I soli ID preesistenti erano in una fixture. Il player si montava esclusivamente in presenza di quell’identificativo. Il frontend pubblico serviva ancora il bundle precedente, verificato con una richiesta anonima all’HTML e al JavaScript. Il catalogo e le associazioni online non sono stati interrogati.
+
+- Catalogo e licenze installati confrontati con il checkout ufficiale fissato. **3.771 SHA-256** dei fotogrammi confermati. Il container legge la release dal mount in sola lettura e verifica un fotogramma della panca.
+- Sulla copia originale locale, **31 blocchi e 33 elementi**, contando separatamente i tre movimenti del circuito. **9** verificati automaticamente, **15** con candidate da confermare, **9** senza animazione equivalente verificata. Tabella generata in reports/FLOW_ABC.md, fuori da Git. Le verifiche confrontano nome, attrezzatura, istruzioni e fotogrammi delle associazioni confermate.
+- API con due account sintetici PASS per metadati, ricerca, filtro e hash SVG, override dei movimenti del circuito, rimozione, precedenza della scelta, ereditarietà su nuova versione CSV, revisione, CSRF e ownership. Riavvio reale di Strapi e PostgreSQL PASS. Scelte, carichi, CSV e storico identici dopo restart.
+- Build Vite, admin Strapi e Docker PASS. Test backend **10 file** e frontend **2 file** PASS. **33/33 test Chromium** PASS a 360, 390 e 1440 px, comprese anteprima e scelta manuale, pausa/ripresa/ingrandimento, fallback secondario e ripresa PWA offline. Emulazione aggiuntiva Android Pixel 7 PASS: cache di soli **12 fotogrammi** della scheda A, immagine Panca 0025 dopo reload offline, nessun overflow. Nessun Android fisico disponibile per la prova.
+- Caso standard 60 → temporaneo 50 → serie senza peso → nuova proposta 60, timer e annullamento offline PASS. Impronte dei JSON di **49 programmi** e **77 sessioni concluse** preesistenti invariate.
+
+Nuovo solo campo JSON nullable flowAssociations, separato da scheda, carichi e risultati. Nessun reimport di schede o deployment in produzione. Installazione, sicurezza degli SVG, licenze e passaggi Jenkins in [FLOW_DATASET.md](FLOW_DATASET.md) e [DEPLOYMENT.md](../DEPLOYMENT.md#rilascio-delle-associazioni-flow).
+
+---
+
 # Restyling quotidiano PULSE — 17 novembre 2026
 
 - Altro: comando Installa PULSE in apertura, dialog con guida Android/desktop, azione nativa quando disponibile e stato già installata. Data, peso, invio e feedback nella stessa card. Richieste simultanee per la stessa pesata serializzate su owner/data.

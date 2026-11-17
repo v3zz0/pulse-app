@@ -9,6 +9,7 @@ const {
   metrics,
 } = require("../../../pulse/workout");
 const { createHash } = require("node:crypto");
+const flow = require("../../../pulse/flow/associations");
 const { activePlan } = require("../../../pulse/active-plan");
 const q = (app, name) => app.db.query(`api::${name}.${name}`);
 const uuid = (value) => {
@@ -101,6 +102,22 @@ module.exports = {
       ctx.body = { displaySettings, displayRevision: b.revision + 1 };
     }),
   ),
+  flowAssociation: guard(async (ctx, user, app) =>
+    lock(app, user.id, async () => {
+      const body = ctx.request.body || {};
+      const programs = q(app, "training-program");
+      const p = await programs.findOne({
+        where: { id: Number(body.programId) || 0, owner: user.id },
+      });
+      if (!p) fail("Programma inesistente", 404);
+      const flowAssociations = await flow.select(p, body);
+      await programs.update({
+        where: { id: p.id, owner: user.id },
+        data: { flowAssociations },
+      });
+      ctx.body = await flow.decorate({ ...p, flowAssociations });
+    }),
+  ),
   overview: guard(async (ctx, user, app) => {
     const p = await program(app, user.id);
     const active = await q(app, "workout-session").findOne({
@@ -115,7 +132,7 @@ module.exports = {
         ? {
             id: p.id,
             title: p.title,
-            days: p.days,
+            ...(await flow.decorate(p)),
             cooldown: p.cooldown,
             reviewStatus: p.reviewStatus,
             version: p.versionLabel || String(p.importVersion),

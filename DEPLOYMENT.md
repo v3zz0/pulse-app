@@ -189,3 +189,25 @@ Per il rollback preferire una correzione in avanti: il vecchio backend eliminava
 2. Prima dell’aggiornamento, eseguire il backup con `sudo PULSE_CONFIG=/etc/pulse/backup.conf ./infra/backup-full.sh` sul server. In un ambiente isolato con accesso alla chiave di recupero, verificare l’archivio appena prodotto con `./infra/restore-isolated.sh /percorso/backup.tar.gpg`. Se l’istanza parte da una release precedente a `3f1d0da`, seguire anche le istruzioni sopra per l’estensione dello schema. Il restyling qui descritto non richiede nuove colonne o migrazioni.
 3. Nel job main scegliere **Build Now** e controllare che il checkout includa il commit del restyling. Verificare gli stage **Verifica configurazione**, **Deploy** e **Verifica**. La pipeline ricostruisce entrambe le immagini e attende gli healthcheck. Se Flow è installato, mantenere `FLOW_STORAGE_PATH` e la stessa release del dataset.
 4. A sessione sincronizzata, chiudere e riaprire tutte le finestre PULSE per attivare la nuova versione della PWA. Verificare le card Allenati, una pesata sintetica, le assunzioni in Oggi e un promemoria di prova. Controllare che Configura integratori non aggiunga promemoria.
+
+## Rilascio delle associazioni Flow
+
+1. Sul nodo Docker verificare se esiste già la directory `<FLOW_STORAGE_PATH>/961bb2739015da373daa43b960c28ee839fe93e6` con catalogo, asset e licenze. Se manca, usare il checkout fissato e l’installatore di [FLOW_DATASET.md](docs/FLOW_DATASET.md) con `--target /srv/pulse/flow`, oppure copiare una release già verificata e ripetere il controllo. In Jenkins, salvare il percorso assoluto nella credenziale file esistente `pulse-env`, per esempio `FLOW_STORAGE_PATH=/srv/pulse/flow`.
+2. Eseguire il backup di pre-rilascio e verificarne il ripristino in copia isolata secondo la sezione Backups. Il nuovo campo nullable `flowAssociations` viene aggiunto da Strapi all’avvio dell’immagine aggiornata. I programmi e le sessioni esistenti non richiedono reimportazione. Procedere solo dopo autorizzazione all’aggiornamento dello schema online.
+3. Sul job PULSE `main`, avviare **Build Now**. Verificare il checkout del commit Flow e gli stage **Deploy** e **Verifica**. Le immagini ricostruite usano il mount esterno in sola lettura e i volumi esistenti.
+4. Sul nodo Docker, verificare il mount e un fotogramma dal container Strapi di produzione:
+
+   ```sh
+   docker ps --filter label=com.docker.compose.project=pulse-production \
+     --filter label=com.docker.compose.service=strapi --format '{{.Names}}'
+   docker exec <container-strapi> node -e '
+     const f = require("./src/pulse/flow/runtime");
+     const lock = require("./flow.lock.json");
+     Promise.all([f.catalog(), f.asset(lock.revision, "0025", "frame-00.svg")])
+       .then(([catalog]) => console.log(catalog.revision, catalog.animated.length))
+       .catch(error => { console.error(error.message); process.exitCode = 1; });
+   '
+   ```
+
+   L’output atteso contiene la revisione del lock e `1257`.
+5. Dopo aver sincronizzato l’allenamento, chiudere tutte le finestre e schede PULSE e riaprire l’app. In Allenati, aprire una panca piana BB e controllare Flow e il comando **Cambia animazione**. Scaricare le animazioni della scheda aperta prima della prova senza connessione.

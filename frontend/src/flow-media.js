@@ -10,6 +10,7 @@ export async function flowExercise(id) {
   try {
     data = await api("/flow/exercises/" + id);
   } catch (e) {
+    if (e.status) throw e;
     data = await read("flow:" + id);
     if (!data) throw e;
   }
@@ -70,4 +71,15 @@ export async function offlineAnimations(ids, onProgress) {
   } finally {
     await caches.delete(staging);
   }
+}
+
+export function mediaFor(block) {
+  if (block.media) return block.media;
+  const moves = (block.movements?.length ? block.movements : block.sets.flatMap((s) => s.movements || []));
+  if (moves.length) {
+    return [...new Map(moves.map((m, index) => [
+      (m.order ?? index + 1) + ":" + m.name, m,
+    ])).entries()].map(([key, m]) => ({ key, name: m.name, flowId: m.flowId }));
+  }
+  return [{ key: block.id, name: block.name, flowId: block.flowId }];
 }

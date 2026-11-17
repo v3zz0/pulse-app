@@ -274,6 +274,17 @@ async function importPlan(app, kind, owner, body) {
         importedAt: new Date().toISOString(),
       },
     };
+    if (kind === "training") {
+      const previous = active?.externalId === data.externalId
+        ? active
+        : await repo(app, kind).findOne({
+            where: { owner, externalId: data.externalId },
+            orderBy: { id: "desc" },
+          });
+      const { inheritSelections } = require("./flow/associations");
+      const inherited = inheritSelections(previous, data.days);
+      if (inherited) data.flowAssociations = inherited;
+    }
     const saved = await repo(app, kind).create({ data });
     if (kind === "training")
       for (const b of Object.values(saved.days).flat())

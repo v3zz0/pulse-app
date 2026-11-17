@@ -82,3 +82,7 @@ Nei JSON attivi draftReps e repProposal sono distinti da actualReps. Le proposte
 ## Organizzazione schede e integratori personali — 17 novembre 2026
 
 Training-program aggiunge displaySettings/displayRevision per nomi e calendario, senza cambiare giorni/ID/CSV. Supplement-product aggiunge marca, etichetta, note, principi attivi strutturati, pianificazione a slot UUID, stato attivo e revisione/clientKey. Supplement-intake aggiunge stato, revisione e snapshot/audit delle rettifiche; legacy null resta taken, cancelled non cancella righe. Nuova supplement-day con chiave owner/data per override espliciti ON/OFF, separati dalla dieta. Promemoria riutilizzati con UUID di slot, soppressione per singola assunzione e archiviazione senza perdita dello storico. Dettagli e invarianti in [TRAINING_SUPPLEMENTS.md](TRAINING_SUPPLEMENTS.md).
+
+## Associazioni Flow
+
+`training-program.flowAssociations` è un JSON nullable separato dalla fonte della scheda. Contiene la revisione delle modifiche e scelte per chiavi stabili di giorno, blocco e movimento. Una scelta `null` rimuove esplicitamente la proposta automatica. Una scelta positiva identifica l’ID Flow e la revisione del dataset. Il server risolve le associazioni nella risposta Allenati. CSV, carichi e snapshot conclusi restano indipendenti. Vedere [FLOW_DATASET.md](FLOW_DATASET.md).

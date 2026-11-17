@@ -1,6 +1,9 @@
 const guard = require("../../../pulse/guarded"),
   flow = require("../../../pulse/flow/runtime");
 module.exports = {
+  search: guard(async (ctx) => {
+    ctx.body = await flow.search(ctx.query);
+  }),
   exercise: guard(async (ctx) => {
     ctx.body = await flow.exercise(ctx.params.id);
   }),

@@ -32,7 +32,9 @@ try{
  // Installation is immutable. A repeat validates every file instead of overwriting a live release.
  if(await fs.stat(dest).catch(()=>null)){
   const old=JSON.parse(await fs.readFile(path.join(dest,'catalog.json')));
-  if(old.revision!==lock.revision)throw new Error('Installazione esistente incoerente');
+  const {installedAt: oldDate,...oldData}=old,{installedAt: newDate,...expectedData}=catalog;
+  if(JSON.stringify(oldData)!==JSON.stringify(expectedData))throw new Error('Catalogo installato incoerente con la release fissata');
+  for(const f of ['LICENSE','ARTWORK-LICENSE','NOTICE.md'])if(sha(await fs.readFile(path.join(dest,f)))!==lock.files[f])throw new Error('Licenza installata alterata: '+f);
   for(const[file,meta]of Object.entries(assets))if(sha(await fs.readFile(path.join(dest,file)))!==meta.sha256)throw new Error('Storage esistente corrotto: '+file);
   await fs.rm(stage,{recursive:true});console.log('PASS: Flow già installato, integrità dei 3771 SVG riconfermata.');
  }else{await fs.rename(stage,dest);console.log(`PASS: installati ${exercises.length} esercizi e ${count} SVG verificati in storage persistente, senza asset Docker.`);}

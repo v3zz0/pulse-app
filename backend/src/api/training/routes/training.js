@@ -8,6 +8,7 @@ module.exports = {
   routes: [
     route("GET", "/training", "overview"),
     route("PUT", "/training/layout", "layout"),
+    route("PUT", "/training/flow", "flowAssociation"),
     route("PUT", "/training/standard", "standard"),
     route("POST", "/training/sessions", "start"),
     route("GET", "/training/sessions/:clientId", "session"),

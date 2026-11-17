@@ -5,7 +5,7 @@ import { useAuth } from "./stores/auth";
 import { useRouter } from "vue-router";
 import Icon from "./components/Icon.vue";
 import WorkoutExercise from "./components/WorkoutExercise.vue";
-import { offlineAnimations } from "./flow-media";
+import { mediaFor, offlineAnimations } from "./flow-media";
 import { dayName, weekdays } from "./workout-display";
 const router = useRouter();
 const menuOpen = ref(false),
@@ -170,31 +170,33 @@ const completedCount = computed(
 );
 const flowProgress = ref(null),
   flowBusy = ref(false);
-const flowIds = computed(() =>
-  [
-    ...Object.values(w.program?.days || {}).flat(),
-    ...(w.active?.snapshot.blocks || []),
-  ]
-    .flatMap((b) => [
-      b.flowId,
-      ...(b.movements || []).map((m) => m.flowId),
-      ...b.sets.flatMap((s) => (s.movements || []).map((m) => m.flowId)),
-    ])
-    .filter(Boolean),
-);
+function mediaBlock(block) {
+  if (!isActive.value) return block;
+  if (w.active.programId !== w.program?.id) return block;
+  const current = w.program.days[selectedDay.value]?.find((b) => b.id === block.id);
+  return current?.name === block.name && current.notes === block.notes ? current : block;
+}
+const flowIds = computed(() => [...new Set(blocks.value
+  .flatMap((block) => mediaFor(mediaBlock(block)).map((item) => item.flowId))
+  .filter(Boolean))]);
 watch(
-  () => w.program?.id,
+  () => JSON.stringify([w.program?.id, selectedDay.value, flowIds.value]),
   () => (flowProgress.value = null),
 );
 async function downloadFlow() {
   flowProgress.value = null;
   flowBusy.value = true;
+  const ids = flowIds.value;
+  const selection = selectedDay.value;
+  const programId = w.program?.id;
+  const sameSheet = () => selection === selectedDay.value && programId === w.program?.id &&
+    ids.join(",") === flowIds.value.join(",");
   await run(async () => {
     const result = await offlineAnimations(
-      flowIds.value,
-      (p) => (flowProgress.value = p),
+      ids,
+      (p) => { if (sameSheet()) flowProgress.value = p; },
     );
-    flowProgress.value = {
+    if (sameSheet()) flowProgress.value = {
       ...flowProgress.value,
       complete: true,
       bytes: result.bytes,
@@ -528,6 +530,10 @@ onUnmounted(() => clearInterval(interval));
       :key="b.id"
       :block="b"
       :loads="w.standards"
+      :media-block="mediaBlock(b)"
+      :save-media="w.program?.flowAvailable && mediaBlock(b).media
+        ? (item, id) => w.chooseFlow({ day: selectedDay, blockId: b.id, key: item.key, flowId: id })
+        : undefined"
       :active="!!isActive"
       :disabled="w.conflict || (isActive && w.active.status !== 'active')"
       @draft="draft"

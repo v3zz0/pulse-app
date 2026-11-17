@@ -127,6 +127,17 @@ test("Allenati: card compatte, CSV, nomi e calendario, Flow verificato offline e
     await player.getByRole("button", { name: "Pausa animazione" }).click();
     await player.getByRole("button", { name: "Ingrandisci" }).click();
     await page.getByRole("button", { name: "Chiudi animazione" }).click();
+    await block.getByRole("button", { name: "Cambia animazione", exact: true }).click();
+    const chooser = page.getByRole("dialog", { name: "Cambia animazione" });
+    await chooser.getByLabel("Cerca nel catalogo").fill("0025");
+    await chooser.getByRole("button", { name: "Cerca", exact: true }).click();
+    await chooser.getByRole("list", { name: "Risultati Flow" })
+      .getByRole("button", { name: /barbell bench press/ }).click();
+    await expect(chooser.getByRole("region", { name: "Anteprima animazione" }).locator("img").first()).toBeVisible();
+    await chooser.getByRole("button", { name: "Conferma animazione" }).click();
+    await expect(chooser).toHaveCount(0);
+    const linked = (await call(page, "/training")).program.days.A[0].media[0];
+    expect(linked).toMatchObject({ flowId: "0025", method: "manual" });
     await page.evaluate(() => navigator.serviceWorker.ready);
     await page.reload();
     await synced(page);

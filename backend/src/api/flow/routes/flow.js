@@ -6,6 +6,7 @@ const r = (path, handler) => ({
 });
 module.exports = {
   routes: [
+    r("/search", "search"),
     r("/exercises/:id", "exercise"),
     r("/assets/:revision/:id/:frame", "asset"),
   ],
