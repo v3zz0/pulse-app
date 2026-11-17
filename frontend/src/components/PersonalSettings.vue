@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { api, send } from "../api";
+import FoodChips from "./FoodChips.vue";
 const data = ref(null),
   revision = ref(0),
   busy = ref(false),
@@ -10,8 +11,6 @@ const data = ref(null),
   hasGoals = ref(false),
   savedGoals = ref(false);
 const fields = {
-  favoriteFoods: "Alimenti preferiti",
-  avoidedFoods: "Alimenti non graditi",
   allergies: "Allergie dichiarate",
   intolerances: "Intolleranze dichiarate",
   easyFoods: "Alimenti facili da preparare",
@@ -74,7 +73,7 @@ async function save() {
       ...data.value,
       goals: hasGoals.value ? data.value.goals : null,
     };
-    for (const k of ["cookingMinutes", "mealCount"])
+    for (const k of ["mealCount"])
       payload[k] = payload[k] === "" ? null : payload[k];
     const r = await send("/personal-settings", {
       data: payload,
@@ -107,6 +106,16 @@ async function save() {
     <p v-if="message" role="status" class="inline-note">{{ message }}</p>
     <form v-if="data" @submit.prevent="save">
       <fieldset :disabled="busy" class="plain-fieldset">
+        <FoodChips
+          v-model="data.favoriteFoods"
+          id="favorite-foods"
+          label="Alimenti preferiti"
+        />
+        <FoodChips
+          v-model="data.avoidedFoods"
+          id="avoided-foods"
+          label="Alimenti non graditi"
+        />
         <label v-for="(label, key) in fields" :key="key" class="fieldlabel"
           >{{ label
           }}<textarea
@@ -118,13 +127,6 @@ async function save() {
         </label>
         <div class="field-row">
           <label class="fieldlabel"
-            >Tempo per cucinare (minuti)<input
-              v-model.number="data.cookingMinutes"
-              type="number"
-              min="0"
-              max="480"
-              class="field" /></label
-          ><label class="fieldlabel"
             >Numero di pasti preferito<input
               v-model.number="data.mealCount"
               type="number"

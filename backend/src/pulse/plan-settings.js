@@ -3,8 +3,6 @@ const { fail } = require("./validation");
 const repo = (app) => app.db.query("api::personal-setting.personal-setting");
 const suggestedGoals = { kcal: 2900, protein_g: 140, carbs_g: 405, fat_g: 80 };
 const fields = [
-  "favoriteFoods",
-  "avoidedFoods",
   "allergies",
   "intolerances",
   "easyFoods",
@@ -13,19 +11,42 @@ const fields = [
   "dinner",
   "budget",
 ];
+function foodList(value) {
+  const values = typeof value === "string" ? value.split(/[,;\n]+/) : value;
+  if (
+    !Array.isArray(values) ||
+    values.length > 100 ||
+    values.some((v) => typeof v !== "string")
+  )
+    fail("Elenco alimenti non valido");
+  const out = [];
+  for (const raw of values) {
+    const v = raw.trim();
+    if (
+      v &&
+      !out.some(
+        (o) => o.toLocaleLowerCase("it-IT") === v.toLocaleLowerCase("it-IT"),
+      )
+    )
+      out.push(v);
+  }
+  if (out.join("\n").length > 2000)
+    fail("Elenco alimenti: massimo 2.000 caratteri");
+  return out;
+}
 function validate(data) {
   if (!data || typeof data !== "object" || Array.isArray(data))
     fail("Impostazioni non valide");
-  const out = {};
+  const out = {
+    favoriteFoods: foodList(data.favoriteFoods),
+    avoidedFoods: foodList(data.avoidedFoods),
+  };
   for (const k of fields) {
     if (typeof data[k] !== "string" || data[k].length > 2000)
       fail(`Campo ${k} non valido, massimo 2.000 caratteri`);
     out[k] = data[k].trim();
   }
-  for (const [k, max] of [
-    ["cookingMinutes", 480],
-    ["mealCount", 12],
-  ]) {
+  for (const [k, max] of [["mealCount", 12]]) {
     const v = data[k];
     if (
       v !== null &&
@@ -57,13 +78,18 @@ function validate(data) {
 }
 async function get(app, owner) {
   const r = await repo(app).findOne({ where: { owner } });
+  const stored = r?.data || {
+    ...Object.fromEntries(fields.map((k) => [k, ""])),
+    mealCount: null,
+    goals: null,
+    favoriteFoods: [],
+    avoidedFoods: [],
+  };
+  const { cookingMinutes: retired, ...data } = stored;
+  data.favoriteFoods = foodList(data.favoriteFoods || []);
+  data.avoidedFoods = foodList(data.avoidedFoods || []);
   return {
-    data: r?.data || {
-      ...Object.fromEntries(fields.map((k) => [k, ""])),
-      cookingMinutes: null,
-      mealCount: null,
-      goals: null,
-    },
+    data,
     revision: r?.revision || 0,
     suggestedGoals,
   };

@@ -111,3 +111,11 @@ L’utente accede da **Altro → Piani e importazioni**, nelle pagine `/altro/pi
 GET template/list/detail/export; POST preview/import; PUT sul piano con action activate/archive/review. La preview non scrive; l’import salva solo una bozza e rivalida il file; l’attivazione richiede una conferma separata. Non modificare manualmente identificativi, status o carichi tramite Content Manager durante le sessioni.
 
 `csv-body.js` estende il parser nativo di Strapi soltanto per POST preview/import, autenticando prima del body. Tutte le altre rotte conservano i limiti ordinari; nginx segue lo stesso perimetro. Ricollaudare l’estensione al prossimo upgrade Strapi.
+
+## Schede giornaliere separate in Strapi
+
+**Programmi allenamento** conserva la versione completa originale, unica fonte per carichi, sessioni e CSV. **Schede allenamento** mostra invece una voce per giornata: Scheda A, Scheda B, Scheda C (o gli altri giorni importati), con programma/utente collegati ed esercizi, serie e defaticamento di quella sola giornata. Queste voci sono copie di consultazione protette da modifica diretta, non tre programmi da attivare alternativamente: per correggere una scheda si modifica il programma/CSV; i lifecycle aggiornano automaticamente le copie. In questo modo non vengono scollegati carichi o storico.
+
+I nuovi import creano le voci separate nella stessa transazione. Per i programmi già presenti: `node scripts/split-training-days.js` produce solo un conteggio; dopo backup verificato e autorizzazione usare PULSE_SPLIT_TRAINING_DAYS=1 con `--apply`. La procedura è idempotente e non reimporta PDF o CSV. Non è stata eseguita sulla produzione. In locale il collaudo usa `--synthetic-only`.
+
+Preferiti/non graditi nell’account sono elenchi di chip: scrivere Riso e premere Invio, poi Pollo e Invio; la × rimuove il singolo alimento. I vecchi testi separati da virgole/a-capo vengono letti senza perdita e convertiti in elenchi. Nessun campo tempo per cucinare viene mostrato o incluso nei prompt AI.

@@ -1,3 +1,13 @@
+# Schede separate in Strapi e chip preferenze — 17 novembre 2026
+
+Programmi originali preservati, con nuova collezione privata di consultazione `training-day`: una voce Scheda A/B/C per programma, completa di blocchi/serie/defaticamento e riferimenti owner/programma. Lifecycle sincronizzano i nuovi import e le modifiche alla fonte; copie protette da scrittura diretta e metadata editabili=false. Nessuna rotta CRUD pubblica e nessun cambio alla sorgente delle sessioni/carichi. Script di backfill dry-run predefinito, apply con opt-in dopo backup. Solo fixture locali: prima esecuzione17programmi/36schede create; seconda0create/0aggiornate. Verifica PostgreSQL/metadata e blocco modifica diretta PASS.
+
+Card credenziali/preferenze separate con28px di spazio. Preferiti/non graditi diventano chip aggiungibili con Invio e rimovibili con×; compatibilità con i vecchi testi, deduplicazione, limiti e persistenza. Tempo per cucinare rimosso da form, risposta impostazioni e prompt AI; i vecchi valori non sono usati. Nessun piano alimentare modificato.
+
+Build Docker frontend/backend PASS, test backend8file PASS e frontend PASS. Browser: **6PASS** a360/390/1440px per profilo chip/gap/rimozione/reload, assenza tempo cucina e regressione CSV completa. API CSV PASS con60→50temporaneo→senza peso→60 e storico invariato. Backup locale privato prima dell’estensione in backups/before-training-days.dump, indice pg_restore letto. Nessun deploy o modifica al database online.
+
+---
+
 # Gestione CSV spostata in Altro — 17 novembre 2026
 
 Main inizialmente pulito su `2121f66`, sincronizzato con origin prima del lavoro. Tutti gli accessi alla gestione CSV raccolti in **Altro → Piani e importazioni**, con pagine `/altro/piani` e `/altro/schede`. Rimossi i comandi da Dieta e Allenati. Le pagine di gestione tornano ad Altro; voce Altro attiva e aria-current coerente anche nelle sottopagine. I vecchi indirizzi reindirizzano alle nuove pagine. Peso, integratori e relative funzioni restano in Altro, con titolo generale “Il tuo spazio”.

@@ -1,0 +1,155 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pulse_training_days",
+  "info": {
+    "singularName": "training-day",
+    "pluralName": "training-days",
+    "displayName": "Schede allenamento",
+    "description": "Schede A/B/C separate e consultabili, generate dal programma collegato. Importa o modifica il programma per aggiornarle."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "day": {
+      "type": "string",
+      "required": true
+    },
+    "program": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::training-program.training-program",
+      "required": true
+    },
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "exerciseCount": {
+      "type": "integer"
+    },
+    "position": {
+      "type": "integer"
+    },
+    "blocks": {
+      "type": "json",
+      "required": true
+    },
+    "cooldown": {
+      "type": "json"
+    },
+    "uniqueKey": {
+      "type": "string",
+      "unique": true,
+      "required": true,
+      "pluginOptions": {
+        "content-manager": {
+          "visible": false
+        },
+        "content-type-builder": {
+          "visible": false
+        }
+      }
+    }
+  },
+  "config": {
+    "settings": {
+      "mainField": "title",
+      "defaultSortBy": "position",
+      "defaultSortOrder": "ASC",
+      "bulkable": false,
+      "searchable": true,
+      "filterable": true,
+      "pageSize": 20
+    },
+    "metadatas": {
+      "title": {
+        "edit": {
+          "editable": false,
+          "label": "Scheda"
+        },
+        "list": {
+          "label": "Scheda"
+        }
+      },
+      "day": {
+        "edit": {
+          "editable": false,
+          "label": "Giornata"
+        },
+        "list": {
+          "label": "Giornata"
+        }
+      },
+      "program": {
+        "edit": {
+          "editable": false,
+          "label": "Programma"
+        },
+        "list": {
+          "label": "Programma"
+        }
+      },
+      "owner": {
+        "edit": {
+          "editable": false,
+          "label": "Utente"
+        },
+        "list": {
+          "label": "Utente"
+        }
+      },
+      "exerciseCount": {
+        "edit": {
+          "editable": false,
+          "label": "Esercizi"
+        },
+        "list": {
+          "label": "Esercizi"
+        }
+      },
+      "position": {
+        "edit": {
+          "editable": false,
+          "label": "Ordine"
+        },
+        "list": {
+          "label": "Ordine"
+        }
+      },
+      "blocks": {
+        "edit": {
+          "editable": false,
+          "label": "Esercizi e serie"
+        },
+        "list": {
+          "label": "Esercizi e serie"
+        }
+      },
+      "cooldown": {
+        "edit": {
+          "editable": false,
+          "label": "Defaticamento"
+        },
+        "list": {
+          "label": "Defaticamento"
+        }
+      },
+      "uniqueKey": {
+        "edit": {
+          "editable": false,
+          "label": "uniqueKey"
+        },
+        "list": {
+          "label": "uniqueKey"
+        }
+      }
+    }
+  }
+}

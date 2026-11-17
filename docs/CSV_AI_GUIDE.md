@@ -120,7 +120,7 @@ I video devono essere HTTPS, senza credenziali o porte; indirizzi locali evident
 
 ## Preferenze e obiettivi
 
-Avatar → **Preferenze alimentari e obiettivi**: cibi preferiti/non graditi, allergie e intolleranze dichiarate, alimenti facili, preferenze dei pasti, tempo, numero pasti, budget e target. Record privato, revisioni e conferma di salvataggio. I target 2900 kcal / P140 / C405 / G80 sono proposti solo quando non ne esistono di salvati: nessuna scrittura o sostituzione automatica. Sono indicativi, non clinici. Le preferenze non generano né attivano da sole una dieta.
+Avatar → **Preferenze alimentari e obiettivi**: cibi preferiti/non graditi, allergie e intolleranze dichiarate, alimenti facili, preferenze dei pasti, numero pasti, budget e target. Record privato, revisioni e conferma di salvataggio. I target 2900 kcal / P140 / C405 / G80 sono proposti solo quando non ne esistono di salvati: nessuna scrittura o sostituzione automatica. Sono indicativi, non clinici. Le preferenze non generano né attivano da sole una dieta.
 
 Il prompt AI può includere queste informazioni solo su opt-in: incollarle su un servizio esterno significa condividerle con quel servizio. Nessun PDF personale è incluso nei modelli pubblici e nessuna chiamata AI remota viene effettuata da PULSE.
 
@@ -144,3 +144,7 @@ Gli export sono UTF-8/BOM con celle quotate. Testi che iniziano con =, +, -, @ o
 Si estendono le collezioni esistenti nutrition-plan/training-program; unica nuova collezione personal-setting per dati per utente. I piani PDF con stato nullo continuano a funzionare come prima fino alla prima attivazione esplicita; a quel punto vengono archiviati, non eliminati.
 
 Gli endpoint restano sotto /api/pulse/plans e richiedono sessione, ownership e origine corretta. Solo POST preview/import accettano JSON fino a 2 MiB, autenticando prima di leggerlo; gli altri endpoint mantengono 128 KiB. Il CSV decodificato resta limitato a 512 KiB. Il middleware estende il parser nativo Strapi tramite il registro dei middleware nella versione fissata dal progetto: ricollaudare dopo upgrade Strapi.
+
+### Inserire alimenti come chip
+
+In Account → Alimenti preferiti scrivere `Riso`, premere Invio, poi `Pollo` e Invio: compariranno due chip con ×. In Alimenti non graditi, ad esempio `Broccoli` e Invio. La × rimuove un elemento, il salvataggio conferma l’intero elenco. Duplicati ignorati senza distinzione maiuscole/minuscole, massimo 100 elementi e 2.000 caratteri. Credenziali e preferenze sono card separate. Il tempo per cucinare è stato ritirato dall’interfaccia, dalle risposte delle impostazioni e dai prompt AI; gli eventuali vecchi dati non vengono usati.

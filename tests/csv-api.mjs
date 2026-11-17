@@ -84,7 +84,6 @@ await a("/personal-settings", {
     ...prefs.data,
     favoriteFoods: "Riso, pasta",
     allergies: "Dichiarazione sintetica",
-    cookingMinutes: 20,
     mealCount: 4,
     goals: { kcal: 2400, protein_g: 130, carbs_g: 290, fat_g: 80 },
   },
