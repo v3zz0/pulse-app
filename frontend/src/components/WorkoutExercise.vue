@@ -18,7 +18,6 @@ const detailsOpen = ref(false);
 const emit = defineEmits(["draft", "result", "standard", "skip"]);
 const editing = ref(null);
 const media = computed(() => mediaFor(p.mediaBlock || p.block));
-const hasMissing = computed(() => media.value.some((item) => !item.flowId));
 const featured = computed(
   () => p.block.sets.find((s) => s.status === "pending") || p.block.sets.at(-1),
 );
@@ -103,23 +102,6 @@ const target = computed(() =>
         <p v-if="block.movements?.length" class="note">
           {{ block.movements.map((m) => m.name + " × " + m.reps).join(" → ") }}
         </p>
-        <details v-if="hasMissing && block.videos?.length" class="video-list original-video">
-          <summary>Video originale</summary>
-          <a
-            v-for="(v, i) in block.videos || []"
-            :key="i"
-            class="video"
-            :href="v.url"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Video {{ v.candidateMovement || i + 1 }} ·
-            {{
-              v.reviewRequired
-                ? "da revisionare"
-                : "associazione confermata dal titolo ufficiale"
-            }}</a
-          >
-        </details>
         <div v-for="(s, i) in block.sets" :key="s.id" class="standard-setting">
           <span
             >Serie {{ i + 1 }} · {{ phase(s.kind || block.phase) }} · {{ s.reps }} rip. · Standard:
@@ -186,6 +168,4 @@ const target = computed(() =>
 
 <style scoped>
 .flow-exercise-target + .flow-exercise-target { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
-.original-video summary { cursor: pointer; color: var(--muted); min-height: 32px; padding: 6px 0; }
-.original-video .video { display: block; margin: 8px 0; }
 </style>

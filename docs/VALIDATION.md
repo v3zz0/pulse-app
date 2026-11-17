@@ -1,3 +1,11 @@
+# Rimozione dei video esterni e separazione degli account — 17 novembre 2026
+
+Rimossi i collegamenti video dai dettagli Allenati e dalle anteprime dei piani di allenamento, compreso il defaticamento. Gli URL storici restano disponibili negli export CSV. Build Vite e unitari frontend PASS. Test browser allenamento **3/3 PASS** a 360, 390 e 1440 px per presenza di Flow, stato di assenza e rimozione dei link YouTube, oltre al ciclo di allenamento.
+
+API sullo stack locale con due account sintetici Authenticated: sessioni PULSE distinte, piani e schede di un altro proprietario rifiutati con 404. La sessione PULSE riceve 401 dall’API amministrativa Strapi. Le credenziali dell’account Authenticated vengono rifiutate anche dal login amministrativo.
+
+---
+
 # Associazioni Flow nelle schede esistenti — 17 novembre 2026
 
 Il dataset locale era presente, ma la scheda originale A/B/C conteneva zero flowId. I soli ID preesistenti erano in una fixture. Il player si montava esclusivamente in presenza di quell’identificativo. Il frontend pubblico serviva ancora il bundle precedente, verificato con una richiesta anonima all’HTML e al JavaScript. Il catalogo e le associazioni online non sono stati interrogati.

@@ -8,13 +8,13 @@ I dati sono MIT. PULSE serve solo gli SVG Flow con dichiarazione CC0-1.0 nei met
 
 ## Associazioni
 
-Allenati applica le associazioni alle schede esistenti al momento della lettura. Per gli alias verificati il resolver controlla il nome Flow esatto e l’attrezzatura rispetto alla revisione installata. Il match testuale generico serve alla ricerca e alle proposte. Per esempio, le spinte da 30° non ricevono l’animazione da 45°. Pause, carichi, prescrizioni e collegamenti YouTube originali rimangono nei dati della scheda.
+Allenati applica le associazioni alle schede esistenti al momento della lettura. Per gli alias verificati il resolver controlla il nome Flow esatto e l’attrezzatura rispetto alla revisione installata. Il match testuale generico serve alla ricerca e alle proposte. Per esempio, le spinte da 30° non ricevono l’animazione da 45°. Pause, carichi e prescrizioni rimangono nei dati della scheda.
 
 Dai dettagli dell’esercizio scegliere **Cambia animazione**, cercare nel catalogo per nome, ID, attrezzo o muscolo, aprire l’anteprima e confermare. I movimenti di un circuito hanno chiavi separate. L’opzione **Rimuovi animazione** registra una scelta esplicita che prevale sulle associazioni automatiche. Le modifiche vanno nel campo JSON nullable `flowAssociations` di `training-program`. Il server verifica proprietario, programma, chiave di blocco o movimento, revisione della scelta e presenza di fotogrammi con licenza ammessa. Gli aggiornamenti passano per il lock esistente del proprietario.
 
 Le nuove versioni CSV della stessa famiglia copiano le scelte quando riferimento tecnico, blocco, nome, note e movimento coincidono. La scelta è vincolata alla revisione del dataset. Un cambio di revisione richiede la conferma dell’ID nel catalogo aggiornato. Il JSON della scheda, gli export, i carichi e gli snapshot delle sessioni concluse non vengono riscritti.
 
-Se Flow è associato, il player è la prima visualizzazione nei dettagli. Supporta loop, pausa, ripresa, ingrandimento e movimento ridotto. Per i movimenti senza animazione viene indicata l’assenza. I link originali disponibili stanno nella sezione chiusa **Video originale**.
+Se Flow è associato, il player è la prima visualizzazione nei dettagli. Supporta loop, pausa, ripresa, ingrandimento e movimento ridotto. Per i movimenti senza animazione viene indicata l’assenza. Gli URL originali restano nei dati sorgente e negli export CSV, esclusi dalla visualizzazione di Allenati e dalle anteprime dei piani.
 
 ## Installazione e persistenza
 

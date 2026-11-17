@@ -110,16 +110,6 @@ const status = {
             {{ s.movements.map((m) => m.name + " × " + m.reps).join(" → ") }}
           </p>
           <p class="note csv-text">{{ b.notes }}</p>
-          <p v-for="v in b.videos" :key="v.url">
-            <a
-              :href="v.url"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="video"
-              >{{ v.candidateMovement || "Video esercizio" }} · da
-              revisionare</a
-            ><small class="source-note">{{ v.reviewNote }}</small>
-          </p>
         </article>
       </details>
       <p v-if="plan.cooldown" class="note">
@@ -129,11 +119,6 @@ const status = {
             ? plan.cooldown.durationSeconds + " secondi"
             : "durata da verificare"
         }}<br />{{ plan.cooldown.sourceText }}
-      </p>
-      <p v-for="v in plan.cooldown?.videos || []" :key="v.url">
-        <a :href="v.url" target="_blank" rel="noopener noreferrer" class="video"
-          >Video defaticamento · da revisionare</a
-        >
       </p>
     </template>
   </section>

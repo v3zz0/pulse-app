@@ -45,8 +45,8 @@ test("scheda completa, peso temporaneo, timer, offline/reload, sync e storico", 
   const inclineCard = page.getByTestId("block-" + incline.id);
   await inclineCard.locator(".compact-ex-head").click();
   await expect(inclineCard.getByText("Animazione non disponibile", { exact: true })).toBeVisible();
-  await expect(inclineCard.getByText("Video originale", { exact: true })).toBeVisible();
-  await expect(inclineCard.getByRole("link", { name: /Video/ })).toHaveCount(0);
+  await expect(inclineCard.getByText("Video originale", { exact: true })).toHaveCount(0);
+  await expect(page.locator('a[href*="youtube.com"], a[href*="youtu.be"]')).toHaveCount(0);
   await inclineCard.locator(".compact-ex-head").click();
   const id = await page
     .locator(".session-set")
