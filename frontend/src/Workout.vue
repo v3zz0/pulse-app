@@ -115,9 +115,6 @@ onUnmounted(() => clearInterval(interval));
       <p class="text-muted">Standard e carico della seduta restano distinti.</p>
     </div>
   </div>
-  <RouterLink class="btn secondary" to="/allenati/schede"
-    >Gestisci scheda</RouterLink
-  >
   <p v-if="error" role="alert" class="warning">{{ error }}</p>
   <p v-if="w.error" role="status" class="warning">{{ w.error }}</p>
   <button

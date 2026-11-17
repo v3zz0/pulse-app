@@ -190,17 +190,12 @@ async function copyPrompt() {
   <div class="pagehead">
     <div>
       <div class="focus-label">
-        {{ kind === "nutrition" ? "ALIMENTAZIONE" : "ALLENAMENTO" }}
+        ALTRO · {{ kind === "nutrition" ? "ALIMENTAZIONE" : "ALLENAMENTO" }}
       </div>
       <h1>{{ title }}<span class="mint">.</span></h1>
     </div>
   </div>
-  <RouterLink
-    :to="kind === 'nutrition' ? '/dieta' : '/allenati'"
-    class="tiny-link"
-    >Torna
-    {{ kind === "nutrition" ? "alla dieta" : "all’allenamento" }}</RouterLink
-  >
+  <RouterLink to="/altro" class="tiny-link">Torna ad Altro</RouterLink>
   <p v-if="error" role="alert" class="warning">{{ error }}</p>
   <p v-if="message" role="status" class="inline-note">{{ message }}</p>
   <section class="card workout-block">

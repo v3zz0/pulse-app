@@ -74,9 +74,24 @@ onMounted(load);
   <div class="pagehead">
     <div>
       <div class="focus-label">IL TUO SPAZIO</div>
-      <h1>Peso e integratori<span style="color: var(--accent)">.</span></h1>
+      <h1>Il tuo spazio<span style="color: var(--accent)">.</span></h1>
     </div>
   </div>
+  <section class="card" aria-labelledby="plan-settings-title">
+    <h2 id="plan-settings-title">Piani e importazioni</h2>
+    <p class="note">
+      Scarica i modelli, importa ed esporta CSV e gestisci le versioni salvate
+      della dieta e della scheda di allenamento.
+    </p>
+    <div class="btnrow">
+      <RouterLink class="btn secondary" to="/altro/piani"
+        >Gestisci piano alimentare</RouterLink
+      >
+      <RouterLink class="btn secondary" to="/altro/schede"
+        >Gestisci scheda allenamento</RouterLink
+      >
+    </div>
+  </section>
   <p v-if="error" role="alert" class="warning">{{ error }}</p>
   <p role="status">{{ message }}</p>
   <label class="fieldlabel"
@@ -176,5 +191,5 @@ onMounted(load);
   <button class="btn ghost wide" style="margin-top: 14px" @click="auth.logout">
     Esci
   </button>
-<Pwa />
+  <Pwa />
 </template>

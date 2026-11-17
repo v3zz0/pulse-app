@@ -1,3 +1,11 @@
+# Gestione CSV spostata in Altro — 17 novembre 2026
+
+Main inizialmente pulito su `2121f66`, sincronizzato con origin prima del lavoro. Tutti gli accessi alla gestione CSV raccolti in **Altro → Piani e importazioni**, con pagine `/altro/piani` e `/altro/schede`. Rimossi i comandi da Dieta e Allenati. Le pagine di gestione tornano ad Altro; voce Altro attiva e aria-current coerente anche nelle sottopagine. I vecchi indirizzi reindirizzano alle nuove pagine. Peso, integratori e relative funzioni restano in Altro, con titolo generale “Il tuo spazio”.
+
+Build Vite nativa e Docker frontend PASS; test frontend PASS. I tre scenari CSV esistenti, aggiornati per attraversare i nuovi accessi, **PASS a 360/390/1440 px**: assenza vecchi comandi, redirect, ritorno, voce selezionata, download esempi, anteprima/validazione, importazione/attivazione, export e scheda completa. Solo account sintetici nei test. Nessuna modifica a backend, schemi o dati personali; nessun deploy. Guide CSV e README aggiornati.
+
+---
+
 # Piani CSV e preferenze personali — 17 novembre 2026
 
 ## Implementazione e dati

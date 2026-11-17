@@ -2,7 +2,7 @@
 
 ## Procedura nell’app
 
-1. **Dieta → Gestisci piano** oppure **Allenati → Gestisci scheda**. La Home resta dedicata all’uso quotidiano.
+1. **Altro → Gestisci piano alimentare** oppure **Altro → Gestisci scheda allenamento**. La Home resta dedicata all’uso quotidiano.
 2. Scaricare `pulse_dieta_esempio.csv` o `pulse_allenamento_esempio.csv`. Contengono solo dati sintetici e non sono prescrizioni.
 3. Usare **Copia istruzioni per AI**, compilare il CSV e salvarlo in UTF-8. Le preferenze private sono incluse nel prompt solo se si seleziona esplicitamente la relativa casella.
 4. Caricare il file. La verifica sul backend non salva alcun piano: mostra struttura, quantità, alternative, nutrienti noti, differenze rispetto all’attivo e avvisi/errori per riga.

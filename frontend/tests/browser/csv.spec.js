@@ -73,10 +73,40 @@ test("CSV: esempi, anteprima, conferma, versioni, obiettivi e scheda completa", 
         occurredAt: new Date().toISOString(),
       });
   }
+  await page.getByRole("link", { name: "Dieta", exact: true }).click();
+  await expect(
+    page.getByRole("link", { name: "Gestisci piano", exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("link", { name: "Allenati", exact: true }).click();
+  await expect(
+    page.getByRole("link", { name: "Gestisci scheda", exact: true }),
+  ).toHaveCount(0);
   for (const kind of ["nutrition", "training"]) {
-    const path = kind === "nutrition" ? "/dieta/piani" : "/allenati/schede",
+    const path = kind === "nutrition" ? "/altro/piani" : "/altro/schede",
       title = `UI ${kind} ${tag}`;
-    await page.goto(base + path);
+    await page.goto(
+      base + (kind === "nutrition" ? "/dieta/piani" : "/allenati/schede"),
+    );
+    await expect(page).toHaveURL(base + path);
+    await page
+      .getByRole("link", { name: "Torna ad Altro", exact: true })
+      .click();
+    await page
+      .getByRole("link", {
+        name:
+          kind === "nutrition"
+            ? "Gestisci piano alimentare"
+            : "Gestisci scheda allenamento",
+        exact: true,
+      })
+      .click();
+    await expect(page).toHaveURL(base + path);
+    await expect(
+      page.getByRole("link", { name: "Altro", exact: true }),
+    ).toHaveClass(/active/);
+    await expect(
+      page.getByRole("link", { name: "Altro", exact: true }),
+    ).toHaveAttribute("aria-current", "page");
     const dl = page.waitForEvent("download");
     await page
       .getByRole("button", {

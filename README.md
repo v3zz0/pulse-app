@@ -106,6 +106,8 @@ Issues and pull requests are welcome. Before opening a PR run the build and test
 [MIT](LICENSE)
 
 **CSV plans and personal settings**
+
+Plan imports, exports and version management are available in **Altro → Piani e importazioni**.
 - Download synthetic diet/workout templates, copy AI instructions, preview and validate files before saving a draft
 - Activate/archive versions explicitly; export and reimport without rewriting past meals or workout sessions
 - Compare known nutrients with configurable goals; missing/estimated/declared values remain explicit

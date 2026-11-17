@@ -69,6 +69,15 @@ const tabs = [
       :key="path"
       :to="path"
       class="navitem"
+      :class="{
+        active: path === '/altro' && $route.path.startsWith('/altro/'),
+      }"
+      :aria-current="
+        $route.path === path ||
+        (path === '/altro' && $route.path.startsWith('/altro/'))
+          ? 'page'
+          : undefined
+      "
       exact-active-class="active"
       ><Icon :name="icon" /><span>{{ label }}</span></RouterLink
     >

@@ -99,7 +99,7 @@ L’avatar in alto apre `/account`: l’utente autenticato può cambiare il prop
 
 ## Import/export CSV e piani personali
 
-L’utente opera nelle pagine `/dieta/piani` e `/allenati/schede`; non occorre modificare manualmente PostgreSQL. Avatar `/account` contiene le preferenze alimentari e gli obiettivi. Guida completa: [CSV_AI_GUIDE.md](CSV_AI_GUIDE.md).
+L’utente accede da **Altro → Piani e importazioni**, nelle pagine `/altro/piani` e `/altro/schede`; non occorre modificare manualmente PostgreSQL. Avatar `/account` contiene le preferenze alimentari e gli obiettivi. Guida completa: [CSV_AI_GUIDE.md](CSV_AI_GUIDE.md).
 
 - `backend/src/pulse/csv.js`: parsing UTF-8/BOM/separatori/quote, validazione e serializzazione sicura per fogli elettronici.
 - `plan-formats.js`: template sintetici, prompt AI ed export delle strutture correnti/legacy.

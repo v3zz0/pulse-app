@@ -33,9 +33,6 @@ function applyPlan() {
       <h1>La tua dieta<span style="color: var(--accent)">.</span></h1>
     </div>
   </div>
-  <RouterLink class="btn secondary" to="/dieta/piani"
-    >Gestisci piano</RouterLink
-  >
   <section class="card workout-block">
     <div class="todayline">
       <label
