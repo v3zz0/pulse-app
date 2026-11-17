@@ -1,3 +1,11 @@
+# Esci nella pagina Account — 17 novembre 2026
+
+Pulsante Esci spostato da Altro al fondo della pagina Account, raggiungibile dall’avatar. Mantiene lo stesso servizio di logout e lo stile esistente; nessuna modifica al backend o allo schema. Rimossa la dipendenza auth non più usata da Altro.
+
+Build Vite e Docker frontend PASS; unit test frontend PASS. Scenari browser esistenti aggiornati: **4/4 PASS**, Home a360/390/1440px e concorrenza desktop. Verificati assenza del pulsante in Altro, navigazione Account, ritorno al login, disconnessione dell’altra scheda e pulizia delle bozze IndexedDB. Nessun deploy eseguito.
+
+---
+
 # Semplificazione preferenze personali — 17 novembre 2026
 
 Rimossi dal profilo allergie, intolleranze, alimenti facili da preparare, preferenze colazione/pranzo/cena, numero pasti e vincoli di spesa. Rimangono chip preferiti/non graditi e obiettivi nutrizionali. GET/PUT impostazioni espongono e salvano soltanto questi tre dati; i campi ritirati non vengono inclusi nei prompt AI e non sono più richiesti per salvare. I vecchi JSON non vengono migrati automaticamente: lettura senza modifica, nuovo salvataggio esplicito nel formato ridotto. Nessun cambio di schema o dei piani alimentari.

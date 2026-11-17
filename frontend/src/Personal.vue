@@ -3,7 +3,6 @@ import Pwa from "./Pwa.vue";
 import { onMounted, ref, computed } from "vue";
 import { api, send } from "./api";
 import { localDate } from "./stores/day";
-import { useAuth } from "./stores/auth";
 const date = ref(localDate()),
   weight = ref(""),
   weights = ref([]),
@@ -13,8 +12,7 @@ const date = ref(localDate()),
   times = ref({}),
   message = ref(""),
   error = ref(""),
-  busy = ref(false),
-  auth = useAuth();
+  busy = ref(false);
 const overlap = computed(
   () => intakes.value.filter((i) => /creatin|powa/i.test(i.name)).length > 1,
 );
@@ -188,8 +186,5 @@ onMounted(load);
       </div>
     </div>
   </section>
-  <button class="btn ghost wide" style="margin-top: 14px" @click="auth.logout">
-    Esci
-  </button>
   <Pwa />
 </template>

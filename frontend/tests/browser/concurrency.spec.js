@@ -124,6 +124,10 @@ test("due tab e conflitto con un altro dispositivo senza perdita silenziosa", as
     "Tutte le modifiche sincronizzate",
   );
   await page.getByRole("link", { name: "Altro", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Esci", exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("link", { name: "Il tuo account" }).click();
   await page.getByRole("button", { name: "Esci", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Accedi a PULSE" }),

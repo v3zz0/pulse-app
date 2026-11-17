@@ -117,4 +117,9 @@ async function save() {
     <p v-if="saved" class="inline-note" role="status">Credenziali aggiornate</p>
   </form>
   <PersonalSettings />
+  <div class="account-form">
+    <button type="button" class="btn ghost wide" @click="auth.logout">
+      Esci
+    </button>
+  </div>
 </template>
