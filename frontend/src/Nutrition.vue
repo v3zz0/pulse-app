@@ -3,12 +3,28 @@ import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useDay, localDate } from "./stores/day";
 import MealDialog from "./components/MealDialog.vue";
+import NutrientSummary from "./components/NutrientSummary.vue";
+import { api } from "./api";
+const goals = ref(null);
+onMounted(async () => {
+  try {
+    goals.value = (await api("/personal-settings")).data.goals;
+  } catch {}
+});
 const day = useDay(),
   selected = ref(null),
   route = useRoute();
 onMounted(() =>
   day.load(typeof route.query.day === "string" ? route.query.day : localDate()),
 );
+function applyPlan() {
+  if (
+    confirm(
+      "Usare il piano attivo per questa giornata senza pasti consumati? Le scelte e la spesa della giornata verranno rigenerate; lo storico degli altri giorni resterà invariato.",
+    )
+  )
+    day.change({ action: "apply-plan", confirm: true });
+}
 </script>
 <template>
   <div class="pagehead">
@@ -17,7 +33,10 @@ onMounted(() =>
       <h1>La tua dieta<span style="color: var(--accent)">.</span></h1>
     </div>
   </div>
-  <section class="card">
+  <RouterLink class="btn secondary" to="/dieta/piani"
+    >Gestisci piano</RouterLink
+  >
+  <section class="card workout-block">
     <div class="todayline">
       <label
         >Giornata
@@ -43,11 +62,35 @@ onMounted(() =>
       Prepara domani
     </button>
     <p class="warning">
-      {{ day.plan?.title }} · Validità originale 30–40 giorni. Da rivedere con
-      il professionista.
+      {{ day.plan?.title }} ·
+      {{
+        day.plan?.provenance === "csv"
+          ? "Piano importato: verifica fonti e revisione professionale."
+          : "Validità originale 30–40 giorni. Da rivedere con il professionista."
+      }}
     </p>
+    <p v-if="day.planId && day.plan?.id !== day.planId" class="warning">
+      Questa giornata conserva il piano con cui è stata preparata. Il nuovo
+      piano attivo non modifica i pasti già registrati.
+    </p>
+    <button
+      v-if="
+        day.planId &&
+        day.plan?.id !== day.planId &&
+        !day.meals.some((m) => m.consumedAt)
+      "
+      class="btn secondary"
+      :disabled="day.busy"
+      @click="applyPlan"
+    >
+      Usa piano attivo in questa giornata
+    </button>
     <p v-if="day.error" role="alert">{{ day.error }}</p>
     <p v-if="day.busy" role="status">Caricamento…</p>
+  </section>
+  <section class="card workout-block">
+    <h2>Nutrienti della giornata</h2>
+    <NutrientSummary :totals="day.nutrientTotals" :goals="goals" />
   </section>
   <div class="section-title"><h2>I tuoi pasti</h2></div>
   <div class="meal-list">

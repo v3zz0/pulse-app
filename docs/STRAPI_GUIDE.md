@@ -96,3 +96,18 @@ Le revisioni video separate dal programma riportano il titolo ufficiale verifica
 ## Credenziali personali dall’app
 
 L’avatar in alto apre `/account`: l’utente autenticato può cambiare il proprio username e, facoltativamente, la password. `PUT /api/pulse/profile` richiede cookie, origine consentita e password attuale; non accetta un proprietario dal client. Username univoco senza distinzione maiuscole/minuscole (3–64 lettere ASCII, numeri, punti, trattini o underscore). La nuova password richiede almeno 12 caratteri e massimo 72 byte UTF-8 per evitare troncamenti bcrypt. Hash tramite il servizio nativo Strapi, aggiornamento e revoca degli altri accessi PULSE nella stessa transazione. Il cambio del solo username mantiene le sessioni esistenti e l’accesso via email. La modifica richiede connessione; nessuna credenziale viene salvata nella coda offline. Le verifiche della password sono soggette al limite persistente per IP/account.
+
+## Import/export CSV e piani personali
+
+L’utente opera nelle pagine `/dieta/piani` e `/allenati/schede`; non occorre modificare manualmente PostgreSQL. Avatar `/account` contiene le preferenze alimentari e gli obiettivi. Guida completa: [CSV_AI_GUIDE.md](CSV_AI_GUIDE.md).
+
+- `backend/src/pulse/csv.js`: parsing UTF-8/BOM/separatori/quote, validazione e serializzazione sicura per fogli elettronici.
+- `plan-formats.js`: template sintetici, prompt AI ed export delle strutture correnti/legacy.
+- `plans.js` e `active-plan.js`: anteprime firmate, bozze, versioni, attivazione/archiviazione, idempotenza, ownership e trasferimenti carichi.
+- `nutrient-totals.js`: totali noti/parziali e provenienza; nessun valore inventato.
+- `plan-settings.js`: preferenze private, target e revisioni ottimistiche.
+- `api/plans`: soli endpoint custom sotto `/api/pulse/plans/:kind` e `/api/pulse/personal-settings`, con guardia cookie/CSRF/owner. kind = nutrition/training.
+
+GET template/list/detail/export; POST preview/import; PUT sul piano con action activate/archive/review. La preview non scrive; l’import salva solo una bozza e rivalida il file; l’attivazione richiede una conferma separata. Non modificare manualmente identificativi, status o carichi tramite Content Manager durante le sessioni.
+
+`csv-body.js` estende il parser nativo di Strapi soltanto per POST preview/import, autenticando prima del body. Tutte le altre rotte conservano i limiti ordinari; nginx segue lo stesso perimetro. Ricollaudare l’estensione al prossimo upgrade Strapi.

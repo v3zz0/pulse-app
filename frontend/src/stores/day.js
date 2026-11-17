@@ -19,6 +19,8 @@ export const useDay = defineStore("day", {
     revision: 0,
     preferences: {},
     plan: null,
+    planId: null,
+    nutrientTotals: null,
     busy: false,
     error: "",
   }),
@@ -32,6 +34,8 @@ export const useDay = defineStore("day", {
   },
   actions: {
     apply(data) {
+      this.planId = data.planId;
+      this.nutrientTotals = data.nutrientTotals;
       this.mode = data.mode;
       this.meals = data.meals;
       this.revision = data.revision;
@@ -102,7 +106,7 @@ export const useDay = defineStore("day", {
     },
     async prefer(optionKey, status) {
       try {
-        await send("/preferences", { optionKey, status });
+        await send("/preferences", { optionKey, status, day: this.date });
         this.preferences[optionKey] = status;
       } catch (e) {
         this.error = e.message;

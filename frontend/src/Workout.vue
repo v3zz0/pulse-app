@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useWorkout } from "./stores/workout";
 import { useAuth } from "./stores/auth";
 import { useRouter } from "vue-router";
@@ -14,6 +14,14 @@ const w = useWorkout(),
   seconds = ref(60),
   now = ref(Date.now());
 let interval;
+watch(
+  () => w.program?.id,
+  () => {
+    if (w.program && !w.program.days[day.value])
+      day.value = Object.keys(w.program.days)[0];
+  },
+  { immediate: true },
+);
 const pending = computed(
   () =>
     w.active?.snapshot.blocks
@@ -107,6 +115,9 @@ onUnmounted(() => clearInterval(interval));
       <p class="text-muted">Standard e carico della seduta restano distinti.</p>
     </div>
   </div>
+  <RouterLink class="btn secondary" to="/allenati/schede"
+    >Gestisci scheda</RouterLink
+  >
   <p v-if="error" role="alert" class="warning">{{ error }}</p>
   <p v-if="w.error" role="status" class="warning">{{ w.error }}</p>
   <button
@@ -144,7 +155,7 @@ onUnmounted(() => clearInterval(interval));
       </p>
       <div class="switch-seg">
         <button
-          v-for="d in ['A', 'B', 'C']"
+          v-for="d in Object.keys(w.program.days)"
           :key="d"
           :class="{ active: day === d }"
           @click="day = d"
@@ -153,9 +164,14 @@ onUnmounted(() => clearInterval(interval));
         </button>
       </div>
       <p>
-        {{ w.program.days[day].length }} blocchi ·
-        {{ w.program.days[day].reduce((n, b) => n + b.sets.length, 0) }} serie ·
-        defaticamento 3 minuti
+        {{ (w.program.days[day] || []).length }} blocchi ·
+        {{ (w.program.days[day] || []).reduce((n, b) => n + b.sets.length, 0) }}
+        serie · defaticamento
+        {{
+          w.program.cooldown.durationSeconds
+            ? w.program.cooldown.durationSeconds + " s"
+            : "da verificare"
+        }}
       </p>
       <button
         class="btn primary wide"
@@ -316,9 +332,15 @@ onUnmounted(() => clearInterval(interval));
         :data-testid="'set-' + s.id"
       >
         <div class="set-foot">
-          <b>Serie {{ i + 1 }} · {{ s.reps }}</b
+          <b
+            >Serie {{ i + 1 }} · {{ s.reps
+            }}{{ s.toFailure ? " · cedimento" : ""
+            }}{{ s.perLeg ? " · per gamba" : "" }}</b
           ><span class="pill grey">{{ label[s.status] }}</span>
         </div>
+        <p v-if="s.movements?.length" class="note">
+          {{ s.movements.map((m) => m.name + " × " + m.reps).join(" → ") }}
+        </p>
         <p class="smallmuted">
           Standard all’avvio:
           {{
@@ -393,14 +415,26 @@ onUnmounted(() => clearInterval(interval));
       </div>
     </section>
     <section class="card workout-block">
-      <h2>{{ w.active.snapshot.cooldown.name }} · 3 minuti</h2>
+      <h2>
+        {{ w.active.snapshot.cooldown.name }} ·
+        {{
+          w.active.snapshot.cooldown.durationSeconds
+            ? w.active.snapshot.cooldown.durationSeconds + " s"
+            : "durata da verificare"
+        }}
+      </h2>
       <p>{{ w.active.snapshot.cooldown.sourceText }}</p>
       <div class="btnrow">
         <button
+          v-if="w.active.snapshot.cooldown.durationSeconds"
           class="btn secondary"
           @click="
             run(() =>
-              w.act({ action: 'timer', command: 'start', seconds: 180 }),
+              w.act({
+                action: 'timer',
+                command: 'start',
+                seconds: w.active.snapshot.cooldown.durationSeconds,
+              }),
             )
           "
         >

@@ -1,3 +1,29 @@
+# Piani CSV e preferenze personali — 17 novembre 2026
+
+## Implementazione e dati
+
+Checkout inizialmente pulito su main `02e963e`, sincronizzato prima del lavoro. Import/export CSV su collezioni esistenti, anteprima senza scrittura, bozze/versioni/archiviazione/attivazione separata, trasferimenti carichi con confronto esatto e conferma, nutrienti noti/parziali e preferenze/obiettivi personali privati. Una sola nuova collezione personal-setting. Nessuna nuova dieta AI generata o attivata per account personali, nessun import ripetuto dei PDF, nessuna modalità rapida. UI dark/menta e icone ufficiali conservate.
+
+Backup locale privato prima delle estensioni, dump custom e lettura indice con pg_restore --list. Dopo riavvio del PC i file temporanei /tmp sono stati cancellati: recuperate soltanto le password dei quattro account sintetici esatti @example.invalid con script opt-in, senza reset di piani/giornate/allenamenti. Creato un ulteriore dump locale ignorato da Git in backups/csv-before-recovery.dump e verificato l’indice. Questo controllo dell’archivio non viene presentato come un nuovo restore completo. Nessuna connessione o modifica al database di produzione, nessun deploy/DNS modificato.
+
+## Collaudi effettuati
+
+- Build frontend Vite, backend Strapi nativi e immagini Docker: PASS. Backend 7 file di test passati, inclusi import storici e nuovo file CSV; frontend 1 file passato. Otto casi CSV mirati: BOM/separatori/decimali/quote/multilinea, round-trip, duplicati/limiti/URL/identificativi riservati, formule letterali, nutrienti senza somme di alternative, carichi con identità esatta, token firmati e circuiti con ripetizioni per serie.
+- tests/csv-api.mjs su due nuovi account sintetici: PASS. Preview senza nuove versioni, conferme richieste, importazioni concorrenti idempotenti, token legati al proprietario, lettura/export/modifica di piani altrui negati, CSRF, target privati e revisioni, versioni attive indipendenti da bozze, giornate/snapshot/storico invariati, blocco sostituzione di giornate con consumi, applicazione esplicita su giornata libera, preferenze sulle giornate storiche e promemoria dei programmi importati. Test attraverso nginx: CSV JSON oltre128KiB accettato solo sui due endpoint previsti; richiesta ordinaria eccessiva rifiutata413 (HTML proxy gestito dal test), niente aumento generale dei limiti.
+- Standard60 → temporaneo50 → serie senza carico effettivo → nuova versione/sessione ancora60: PASS API, con anteprima/conferma trasferimento. Snapshot storico confrontato integralmente e immutato. La selezione di un giorno personalizzato D e il mantenimento dello standard dopo il temporaneo sono verificati anche via UI.
+- Export/parse delle fonti storiche sintetiche: PASS, dieta186righe/60138byte e allenamento82righe/37563byte. Confrontati pasti/menu/gruppi/opzioni, serie, movimenti, video e defaticamento. Nessun reimport storico eseguito. Le note ripetitive vengono rappresentate una volta per livello, senza perdita del testo originale; i campi assenti non diventano dati inventati. Confermata anche la disponibilità di corrispondenze esatte per trasferire standard da un export legacy reimportabile.
+- Suite completa browser: **21 PASS, 0 saltati**, su360/390/1440px. CSV esempi/istruzioni AI, file errato bloccato, anteprima non salvata, bozza persistente al reload, attivazione, export/reimport strutturale, preferenze/target, giorno D e scheda completa; regressione account, Home/nutrizione, workout/timer/storico, concorrenza/conflitti, offline/cache/installabilità/favicon e notifiche reali. Screenshot CSV mobile ispezionato, nessun overflow o pageerror nei nuovi scenari.
+- Durante la regressione individuato e corretto un import mancante di activePlan nel controller promemoria (500 sui salvataggi). Corretto anche il test file-upload che impostava programmaticamente il file mentre il campo era ancora disabilitato dalla copia negli appunti: attende il campo abilitato, come farebbe l’utente. La suite finale non maschera errori con retry o skip.
+- Persistenza PostgreSQL: baseline privata dei due account CSV catturata, poi restart reale postgres/strapi/frontend, tutti healthy; tests/csv-persistence.mjs PASS. Identici piani/stati/versioni, preferenze/target/revisioni, standard60, sessioni attive e storico dopo il riavvio.
+
+## Limiti e aggiornamento server
+
+Le fonti nutrizionali non sono controllate contro una banca dati remota; “verified” nel CSV non è accettato come certificazione. Fonti confermate dall’utente e stime rimangono distinguibili; dati mancanti restano null e totali parziali espliciti. Video nuovi/reimportati sempre da revisionare: nessun fetch arbitrario del backend o certificazione della tecnica/licenza. Nessuna chiamata automatica a un’AI e nessun cambio degli obiettivi salvati senza conferma.
+
+Test browser eseguiti su Chromium desktop con viewport mobili, non Android fisico o Safari. Nessuna nuova dipendenza/lockfile modificata e nessun nuovo audit presentato come eseguito; i rischi già documentati in SECURITY.md rimangono da gestire. Il server online non è stato aggiornato. Il deploy con nuove colonne/collezione richiede backup verificato, autorizzazione e procedura in DEPLOYMENT.md; una vecchia versione che ignora status non è un rollback sicuro dopo la creazione di bozze CSV. Formati/limiti/AI in CSV_AI_GUIDE.md.
+
+---
+
 # Favicon e icone PWA ufficiali — 16 novembre 2026
 
 - Lavoro separato dal commit account `c549670`, già pubblicato e SHA remoto verificato. Checkout pulito e sincronizzato prima di questo blocco. Nessuna modifica a codice di autenticazione, dieta, allenamenti, backend o database in questo commit; nessun deploy.

@@ -2,6 +2,8 @@
 const auth = require("../../../pulse/auth");
 const validate = require("../../../pulse/validation");
 const nutrition = require("../../../pulse/nutrition");
+const { activePlan } = require("../../../pulse/active-plan");
+const nutrientTotals = require("../../../pulse/nutrient-totals");
 const uid = (name) => `api::${name}.${name}`;
 const query = (strapi, name) => strapi.db.query(uid(name));
 const safeUser = (user) => ({ id: user.id, username: user.username });
@@ -26,16 +28,14 @@ const handler = (action) =>
     }
   };
 async function currentPlan(user) {
-  return query(strapi, "nutrition-plan").findOne({
-    where: { owner: user.id },
-    orderBy: { createdAt: "desc" },
-  });
+  return activePlan(strapi, "nutrition", user.id);
 }
 async function getDay(user, day) {
   validate.date(day);
   const uniqueKey = `${user.id}:${day}`;
   let entry = await query(strapi, "daily-plan").findOne({
     where: { uniqueKey, owner: user.id },
+    populate: { plan: true },
   });
   if (entry) return entry;
   const plan = await currentPlan(user);
@@ -55,10 +55,15 @@ async function getDay(user, day) {
     revision: 0,
   };
   try {
-    return await query(strapi, "daily-plan").create({ data });
+    await query(strapi, "daily-plan").create({ data });
+    return query(strapi, "daily-plan").findOne({
+      where: { uniqueKey, owner: user.id },
+      populate: { plan: true },
+    });
   } catch (error) {
     entry = await query(strapi, "daily-plan").findOne({
       where: { uniqueKey, owner: user.id },
+      populate: { plan: true },
     });
     if (entry) return entry;
     throw error;
@@ -66,9 +71,12 @@ async function getDay(user, day) {
 }
 const presentDay = (entry) => ({
   day: entry.day,
+  planId: entry.plan?.id || null,
+  nutrientTotals: nutrientTotals.dayTotals(entry.meals),
   mode: entry.mode,
   meals: entry.meals.map((meal) => ({
     ...meal,
+    nutrientTotals: nutrientTotals.mealTotals(meal),
     selectedIngredients: nutrition.selectedIngredients(meal),
   })),
   revision: entry.revision,
@@ -85,7 +93,9 @@ module.exports = {
     const plan = await currentPlan(user);
     ctx.body = plan
       ? {
+          id: plan.id,
           title: plan.title,
+          provenance: plan.provenance || "PDF storico",
           sourceDate: plan.sourceDate,
           reviewStatus: plan.reviewStatus,
           notes: plan.notes,
@@ -103,8 +113,21 @@ module.exports = {
       validate.fail("Giornata modificata altrove: ricarica e riprova", 409);
     let meals = structuredClone(entry.meals),
       mode = entry.mode,
-      shoppingChecked = entry.shoppingChecked || {};
-    if (body.action === "mode") {
+      shoppingChecked = entry.shoppingChecked || {},
+      nextPlanId = entry.plan?.id;
+    if (body.action === "apply-plan") {
+      if (body.confirm !== true) validate.fail("Conferma esplicita richiesta");
+      if (meals.some((m) => m.consumedAt))
+        validate.fail(
+          "Giornata con pasti consumati: mantieni il piano storico",
+          409,
+        );
+      const current = await currentPlan(user);
+      if (!current) validate.fail("Nessun piano attivo", 409);
+      meals = structuredClone(current.meals[mode]);
+      shoppingChecked = {};
+      nextPlanId = current.id;
+    } else if (body.action === "mode") {
       mode = validate.mode(body.mode);
       if (meals.some((m) => m.consumedAt))
         validate.fail(
@@ -140,12 +163,20 @@ module.exports = {
       shoppingChecked = { ...shoppingChecked, [body.itemId]: body.checked };
     } else validate.fail("Azione non valida");
     // Conditional update prevents silently overwriting another tab/device.
-    const result = await query(strapi, "daily-plan").updateMany({
-      where: { id: entry.id, owner: user.id, revision: body.revision },
-      data: { meals, mode, shoppingChecked, revision: body.revision + 1 },
+    await strapi.db.transaction(async () => {
+      const result = await query(strapi, "daily-plan").updateMany({
+        where: { id: entry.id, owner: user.id, revision: body.revision },
+        data: { meals, mode, shoppingChecked, revision: body.revision + 1 },
+      });
+      if (result.count !== 1)
+        validate.fail("Conflitto: ricarica la giornata", 409);
+      // Strapi updateMany only updates scalar fields; change the relation in the same transaction.
+      if (nextPlanId !== entry.plan?.id)
+        await query(strapi, "daily-plan").update({
+          where: { id: entry.id, owner: user.id },
+          data: { plan: nextPlanId },
+        });
     });
-    if (result.count !== 1)
-      validate.fail("Conflitto: ricarica la giornata", 409);
     ctx.body = presentDay(await getDay(user, ctx.params.day));
   }),
   preferences: guarded(async (ctx, user) => {
@@ -160,15 +191,20 @@ module.exports = {
       validate.fail("Preferenza non valida");
     validate.text(optionKey);
     const plan = await currentPlan(user);
+    let meals = plan ? Object.values(plan.meals).flat() : [];
+    if (ctx.request.body?.day) {
+      const day = validate.date(ctx.request.body.day);
+      const saved = await query(strapi, "daily-plan").findOne({
+        where: { owner: user.id, day },
+      });
+      meals = [...meals, ...(saved?.meals || [])];
+    }
     if (
-      !plan ||
-      !Object.values(plan.meals)
-        .flat()
-        .some((m) =>
-          m.menus.some((menu) =>
-            menu.groups.some((g) => g.options.some((o) => o.id === optionKey)),
-          ),
-        )
+      !meals.some((m) =>
+        m.menus.some((menu) =>
+          menu.groups.some((g) => g.options.some((o) => o.id === optionKey)),
+        ),
+      )
     )
       validate.fail("Opzione inesistente", 404);
     const uniqueKey = `${user.id}:${optionKey}`,

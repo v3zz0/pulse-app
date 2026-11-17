@@ -8,6 +8,7 @@ import Login from "./Login.vue";
 import Nutrition from "./Nutrition.vue";
 import Personal from "./Personal.vue";
 import Account from "./Account.vue";
+import ManagePlans from "./ManagePlans.vue";
 import Workout from "./Workout.vue";
 import Progress from "./Progress.vue";
 import { useAuth } from "./stores/auth";
@@ -19,6 +20,16 @@ const router = createRouter({
     { path: "/", component: Home },
     { path: "/login", component: Login },
     { path: "/dieta", component: Nutrition },
+    {
+      path: "/dieta/piani",
+      component: ManagePlans,
+      props: { kind: "nutrition" },
+    },
+    {
+      path: "/allenati/schede",
+      component: ManagePlans,
+      props: { kind: "training" },
+    },
     { path: "/altro", component: Personal },
     { path: "/account", component: Account },
     { path: "/allenati", component: Workout },

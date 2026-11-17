@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch } from "vue";
 import { useDay } from "../stores/day";
+import NutrientSummary from "./NutrientSummary.vue";
 const props = defineProps({ meal: Object });
 const emit = defineEmits(["close"]);
 const day = useDay();
@@ -51,7 +52,7 @@ async function save() {
         <div>
           <div class="eyebrow">{{ meal.time }} · GIORNO {{ day.mode }}</div>
           <h2 id="meal-dialog-title">{{ meal.name }}</h2>
-          <p>Alternative del piano storico</p>
+          <p>Alternative del piano della giornata</p>
         </div>
         <button class="sheet-close" aria-label="Chiudi" @click="emit('close')">
           ×
@@ -60,6 +61,7 @@ async function save() {
       <div v-if="meal.consumedAt" class="warning">
         Annulla il consumo prima di sostituire questo pasto.
       </div>
+      <NutrientSummary :totals="meal.nutrientTotals" />
       <label class="fieldlabel" for="menu">Composizione del pasto</label
       ><select
         id="menu"

@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { useAuth } from "./stores/auth";
+import PersonalSettings from "./components/PersonalSettings.vue";
 const auth = useAuth();
 const username = ref(auth.user?.username || "");
 const currentPassword = ref("");
@@ -115,4 +116,5 @@ async function save() {
     <p v-if="error" class="warning" role="alert">{{ error }}</p>
     <p v-if="saved" class="inline-note" role="status">Credenziali aggiornate</p>
   </form>
+  <PersonalSettings />
 </template>

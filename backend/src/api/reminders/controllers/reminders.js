@@ -1,3 +1,4 @@
+const { activePlan } = require("../../../pulse/active-plan");
 const guard = require("../../../pulse/guarded");
 const { fail, date } = require("../../../pulse/validation");
 const { settings, localParts, isDue } = require("../../../pulse/reminders");
@@ -68,8 +69,10 @@ module.exports = {
       if (b.action === "settings") {
         const s = settings(b.settings);
         s.label = s.kind === "workout" ? "Scheda " + s.target : s.target;
-        if (s.kind === "workout" && !["A", "B", "C"].includes(s.target))
-          fail("Scheda non valida");
+        if (s.kind === "workout") {
+          const program = await activePlan(app, "training", user.id);
+          if (!program?.days[s.target]) fail("Scheda non valida");
+        }
         if (s.kind === "supplement") {
           const product = await q(app, "supplement-product").findOne({
             where: { owner: user.id, id: Number(s.target) || 0 },
@@ -78,15 +81,15 @@ module.exports = {
           s.label = product.name;
         }
         if (s.kind === "meal") {
-          const p = await q(app, "nutrition-plan").findOne({
-            where: { owner: user.id },
-            orderBy: { createdAt: "desc" },
+          const p = await activePlan(app, "nutrition", user.id);
+          const currentDay = localParts(Date.now(), s.timezone).date;
+          const daily = await q(app, "daily-plan").findOne({
+            where: { owner: user.id, day: currentDay },
           });
-          const meal =
-            p &&
-            Object.values(p.meals)
-              .flat()
-              .find((m) => m.id === s.target);
+          const meal = [
+            ...(p ? Object.values(p.meals).flat() : []),
+            ...(daily?.meals || []),
+          ].find((m) => m.id === s.target);
           if (!meal) fail("Pasto inesistente", 404);
           s.label = meal.name;
         }

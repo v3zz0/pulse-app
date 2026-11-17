@@ -8,6 +8,7 @@ const {
   metrics,
 } = require("../../../pulse/workout");
 const { createHash } = require("node:crypto");
+const { activePlan } = require("../../../pulse/active-plan");
 const q = (app, name) => app.db.query(`api::${name}.${name}`);
 const uuid = (value) => {
   if (typeof value !== "string" || !/^[a-f0-9-]{36}$/i.test(value))
@@ -38,10 +39,7 @@ async function lock(app, owner, fn) {
   });
 }
 async function program(app, owner) {
-  const p = await q(app, "training-program").findOne({
-    where: { owner },
-    orderBy: { createdAt: "desc" },
-  });
+  const p = await activePlan(app, "training", owner);
   if (!p) return null;
   const reviews = await q(app, "video-review").findMany({
     where: { owner, programId: p.id },

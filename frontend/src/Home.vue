@@ -49,8 +49,11 @@ onUnmounted(() => clearInterval(interval));
     <span class="pill">PULSE</span>
   </div>
   <div class="source-note phase-note">
-    Piano storico del 17/09/2026, validità originale 30–40 giorni: da rivedere
-    con il professionista.
+    {{
+      day.plan?.provenance === "csv"
+        ? "Piano importato: verifica fonti e revisione con il professionista."
+        : "Piano storico del 17/09/2026, validità originale 30–40 giorni: da rivedere con il professionista."
+    }}
   </div>
   <p v-if="day.error" role="alert" class="warning">{{ day.error }}</p>
   <p v-if="day.busy" role="status">Caricamento…</p>
@@ -179,7 +182,8 @@ onUnmounted(() => clearInterval(interval));
             <Icon name="bolt" :size="15" /> Inizia allenamento
           </button>
           <div class="source-note">
-            Apri la scheda completa A/B/C. Puoi saltare singole serie ed esercizi.
+            Apri la scheda completa A/B/C. Puoi saltare singole serie ed
+            esercizi.
           </div>
         </section>
         <div class="home-compact-grid">
@@ -240,16 +244,22 @@ onUnmounted(() => clearInterval(interval));
                 }}
               </div>
             </div>
-            <button class="btn secondary" @click="router.push('/altro')">Configura</button>
+            <button class="btn secondary" @click="router.push('/altro')">
+              Configura
+            </button>
           </div>
           <div class="soft-row">
             <div>
               <b>Integratori</b>
               <div class="meta">{{ intakes.length }} assunzioni registrate</div>
             </div>
-            <button class="btn secondary sm" @click="router.push('/altro')">Gestisci</button>
+            <button class="btn secondary sm" @click="router.push('/altro')">
+              Gestisci
+            </button>
           </div>
-          <div class="source-note">Promemoria configurabili in Altro; avvisi mentre l’app è aperta.</div>
+          <div class="source-note">
+            Promemoria configurabili in Altro; avvisi mentre l’app è aperta.
+          </div>
         </section>
       </div>
     </div>

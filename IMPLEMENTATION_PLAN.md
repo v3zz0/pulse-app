@@ -48,3 +48,9 @@ Sessioni complete con standard separati, risultati espliciti, timer persistenti,
 Domini esatti: `https://pulse.vezzo.vp360web.it`, `https://apipulse.vezzo.vp360web.it`, admin `/admin`. Audit34→25, high23→5; Strapi5.62 già ultima stable, override compatibili Zod4.6.7 e MCP Node2.1.2/Hono2.1.8. Restano rischi analizzati, non cancellati dal report. Vedere SECURITY.md, VALIDATION.md, DEPLOYMENT.md e ANDROID_CHECKLIST.md.
 
 Ripristino di70tabelle e upload verificato in container/volumi senza rete, inclusa la configurazione di produzione. HTTPS e cookie su domini reali verificati solo con risoluzione locale e CA interna; admin nativo e allowlist IP collaudati. Nessun certificato pubblico richiesto, deploy remoto o timer installato sul PC. Il Compose locale e i dati personali originali restano preservati.
+
+## Estensione richiesta: CSV e personalizzazione dei piani — 17 novembre 2026
+
+Aggiunti import/export dieta e schede completi, template sintetici, istruzioni AI, validazione server e anteprima senza scrittura, bozze e versioni con attivazione/archiviazione esplicita, confronto e trasferimento confermato dei carichi, nutrienti e target, preferenze private e preservazione degli snapshot. Modelli esistenti estesi; una sola nuova collezione per impostazioni per owner. Nessuna importazione ripetuta dei PDF, nessuna modalità rapida, nessuna nuova dieta attivata per utenti personali.
+
+La parte preferenze/target e importazione è implementata da questa estensione. La generazione di una nuova dieta personale e la revisione clinica, oltre alla libreria video 3D e alle licenze, restano fuori da questa attività. Produzione non aggiornata: applicazione delle modifiche di schema subordinata a backup verificato e autorizzazione. Risultati effettivi in docs/VALIDATION.md; contratto operativo in docs/CSV_AI_GUIDE.md.

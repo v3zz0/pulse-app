@@ -26,7 +26,9 @@ const names = {
 async function loadTargets() {
   try {
     if (kind.value === "workout")
-      targets.value = ["A", "B", "C"].map((d) => ({
+      targets.value = Object.keys(
+        (await api("/training")).program?.days || {},
+      ).map((d) => ({
         id: d,
         name: "Scheda " + d,
       }));

@@ -24,6 +24,7 @@ function timestamp(value, now) {
   return t;
 }
 function createSnapshot(program, day, loads, previous) {
+  if (!Object.hasOwn(program.days, day)) fail("Scheda inesistente", 404);
   const blocks = structuredClone(program.days[day]);
   if (!blocks) fail("Scheda inesistente", 404);
   for (const block of blocks)

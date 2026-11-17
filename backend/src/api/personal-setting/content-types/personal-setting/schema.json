@@ -1,0 +1,33 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pulse_personal_settings",
+  "info": {
+    "singularName": "personal-setting",
+    "pluralName": "personal-settings",
+    "displayName": "Impostazioni personali"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "uniqueKey": {
+      "type": "string",
+      "unique": true,
+      "required": true
+    },
+    "data": {
+      "type": "json",
+      "required": true
+    },
+    "revision": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

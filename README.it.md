@@ -104,3 +104,11 @@ Issue e pull request sono benvenute. Prima di aprire una PR esegui build e test 
 ## Licenza
 
 [MIT](LICENSE)
+
+## Piani CSV e impostazioni personali
+
+Da **Dieta → Gestisci piano** e **Allenati → Gestisci scheda**: esempi CSV sintetici, istruzioni per AI, anteprima con errori/avvisi, importazione in bozza, attivazione esplicita, archiviazione ed export. Le versioni storiche e gli allenamenti già avviati non vengono riscritti. I carichi si trasferiscono solo dopo confronto esatto e conferma.
+
+Avatar → preferenze alimentari, allergie/intolleranze dichiarate, tempo, pasti, budget e target configurabili. Nutrienti mancanti non inventati; stime e dichiarazioni distinti da fonti confermate dall’utente. Nessuna dieta AI viene generata o attivata automaticamente. [Formato e procedura CSV](docs/CSV_AI_GUIDE.md).
+
+Aggiornamento server: leggere la sezione CSV di DEPLOYMENT.md; nessuna modifica al database di produzione senza backup verificato e autorizzazione esplicita.

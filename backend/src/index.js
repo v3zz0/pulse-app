@@ -1,4 +1,9 @@
 module.exports = {
+  register({ strapi }) {
+    strapi
+      .get("middlewares")
+      .extend("strapi::body", require("./pulse/csv-body"));
+  },
   async bootstrap({ strapi }) {
     if (process.env.PULSE_ENV === "production") {
       // I domini arrivano dall'ambiente (PULSE_PUBLIC_ORIGIN / PULSE_API_URL nel compose):

@@ -29,7 +29,10 @@
     },
     "reviewStatus": {
       "type": "enumeration",
-      "enum": ["historical-review", "reviewed"],
+      "enum": [
+        "historical-review",
+        "reviewed"
+      ],
       "default": "historical-review"
     },
     "notes": {
@@ -48,6 +51,29 @@
     "importVersion": {
       "type": "integer",
       "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "draft",
+        "active",
+        "archived"
+      ]
+    },
+    "externalId": {
+      "type": "string"
+    },
+    "versionLabel": {
+      "type": "string"
+    },
+    "activatedAt": {
+      "type": "datetime"
+    },
+    "provenance": {
+      "type": "string"
+    },
+    "csvData": {
+      "type": "json"
     }
   }
 }

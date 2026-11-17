@@ -30,7 +30,10 @@
     },
     "reviewStatus": {
       "type": "enumeration",
-      "enum": ["needs-review", "reviewed"],
+      "enum": [
+        "needs-review",
+        "reviewed"
+      ],
       "default": "needs-review"
     },
     "days": {
@@ -42,6 +45,29 @@
       "required": true
     },
     "importReport": {
+      "type": "json"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "draft",
+        "active",
+        "archived"
+      ]
+    },
+    "externalId": {
+      "type": "string"
+    },
+    "versionLabel": {
+      "type": "string"
+    },
+    "activatedAt": {
+      "type": "datetime"
+    },
+    "provenance": {
+      "type": "string"
+    },
+    "csvData": {
       "type": "json"
     }
   }

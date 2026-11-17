@@ -155,3 +155,17 @@ docker compose --env-file .env.production -f compose.jenkins.yml up -d --build -
 - **Empty admin / CSP errors** — the image was built with a wrong `PUBLIC_API_URL`: fix it and rebuild.
 - **Port already in use** — change `PULSE_FRONTEND_PORT` / `PULSE_API_PORT` in the env file.
 - Automated tests only use synthetic `example.invalid` users on isolated databases: never run the fixture-reset scripts on a real instance.
+
+## Aggiornamento che introduce piani CSV e impostazioni personali
+
+**Non eseguito sulla produzione da questa attività.** Questo aggiornamento riguarda frontend e backend e aggiunge colonne nullable ai piani e una collezione personal-setting: prima di avviare Strapi aggiornato sul server occorrono **backup verificato e autorizzazione esplicita del proprietario**. Non avviare automaticamente la pipeline di deploy con sincronizzazione schema senza questi prerequisiti.
+
+1. Utilizzare il Compose/progetto/env realmente in uso (domini configurabili), senza creare un secondo stack o cambiare DNS.
+2. Eseguire il backup completo cifrato configurato e `infra/restore-isolated.sh` per verificarlo in copia isolata. Controllare che DB/upload/configurazioni siano coerenti e che la chiave di recupero sia disponibile.
+3. Dopo autorizzazione, aggiornare main, ricostruire frontend e Strapi e attendere gli healthcheck secondo i comandi della sezione aggiornamenti. La sincronizzazione schema è additiva: nessun backfill di status su piani personali, nessuna importazione automatica o cancellazione dei dati originali.
+4. Collaudare prima con un account sintetico privato: download template, anteprima (nessuna nuova versione), conferma bozza, attivazione, export/reimport, ownership e caso60/50/senza peso/60. I file CSV non vanno inseriti nella Media Library.
+5. Verificare che le giornate già preparate restino sul loro piano e che gli allenamenti mantengano snapshot e standard. Nessun target salvato viene sovrascritto da valori predefiniti.
+
+Rollback: una versione precedente a questa estensione sceglieva il piano più recente ignorando lo stato. Dopo aver creato bozze/archivi CSV non basta tornare alla vecchia immagine: potrebbe scegliere una versione non attiva. Preferire correzione in avanti; un rollback completo richiede una finestra di manutenzione e un ripristino coordinato di backup verificato, valutando esplicitamente come preservare i nuovi dati successivi al backup. Non eliminare le nuove tabelle/colonne o i volumi come scorciatoia.
+
+Per il collaudo locale: creare una sola volta le fixture con `backend/scripts/csv-test-fixtures.js`, opt-in PULSE_TEST_FIXTURES=1 e output privato /testout; non usarlo in produzione. Riusare il file credenziali, senza resettare altri utenti. Eseguire tests/csv-api.mjs, tests/csv-legacy.mjs (sola lettura dei piani storici sintetici), tests/csv-persistence.mjs --capture prima del restart e senza --capture dopo; browser con PULSE_CSV_CREDENTIALS e PULSE_TEST_CREDENTIALS nei rispettivi file privati.

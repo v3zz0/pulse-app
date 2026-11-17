@@ -56,3 +56,19 @@ Questo era il perimetro del primo incremento; l’implementazione successiva è 
 - `video-review`: owner, programId, URL, titolo, base della verifica, nota e data. Overlay per le nuove sessioni e per l'anteprima; non modifica il programma originale né snapshot storici.
 
 La coda IndexedDB è separata per owner, verificato nuovamente tramite /me prima di inviare dati. Web Locks e BroadcastChannel coordinano le schede dello stesso browser; altre installazioni usano revisioni server e conflitti espliciti. I risultati delle serie sono uno snapshot JSON transazionale, anziché righe SetResult separate; questo conserva insieme schema e fonte senza introdurre aggiornamenti parziali non atomici. Non modificare manualmente activeKey, uniqueKey, revisioni o log operazioni in admin.
+
+## Implementazione CSV e preferenze personali — 17 novembre 2026
+
+Estensioni additive a `nutrition-plan` e `training-program`: `status` (draft/active/archived, nullable per i dati precedenti), `externalId`, `versionLabel`, `activatedAt`, `provenance`, `csvData`. Hash canonico in sourceHash; data import e report in createdAt/importReport. `csvData` conserva righe normalizzate per export compatibile, senza formule eseguibili. Nessuna migrazione distruttiva o riscrittura automatica di piani PDF.
+
+Unica nuova collezione `personal-setting`: owner, uniqueKey univoca per owner, data JSON validato e revision. Contiene preferenze e obiettivi, separati dalle credenziali; non viene esposto CRUD generico.
+
+`active-plan.js` cerca un attivo esplicito; in assenza usa solo i piani legacy con status null, mai le bozze CSV. La prima attivazione archivia i legacy dello stesso owner. Import/attivazione usano transazioni e advisory lock PostgreSQL per owner/tipo; l’allenamento condivide il lock delle operazioni sessione/carichi. Idempotenza serializzata su owner/hash; la stessa coppia externalId/versionLabel non può indicare contenuti diversi tramite API.
+
+I pasti mantengono menu/gruppi/opzioni del modello esistente. Le opzioni CSV aggiungono quantità/unità/stato, nutrienti/base/fonte/stato di revisione e note. Le serie aggiungono kind/order, intervalli, perLeg e movimenti per singola serie. JSON preesistenti non vengono modificati.
+
+Le giornate conservano FK plan e snapshot. L’applicazione esplicita di un altro piano è ammessa soltanto senza consumi e aggiorna snapshot/FK nella stessa transazione con controllo revisione; updateMany Strapi non gestisce relazioni, quindi la FK viene aggiornata separatamente all’interno della stessa transazione. Preferenze su opzioni di giornate archiviate sono consentite solo dopo verifica owner della giornata.
+
+I totali sono calcolati dagli ingredienti selezionati: sconosciuto resta null; somma nota esposta separatamente dai totali completi. Nessuna conversione implicita ml/g/pezzi o crudo/cotto. Fonti/valori non vengono certificati tramite lookup automatico. La revisione del proprietario non aggiorna gli snapshot delle giornate già salvate.
+
+Carichi nuova versione distinti tramite programId; nessun aggiornamento dello storico. Il trasferimento richiede corrispondenze esatte e anteprima firmata valida; nessun confronto per somiglianza del nome.
