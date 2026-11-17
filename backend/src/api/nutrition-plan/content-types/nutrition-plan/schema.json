@@ -57,7 +57,8 @@
       "enum": [
         "draft",
         "active",
-        "archived"
+        "archived",
+        "deleted"
       ]
     },
     "externalId": {
@@ -71,6 +72,9 @@
     },
     "provenance": {
       "type": "string"
+    },
+    "editor": {
+      "type": "json"
     },
     "csvData": {
       "type": "json"

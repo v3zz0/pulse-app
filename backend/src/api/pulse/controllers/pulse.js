@@ -41,7 +41,7 @@ async function getDay(user, day) {
   const plan = await currentPlan(user);
   if (!plan)
     validate.fail(
-      "Nessun piano assegnato. Importa la dieta dall’amministrazione.",
+      "Nessun piano attivo. Crea o attiva un piano da Dieta.",
       409,
     );
   const data = {
@@ -50,7 +50,8 @@ async function getDay(user, day) {
     day,
     mode: "OFF",
     plan: plan.id,
-    meals: structuredClone(plan.meals.OFF),
+    meals: structuredClone(nutrition.mealsForDate(plan, "OFF", day)),
+    planEditRevision: plan.editor?.requestId || null,
     shoppingChecked: {},
     revision: 0,
   };
@@ -72,6 +73,8 @@ async function getDay(user, day) {
 const presentDay = (entry) => ({
   day: entry.day,
   planId: entry.plan?.id || null,
+  planUsesModes: !entry.plan?.editor?.schedule || entry.plan.editor.schedule.mode === "legacy",
+  planOutdated: (entry.planEditRevision || null) !== (entry.plan?.editor?.requestId || null),
   nutrientTotals: nutrientTotals.dayTotals(entry.meals),
   mode: entry.mode,
   meals: entry.meals.map((meal) => ({
@@ -114,7 +117,8 @@ module.exports = {
     let meals = structuredClone(entry.meals),
       mode = entry.mode,
       shoppingChecked = entry.shoppingChecked || {},
-      nextPlanId = entry.plan?.id;
+      nextPlanId = entry.plan?.id,
+      planEditRevision = entry.planEditRevision;
     if (body.action === "apply-plan") {
       if (body.confirm !== true) validate.fail("Conferma esplicita richiesta");
       if (meals.some((m) => m.consumedAt))
@@ -124,7 +128,8 @@ module.exports = {
         );
       const current = await currentPlan(user);
       if (!current) validate.fail("Nessun piano attivo", 409);
-      meals = structuredClone(current.meals[mode]);
+      meals = structuredClone(nutrition.mealsForDate(current, mode, entry.day));
+      planEditRevision = current.editor?.requestId || null;
       shoppingChecked = {};
       nextPlanId = current.id;
     } else if (body.action === "mode") {
@@ -138,7 +143,12 @@ module.exports = {
         where: { id: entry.id },
         populate: { plan: true },
       });
-      meals = structuredClone(plan.plan.meals[mode]);
+      const selected = plan.plan;
+      if (!selected || (selected.editor?.schedule && selected.editor.schedule.mode !== "legacy"))
+        validate.fail("Il piano segue il calendario settimanale", 409);
+      if ((selected.editor?.requestId || null) !== (entry.planEditRevision || null))
+        validate.fail("Applica il piano aggiornato prima di cambiare ON/OFF", 409);
+      meals = structuredClone(nutrition.mealsForDate(selected, mode, entry.day));
       shoppingChecked = {};
     } else if (body.action === "meal") {
       const index = meals.findIndex((m) => m.id === body.mealId);
@@ -166,7 +176,7 @@ module.exports = {
     await strapi.db.transaction(async () => {
       const result = await query(strapi, "daily-plan").updateMany({
         where: { id: entry.id, owner: user.id, revision: body.revision },
-        data: { meals, mode, shoppingChecked, revision: body.revision + 1 },
+        data: { meals, mode, shoppingChecked, planEditRevision, revision: body.revision + 1 },
       });
       if (result.count !== 1)
         validate.fail("Conflitto: ricarica la giornata", 409);

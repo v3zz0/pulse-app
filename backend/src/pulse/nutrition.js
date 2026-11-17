@@ -62,4 +62,11 @@ function selectMeal(meal, menuIndex, selections) {
     fail("Annulla il consumo prima di cambiare il pasto", 409);
   return { ...meal, menuIndex, selections };
 }
-module.exports = { selectedIngredients, shopping, selectMeal };
+function mealsForDate(plan, mode, day) {
+  const schedule = plan.editor?.schedule;
+  if (!schedule || schedule.mode === "legacy") return plan.meals[mode] || [];
+  const weekday = new Date(day + "T12:00:00Z").getUTCDay();
+  if (!schedule.weekdays.includes(weekday)) return [];
+  return plan.meals[schedule.mode === "daily" ? "daily" : weekday] || [];
+}
+module.exports = { selectedIngredients, shopping, selectMeal, mealsForDate };

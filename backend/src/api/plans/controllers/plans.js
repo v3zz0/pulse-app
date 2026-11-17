@@ -4,7 +4,26 @@ const guard = require("../../../pulse/guarded"),
   csv = require("../../../pulse/csv"),
   formats = require("../../../pulse/plan-formats"),
   settings = require("../../../pulse/plan-settings");
+const editor = require("../../../pulse/editor");
 module.exports = {
+  editor: guard(async (ctx, user, app) => {
+    const { kind, id } = ctx.params;
+    const p = await plans.owned(app, kind, user.id, id);
+    ctx.body = await editor.snapshot(app, kind, user.id, p);
+  }),
+  createManual: guard(async (ctx, user, app) => {
+    ctx.body = await editor.save(app, ctx.params.kind, user.id, ctx.request.body || {});
+  }),
+  saveManual: guard(async (ctx, user, app) => {
+    ctx.body = await editor.save(app, ctx.params.kind, user.id, ctx.request.body || {}, ctx.params.id);
+  }),
+  duplicate: guard(async (ctx, user, app) => {
+    ctx.body = await editor.duplicate(app, ctx.params.kind, user.id, ctx.params.id, ctx.request.body || {});
+  }),
+  remove: guard(async (ctx, user, app) => {
+    await editor.remove(app, ctx.params.kind, user.id, ctx.params.id, ctx.request.body || {});
+    ctx.status = 204;
+  }),
   template: guard(async (ctx, user, app) => {
     const kind = ctx.params.kind;
     ctx.body = {
@@ -54,6 +73,7 @@ module.exports = {
       ctx.params.kind,
       user.id,
       ctx.params.id,
+      ctx.query.day,
     );
   }),
   settings: guard(async (ctx, user, app) => {

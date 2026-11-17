@@ -57,7 +57,8 @@ const tabs = [
       v-if="
         auth.user &&
         workout.active?.status === 'active' &&
-        $route.path !== '/allenati'
+        $route.path !== '/allenati' &&
+        !$route.path.startsWith('/allenati/editor')
       "
       class="card resume-card"
     >
@@ -79,11 +80,13 @@ const tabs = [
       :to="path"
       class="navitem"
       :class="{
-        active: path === '/altro' && ($route.path.startsWith('/altro/') || $route.path === '/integratori'),
+        active: (path !== '/' && $route.path.startsWith(path + '/')) ||
+          (path === '/altro' && $route.path === '/integratori'),
       }"
       :aria-current="
         $route.path === path ||
-        (path === '/altro' && ($route.path.startsWith('/altro/') || $route.path === '/integratori'))
+        (path !== '/' && $route.path.startsWith(path + '/')) ||
+        (path === '/altro' && $route.path === '/integratori')
           ? 'page'
           : undefined
       "

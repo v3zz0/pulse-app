@@ -9,12 +9,14 @@ import Nutrition from "./Nutrition.vue";
 import Personal from "./Personal.vue";
 import ReminderSettings from "./ReminderSettings.vue";
 import Account from "./Account.vue";
+import PlanEditor from "./PlanEditor.vue";
 import ManagePlans from "./ManagePlans.vue";
 import Workout from "./Workout.vue";
 import Supplements from "./Supplements.vue";
 import Progress from "./Progress.vue";
 import { useAuth } from "./stores/auth";
 import "./style.css";
+import "./editor.css";
 const pinia = createPinia();
 const router = createRouter({
   history: createWebHistory(),
@@ -32,6 +34,8 @@ const router = createRouter({
       component: ManagePlans,
       props: { kind: "training" },
     },
+    { path: "/dieta/editor/:id?", component: PlanEditor, props: { kind: "nutrition" } },
+    { path: "/allenati/editor/:id?", component: PlanEditor, props: { kind: "training" } },
     { path: "/dieta/piani", redirect: "/altro/piani" },
     { path: "/allenati/schede", redirect: "/altro/schede" },
     { path: "/altro", component: Personal },

@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useDay, localDate } from "./stores/day";
+import Icon from "./components/Icon.vue";
 import MealDialog from "./components/MealDialog.vue";
 import NutrientSummary from "./components/NutrientSummary.vue";
 import { api } from "./api";
@@ -33,6 +34,10 @@ function applyPlan() {
       <h1>La tua dieta<span style="color: var(--accent)">.</span></h1>
     </div>
   </div>
+  <div class="editor-launch">
+    <RouterLink to="/dieta/editor" class="btn primary"><Icon name="plus" :size="18" /> Crea nuova dieta</RouterLink>
+    <RouterLink to="/altro/piani" class="btn secondary">Gestisci piani</RouterLink>
+  </div>
   <section class="card workout-block">
     <div class="todayline">
       <label
@@ -43,7 +48,7 @@ function applyPlan() {
           class="field"
           @change="day.load($event.target.value)"
       /></label>
-      <div class="switch-seg">
+      <div v-if="day.planUsesModes && day.plan" class="switch-seg">
         <button
           v-for="mode in ['ON', 'OFF']"
           :key="mode"
@@ -58,22 +63,23 @@ function applyPlan() {
     <button class="btn secondary wide" @click="day.load(localDate(1))">
       Prepara domani
     </button>
-    <p class="warning">
-      {{ day.plan?.title }} ·
+    <p v-if="day.plan?.provenance === 'manual'" class="note">{{ day.plan.title }}</p>
+    <p v-else-if="day.plan" class="warning">
+      {{ day.plan.title }} ·
       {{
         day.plan?.provenance === "csv"
           ? "Piano importato: verifica fonti e revisione professionale."
           : "Validità originale 30–40 giorni. Da rivedere con il professionista."
       }}
     </p>
-    <p v-if="day.planId && day.plan?.id !== day.planId" class="warning">
+    <p v-if="day.planId && (day.planOutdated || day.plan?.id !== day.planId)" class="warning">
       Questa giornata conserva il piano con cui è stata preparata. Il nuovo
       piano attivo non modifica i pasti già registrati.
     </p>
     <button
       v-if="
         day.planId &&
-        day.plan?.id !== day.planId &&
+        day.plan && (day.planOutdated || day.plan.id !== day.planId) &&
         !day.meals.some((m) => m.consumedAt)
       "
       class="btn secondary"
@@ -90,6 +96,7 @@ function applyPlan() {
     <NutrientSummary :totals="day.nutrientTotals" :goals="goals" />
   </section>
   <div class="section-title"><h2>I tuoi pasti</h2></div>
+  <p v-if="!day.busy && !day.meals.length" class="note">Nessun pasto programmato per questa giornata.</p>
   <div class="meal-list">
     <section v-for="meal in day.meals" :key="meal.id" class="card meal-card">
       <button
@@ -127,8 +134,8 @@ function applyPlan() {
       ></label
     >
   </section>
-  <details class="card" style="margin-top: 14px">
-    <summary>Note complete del piano storico</summary>
+  <details v-if="day.plan?.notes" class="card" style="margin-top: 14px">
+    <summary>Note del piano</summary>
     <p class="note" style="white-space: pre-line">{{ day.plan?.notes }}</p>
   </details>
   <MealDialog :meal="selected" @close="selected = null" />

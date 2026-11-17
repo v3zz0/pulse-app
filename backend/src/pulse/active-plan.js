@@ -2,9 +2,8 @@
 const { fail } = require("./validation");
 const names = { nutrition: "nutrition-plan", training: "training-program" };
 function repo(app, kind) {
-  const n = names[kind];
-  if (!n) fail("Tipo piano non valido", 404);
-  return app.db.query(`api::${n}.${n}`);
+  if (!Object.hasOwn(names, kind)) fail("Tipo piano non valido", 404);
+  return app.db.query(`api::${names[kind]}.${names[kind]}`);
 }
 async function activePlan(app, kind, owner) {
   const q = repo(app, kind);

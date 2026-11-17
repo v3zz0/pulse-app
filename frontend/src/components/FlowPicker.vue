@@ -49,6 +49,7 @@ onUnmounted(() => request?.abort());
 </script>
 
 <template>
+  <Teleport to="body">
   <dialog ref="dialog" class="card pulse-dialog flow-picker"
     aria-labelledby="flow-picker-title"
     @close="emit('close')" @cancel.prevent="!busy && dialog.close()">
@@ -113,6 +114,7 @@ onUnmounted(() => request?.abort());
       </button>
     </div>
   </dialog>
+  </Teleport>
 </template>
 
 <style scoped>

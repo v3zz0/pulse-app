@@ -256,6 +256,15 @@ onUnmounted(() => clearInterval(interval));
       <Icon name="edit" :size="17" /> Modifica programma
     </button>
   </div>
+  <div v-if="!isActive" class="editor-launch">
+    <RouterLink v-if="!day" to="/allenati/editor" class="btn primary">
+      <Icon name="plus" :size="18" /> Crea nuova scheda
+    </RouterLink>
+    <RouterLink v-else-if="w.program" :to="'/allenati/editor/' + w.program.id" class="btn secondary">
+      <Icon name="edit" :size="18" /> Modifica scheda
+    </RouterLink>
+    <RouterLink to="/altro/schede" class="btn secondary">Gestisci schede</RouterLink>
+  </div>
   <p v-if="error" role="alert" class="warning">{{ error }}</p>
   <p v-if="w.error" role="status" class="warning">{{ w.error }}</p>
   <button
@@ -319,7 +328,7 @@ onUnmounted(() => clearInterval(interval));
         </div>
       </article>
     </div>
-    <p class="note">{{ w.program.title }} · Versione {{ w.program.version }}</p>
+    <p class="note">{{ w.program.title }}<template v-if="w.program.provenance !== 'manual'"> · Versione {{ w.program.version }}</template></p>
     <p v-if="w.pendingImports?.length" class="note">
       {{ w.pendingImports.length }} versioni CSV in bozza.
       <RouterLink to="/altro/schede">Gestisci le versioni</RouterLink>

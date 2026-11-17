@@ -198,6 +198,14 @@ function exportRows(kind, plan, standards = {}) {
               quantity: o.quantity ?? "",
               unit: o.unit || "",
               food_state: o.foodState || "",
+              nutrient_basis: o.nutrition?.basis || "",
+              basis_quantity: o.nutrition?.basisQuantity ?? "",
+              kcal: o.nutrition?.kcal ?? "",
+              protein_g: o.nutrition?.protein_g ?? "",
+              carbs_g: o.nutrition?.carbs_g ?? "",
+              fat_g: o.nutrition?.fat_g ?? "",
+              nutrition_source: o.nutrition?.source || "",
+              nutrition_status: o.nutrition?.status || "",
               notes: o.notes || (!g.sourceText ? o.sourceText : "") || "",
               tags: o.tags || "",
               meal_notes:
@@ -221,9 +229,10 @@ function exportRows(kind, plan, standards = {}) {
   for (const [day, blocks] of Object.entries(plan.days))
     for (const [bi, b] of blocks.entries())
       for (const [si, s] of b.sets.entries()) {
-        const variants = Math.max(1, b.movements.length, b.videos.length);
+        const moves = s.movements?.length ? s.movements : b.movements;
+        const variants = Math.max(1, moves.length, b.videos.length);
         for (let i = 0; i < variants; i++) {
-          const move = b.movements[i % b.movements.length],
+          const move = moves[i % moves.length],
             v = b.videos[i];
           rows.push({
             ...base,
@@ -243,8 +252,8 @@ function exportRows(kind, plan, standards = {}) {
             rest_text: b.restRaw || "",
             to_failure: s.toFailure == null ? "" : String(s.toFailure),
             per_leg: s.perLeg == null ? "" : String(s.perLeg),
-            circuit_id: b.movements.length ? b.circuitId || b.id : "",
-            movement_order: move ? String((i % b.movements.length) + 1) : "",
+            circuit_id: moves.length ? b.circuitId || b.id : "",
+            movement_order: move ? String((i % moves.length) + 1) : "",
             movement_name: move?.name || "",
             movement_reps: move ? String(move.reps) : "",
             notes: b.notes || "",

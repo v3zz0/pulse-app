@@ -44,7 +44,7 @@ onUnmounted(() => clearInterval(interval));
     </div>
   </div>
   <TodaySupplements />
-  <div class="source-note phase-note">
+  <div v-if="day.plan && day.plan.provenance !== 'manual'" class="source-note phase-note">
     {{
       day.plan?.provenance === "csv"
         ? "Piano importato: verifica fonti e revisione con il professionista."
@@ -62,7 +62,7 @@ onUnmounted(() => clearInterval(interval));
               <div class="focus-label">01 · COSA MANGIO</div>
               <h2>I pasti di oggi</h2>
             </div>
-            <div class="switch-seg" role="group" aria-label="Seleziona giorno">
+            <div v-if="day.planUsesModes && day.plan" class="switch-seg" role="group" aria-label="Seleziona giorno">
               <button
                 v-for="mode in ['ON', 'OFF']"
                 :key="mode"
@@ -200,12 +200,12 @@ onUnmounted(() => clearInterval(interval));
             </div>
             <span class="pill grey">{{
               tomorrow?.revision > 0
-                ? "PROGRAMMATO · " + tomorrow.mode
+                ? "PROGRAMMATO" + (tomorrow.planUsesModes ? " · " + tomorrow.mode : "")
                 : "DA PREPARARE"
             }}</span>
           </div>
           <p class="note">
-            Imposta giorno ON/OFF e scegli le sostituzioni prima di domani.
+            {{ day.planUsesModes ? "Imposta giorno ON/OFF e scegli le sostituzioni prima di domani." : "Consulta il piano di domani e scegli le sostituzioni." }}
           </p>
           <button
             class="btn secondary wide"

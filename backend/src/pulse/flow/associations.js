@@ -24,12 +24,12 @@ function targets(day, block) {
     for (const [index, move] of (items || []).entries()) {
       const movement = { ...move, order: move.order ?? index + 1 };
       const key = targetKey(day, block, movement);
-      if (!movements.has(key) || movement.flowId) movements.set(key, movement);
+      if (!movements.has(key) || movement.flowId || movement.flowCleared) movements.set(key, movement);
     }
   }
   if (movements.size)
-    return Array.from(movements, ([key, m]) => ({ key, name: m.name, explicit: m.flowId }));
-  return [{ key: targetKey(day, block), name: block.name, explicit: block.flowId }];
+    return Array.from(movements, ([key, m]) => ({ key, name: m.name, explicit: m.flowId, cleared: m.flowCleared }));
+  return [{ key: targetKey(day, block), name: block.name, explicit: block.flowId, cleared: block.flowCleared }];
 }
 
 function resolveTarget(target, choices, catalogue) {
@@ -43,6 +43,8 @@ function resolveTarget(target, choices, catalogue) {
       ? { ...base, flowId: chosen.id, animation: describe(chosen), status: "confirmed", method: "manual" }
       : { ...base, status: "review", reason: "La scelta salvata richiede una nuova verifica del catalogo." };
   }
+  if (target.cleared)
+    return { ...base, status: "unavailable", reason: "Animazione rimossa." };
   if (!catalogue) return { ...base, status: "unavailable", reason: "Catalogo Flow non disponibile sul server." };
 
   const explicit = get(target.explicit);

@@ -106,10 +106,11 @@ async function search(params) {
       fail("Ricerca non valida");
   const c = await catalog();
   const offset = Number(params.offset || 0);
-  if (!Number.isInteger(offset) || offset < 0 || offset > c.animated.length)
+  const entries = params.all === "1" ? c.exercises : c.animated;
+  if (!Number.isInteger(offset) || offset < 0 || offset > entries.length)
     fail("Pagina non valida");
   const words = normalize(params.q).split(" ").filter(Boolean);
-  const matched = c.animated.filter((e) => {
+  const matched = entries.filter((e) => {
     const label = normalize([
       e.id, e.name, e.equipment, e.target, e.bodyPart, termsById.get(e.id),
     ].join(" "));
@@ -119,11 +120,11 @@ async function search(params) {
   const size = 18;
   return {
     items: matched.slice(offset, offset + size).map((e) => ({
-      id: e.id, name: e.name, equipment: e.equipment, muscle: e.target,
+      id: e.id, name: e.name, equipment: e.equipment, muscle: e.target, hasAnimation: c.byId.has(e.id),
     })),
     next: offset + size < matched.length ? offset + size : null,
-    equipment: [...new Set(c.animated.map((e) => e.equipment))].sort(),
-    muscles: [...new Set(c.animated.map((e) => e.target))].sort(),
+    equipment: [...new Set(entries.map((e) => e.equipment))].sort(),
+    muscles: [...new Set(entries.map((e) => e.target))].sort(),
   };
 }
 module.exports = { exercise, asset, catalog, animatedExercise, search, normalize };

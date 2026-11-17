@@ -1,10 +1,16 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
+import { useRouter } from "vue-router";
+import { italianDays } from "./editor-model";
 import { api, send } from "./api";
 import { useDay } from "./stores/day";
 import { useWorkout } from "./stores/workout";
 import PlanPreview from "./components/PlanPreview.vue";
 const props = defineProps({ kind: String });
+const router = useRouter();
+const editorUrl = computed(() => props.kind === "nutrition" ? "/dieta/editor" : "/allenati/editor");
+const exportDay = ref({});
+const duplicateRequests = new Map();
 const rows = ref([]),
   template = ref(null),
   preview = ref(null),
@@ -158,9 +164,30 @@ async function change(action) {
           : "Revisione delle fonti registrata.";
   });
 }
+async function duplicatePlan(plan) {
+  await run(async () => {
+    if (!duplicateRequests.has(plan.id)) duplicateRequests.set(plan.id, crypto.randomUUID());
+    const copy = await send(root.value + "/" + plan.id + "/duplicate",
+      { requestId: duplicateRequests.get(plan.id) }, "POST");
+    duplicateRequests.delete(plan.id);
+    await router.push(editorUrl.value + "/" + copy.id);
+  });
+}
+async function removePlan(plan) {
+  if (!confirm("Eliminare «" + plan.title + "»? I dati storici vengono conservati.")) return;
+  await run(async () => {
+    await send(root.value + "/" + plan.id + "/remove", { confirm: true }, "POST");
+    if (selected.value?.plan.id === plan.id) selected.value = null;
+    await load();
+    if (props.kind === "nutrition") await useDay().load();
+    else await useWorkout().load();
+    message.value = "Piano eliminato.";
+  });
+}
 async function exportPlan(id) {
   await run(async () => {
-    const data = await api(root.value + "/" + id + "/export");
+    const params = exportDay.value[id] != null ? "?day=" + exportDay.value[id] : "";
+    const data = await api(root.value + "/" + id + "/export" + params);
     download(data);
     message.value = (data.warnings || []).join(" · ");
   });
@@ -195,7 +222,12 @@ async function copyPrompt() {
       <h1>{{ title }}<span class="mint">.</span></h1>
     </div>
   </div>
-  <RouterLink to="/altro" class="tiny-link">Torna ad Altro</RouterLink>
+  <div class="editor-launch">
+    <RouterLink :to="editorUrl" class="btn primary">
+      {{ kind === "nutrition" ? "Crea nuova dieta" : "Crea nuova scheda" }}
+    </RouterLink>
+    <RouterLink to="/altro" class="btn secondary">Torna ad Altro</RouterLink>
+  </div>
   <p v-if="error" role="alert" class="warning">{{ error }}</p>
   <p v-if="message" role="status" class="inline-note">{{ message }}</p>
   <section class="card workout-block">
@@ -313,20 +345,30 @@ async function copyPrompt() {
       <div>
         <strong>{{ p.title }}</strong>
         <p class="note">
-          {{ states[p.status] }} · versione {{ p.version }} ·
-          {{ p.provenance }} ·
+          {{ states[p.status] }}<template v-if="p.provenance !== 'manual'"> · versione {{ p.version }} · {{ p.provenance }}</template> ·
           {{ new Date(p.createdAt).toLocaleDateString("it-IT") }}
         </p>
       </div>
-      <div class="btnrow">
+      <div class="editor-actions plan-editor-actions">
+        <RouterLink class="btn secondary" :to="editorUrl + '/' + p.id" :aria-label="'Modifica ' + p.title">Modifica</RouterLink>
+        <button class="btn secondary" :disabled="busy" :aria-label="'Duplica ' + p.title"
+          @click="duplicatePlan(p)">Duplica</button>
         <button
           class="btn secondary"
           :disabled="busy"
           :aria-label="'Visualizza ' + p.title"
           @click="view(p.id)"
         >
-          Visualizza</button
-        ><button
+          Visualizza</button>
+        <label v-if="p.schedule?.mode === 'weekly'" class="fieldlabel">
+          Giorno da esportare
+          <select class="field" v-model="exportDay[p.id]">
+            <option :value="undefined">Primo giorno</option>
+            <option v-for="d in italianDays.filter((d) => p.schedule.weekdays.includes(d.id))"
+              :key="d.id" :value="d.id">{{ d.name }}</option>
+          </select>
+        </label>
+        <button
           class="btn ghost"
           :disabled="busy"
           :aria-label="'Esporta ' + p.title"
@@ -334,6 +376,8 @@ async function copyPrompt() {
         >
           Esporta CSV
         </button>
+        <button class="btn ghost danger" :disabled="busy" :aria-label="'Elimina ' + p.title"
+          @click="removePlan(p)">Elimina</button>
       </div>
     </article>
   </section>

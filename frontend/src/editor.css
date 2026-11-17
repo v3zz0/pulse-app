@@ -1,0 +1,340 @@
+/* Shared spacing for the two editors and their selection dialogs. */
+.editor-shell,
+.editor-library {
+  --editor-gap: clamp(14px, 2.6vw, 24px);
+  --editor-inset: clamp(12px, 2.8vw, 22px);
+}
+.editor-shell {
+  max-width: 780px;
+  margin: 0 auto;
+}
+.editor-stack {
+  display: grid;
+  gap: var(--editor-gap);
+  min-width: 0;
+}
+.editor-form-fields {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+.editor-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.editor-breadcrumb a {
+  gap: 8px;
+  margin: 0;
+}
+.editor-breadcrumb svg,
+.editor-up svg {
+  transform: rotate(180deg);
+}
+.editor-feature-heading {
+  flex-wrap: nowrap;
+  margin-bottom: var(--editor-gap);
+}
+.editor-feature-heading .feature-icon {
+  width: 52px;
+  height: 52px;
+}
+.editor-card.card {
+  margin: 0;
+  min-width: 0;
+  padding: var(--editor-inset);
+}
+.editor-card h2,
+.editor-card h3,
+.editor-card h4,
+.editor-library h2,
+.editor-card p,
+.editor-save p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.editor-card h2,
+.editor-library h2 {
+  font-size: clamp(18px, 3vw, 23px);
+}
+.editor-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  min-width: 0;
+}
+.editor-heading-row + .editor-fields,
+.editor-actions + .editor-fields,
+.editor-heading-row + .editor-actions,
+.editor-heading-row + .editor-disclosure,
+.editor-disclosure[open] > summary + .editor-fields {
+  margin-top: 14px;
+}
+.editor-heading-row h3,
+.editor-meal-title strong {
+  font-size: 17px;
+}
+.editor-fields,
+.editor-grid {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.editor-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.editor-fields > *,
+.editor-grid > * {
+  min-width: 0;
+}
+.editor-shell .fieldlabel,
+.editor-library .fieldlabel {
+  color: var(--muted);
+  font-size: 13px;
+}
+.editor-shell .field,
+.editor-library .field {
+  color-scheme: dark;
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  margin: 6px 0 0;
+  font-size: 16px;
+}
+.editor-shell textarea {
+  resize: vertical;
+}
+.editor-actions,
+.editor-launch {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.editor-actions > .fieldlabel {
+  margin-left: 4px;
+}
+.editor-launch {
+  margin-bottom: 20px;
+}
+.editor-launch .btn,
+.editor-shell .btn,
+.editor-library .btn,
+.plan-editor-actions .btn {
+  min-height: 44px;
+  margin: 0;
+  text-decoration: none;
+  white-space: normal;
+}
+.editor-between {
+  justify-content: space-between;
+}
+.editor-add.btn {
+  border-color: #398776;
+  color: var(--accent);
+}
+.editor-week-field {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+.editor-week-field legend {
+  margin-bottom: 8px;
+  padding: 0;
+  color: var(--muted);
+}
+.editor-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+}
+.editor-week .btn {
+  padding: 6px 0;
+  min-width: 0;
+  font-size: 12px;
+}
+.editor-week .btn.is-selected,
+.editor-actions .btn.is-selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+.editor-check {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+}
+.editor-check input {
+  accent-color: var(--accent);
+  width: 18px;
+  height: 18px;
+}
+.editor-order {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.editor-grip {
+  display: grid;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  font-size: 18px;
+  color: var(--muted);
+}
+.editor-grip.is-dragging {
+  color: var(--accent);
+  border-color: var(--accent);
+  cursor: grabbing;
+}
+.editor-disclosure > summary {
+  cursor: pointer;
+  color: var(--ink);
+  min-height: 44px;
+  padding-block: 10px;
+}
+.editor-disclosure > summary::marker {
+  color: var(--accent);
+}
+.editor-inset,
+.editor-food,
+.editor-selection,
+.editor-empty {
+  display: grid;
+  gap: 12px;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--panel2) 66%, var(--bg));
+}
+.editor-inset legend {
+  padding: 0 6px;
+  font-weight: 700;
+}
+.editor-food + .editor-food {
+  margin-top: 3px;
+}
+.editor-food .editor-fields + .editor-fields {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.editor-movement {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  align-items: end;
+}
+.editor-movement .btn {
+  justify-self: start;
+}
+.editor-empty {
+  color: var(--muted);
+}
+.editor-meal-title {
+  display: list-item;
+  overflow-wrap: anywhere;
+}
+.editor-meal-title .feature-icon {
+  display: inline-grid;
+  margin-inline: 6px 8px;
+  vertical-align: middle;
+}
+.editor-meal-title small {
+  margin-inline-start: 9px;
+  color: var(--muted);
+}
+.editor-save {
+  display: grid;
+  gap: 10px;
+}
+.editor-save .editor-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.editor-save .btn,
+.editor-launch .btn {
+  padding-inline: 9px;
+}
+.editor-library {
+  padding: var(--editor-inset);
+}
+.editor-library > * + * {
+  margin-top: 14px;
+}
+.editor-results {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.editor-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  text-align: left;
+  color: var(--ink);
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.editor-result[aria-pressed="true"] {
+  border-color: var(--accent);
+}
+.editor-result small {
+  color: var(--muted);
+  text-align: right;
+}
+.editor-result strong,
+.editor-result small,
+.editor-result > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.editor-result .note {
+  margin: 3px 0 0;
+}
+.plan-editor-actions {
+  justify-content: flex-end;
+  padding-block: 4px;
+}
+.plan-editor-actions .field {
+  width: auto;
+  margin: 4px 0 0;
+}
+@media (min-width: 620px) {
+  .editor-grid {
+    gap: 18px;
+  }
+  .editor-inset,
+  .editor-food {
+    padding: 16px;
+  }
+  .editor-week {
+    max-width: 480px;
+    gap: 8px;
+  }
+}
+@media (max-width: 480px) {
+  .editor-launch > * {
+    flex: 1 1 130px;
+  }
+  .plan-editor-actions {
+    justify-content: flex-start;
+  }
+}

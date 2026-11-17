@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./pwa-fixture";
 import fs from "node:fs";
 import { ensurePendingWorkout } from "./workout-fixture";
 const [user] = JSON.parse(

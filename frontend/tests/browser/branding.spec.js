@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./pwa-fixture";
 const base = "http://127.0.0.1:8081";
 test("logo ufficiale: favicon, manifest, dimensioni, cache e installabilità", async ({
   page,

@@ -1,4 +1,5 @@
 <script setup>
+import { italianDays } from "../editor-model";
 import NutrientSummary from "./NutrientSummary.vue";
 defineProps({ kind: String, plan: Object, goals: Object });
 const status = {
@@ -10,7 +11,8 @@ const status = {
 <template>
   <section v-if="plan" class="plan-preview" aria-label="Anteprima del piano">
     <h2>{{ plan.title }}</h2>
-    <p class="smallmuted">
+    <p v-if="plan.description" class="note">{{ plan.description }}</p>
+    <p v-if="plan.provenance !== 'manual'" class="smallmuted">
       Versione {{ plan.versionLabel || plan.version }} · {{ plan.externalId }}
     </p>
     <template v-if="kind === 'nutrition'">
@@ -25,7 +27,7 @@ const status = {
         open
         class="plan-day"
       >
-        <summary>Giorno {{ day }} · {{ meals.length }} pasti</summary>
+        <summary>{{ day === "daily" ? "Giornata tipo" : italianDays.find((d) => String(d.id) === day)?.name || "Giorno " + day }} · {{ meals.length }} pasti</summary>
         <NutrientSummary :totals="plan.totals?.[day]" :goals="goals" />
         <article v-for="meal in meals" :key="meal.id" class="training-preview">
           <h3>{{ meal.time }} {{ meal.name }}</h3>
@@ -81,7 +83,7 @@ const status = {
         open
         class="plan-day"
       >
-        <summary>Giorno {{ day }} · {{ blocks.length }} esercizi</summary>
+        <summary>{{ plan.displaySettings?.days?.[day]?.name || "Giorno " + day }} · {{ blocks.length }} esercizi</summary>
         <article v-for="b in blocks" :key="b.id" class="training-preview">
           <h3>{{ b.name }}</h3>
           <p class="note">
@@ -112,6 +114,7 @@ const status = {
           <p class="note csv-text">{{ b.notes }}</p>
         </article>
       </details>
+      <p v-if="plan.notes" class="note csv-text">{{ plan.notes }}</p>
       <p v-if="plan.cooldown" class="note">
         {{ plan.cooldown.name }} ·
         {{

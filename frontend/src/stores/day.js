@@ -20,6 +20,8 @@ export const useDay = defineStore("day", {
     preferences: {},
     plan: null,
     planId: null,
+    planUsesModes: true,
+    planOutdated: false,
     nutrientTotals: null,
     busy: false,
     error: "",
@@ -35,6 +37,8 @@ export const useDay = defineStore("day", {
   actions: {
     apply(data) {
       this.planId = data.planId;
+      this.planUsesModes = data.planUsesModes ?? true;
+      this.planOutdated = data.planOutdated ?? false;
       this.nutrientTotals = data.nutrientTotals;
       this.mode = data.mode;
       this.meals = data.meals;

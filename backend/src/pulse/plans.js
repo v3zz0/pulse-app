@@ -73,11 +73,13 @@ const summary = (p, activeId) => ({
   activatedAt: p.activatedAt,
   provenance: p.provenance || "PDF storico",
   reviewStatus: p.reviewStatus,
+  schedule: p.editor?.schedule,
+  description: p.editor?.description,
 });
-async function owned(app, kind, owner, id) {
+async function owned(app, kind, owner, id, includeDeleted = false) {
   if (!/^\d+$/.test(String(id))) fail("Piano inesistente", 404);
   const p = await repo(app, kind).findOne({ where: { id: Number(id), owner } });
-  if (!p) fail("Piano inesistente", 404);
+  if (!p || (!includeDeleted && p.status === "deleted")) fail("Piano inesistente", 404);
   return p;
 }
 async function standards(app, owner, id) {
@@ -237,7 +239,7 @@ async function importPlan(app, kind, owner, body) {
       csv.digest(JSON.stringify([result.sourceHash, active?.id || null])),
     );
     const existing = await repo(app, kind).findOne({
-      where: { owner, sourceHash: result.sourceHash, provenance: "csv" },
+      where: { owner, sourceHash: result.sourceHash, provenance: "csv", status: { $ne: "deleted" } },
     });
     if (existing) return { ...summary(existing, active?.id), reused: true };
     if (
@@ -246,6 +248,7 @@ async function importPlan(app, kind, owner, body) {
           owner,
           externalId: result.plan.externalId,
           versionLabel: result.plan.versionLabel,
+          status: { $ne: "deleted" },
         },
       })
     )
@@ -253,7 +256,7 @@ async function importPlan(app, kind, owner, body) {
         "Questa versione esiste con contenuti diversi: incrementa plan_version",
         409,
       );
-    if ((await repo(app, kind).count({ where: { owner } })) >= 40)
+    if ((await repo(app, kind).count({ where: { owner, provenance: "csv", $or: [{ status: { $null: true } }, { status: { $ne: "deleted" } }] } })) >= 40)
       fail(
         "Massimo 40 versioni salvate per tipo: nessun piano è stato eliminato",
         409,
@@ -278,7 +281,7 @@ async function importPlan(app, kind, owner, body) {
       const previous = active?.externalId === data.externalId
         ? active
         : await repo(app, kind).findOne({
-            where: { owner, externalId: data.externalId },
+            where: { owner, externalId: data.externalId, status: { $ne: "deleted" } },
             orderBy: { id: "desc" },
           });
       const { inheritSelections } = require("./flow/associations");
@@ -307,7 +310,7 @@ async function list(app, kind, owner) {
   const active = await activePlan(app, kind, owner);
   return (
     await repo(app, kind).findMany({
-      where: { owner },
+      where: { owner, $or: [{ status: { $null: true } }, { status: { $ne: "deleted" } }] },
       orderBy: { id: "desc" },
     })
   ).map((p) => summary(p, active?.id));
@@ -366,6 +369,8 @@ async function detail(app, kind, owner, id) {
               ]),
             ),
             cooldown: p.cooldown,
+            displaySettings: p.displaySettings,
+            notes: p.editor?.notes,
           }),
       report: p.importReport,
     }),
@@ -460,16 +465,24 @@ async function change(app, kind, owner, id, body) {
     return detail(app, kind, owner, id);
   });
 }
-async function exportPlan(app, kind, owner, id) {
+async function exportPlan(app, kind, owner, id, day) {
   const p = await owned(app, kind, owner, id),
     loads = kind === "training" ? await standards(app, owner, p.id) : {};
+  let exported = p;
+  const schedule = p.editor?.schedule;
+  if (kind === "nutrition" && schedule && schedule.mode !== "legacy") {
+    const key = schedule.mode === "daily" ? "daily" : String(day ?? schedule.weekdays[0]);
+    if (!Object.hasOwn(p.meals, key)) fail("Giorno non configurato");
+    exported = { ...p, meals: { ON: p.meals[key], OFF: p.meals[key] }, csvData: null };
+  }
   return {
     filename:
       kind === "nutrition" ? "pulse_dieta.csv" : "pulse_allenamento.csv",
-    csv: csv.serialize(kind, formats.exportRows(kind, p, loads)),
+    csv: csv.serialize(kind, formats.exportRows(kind, exported, loads)),
     warnings:
       kind === "nutrition"
         ? [
+            ...(schedule && schedule.mode !== "legacy" ? ["CSV v1 esporta una giornata tipo in ON/OFF; il calendario resta nel piano."] : []),
             "Valori assenti non inventati; la verifica delle fonti va confermata dopo ogni nuova importazione",
           ]
         : ["Ogni associazione video reimportata richiede nuova revisione"],
@@ -487,4 +500,5 @@ module.exports = {
   sign,
   verify,
   token,
+  lock, owned, standards,
 };
