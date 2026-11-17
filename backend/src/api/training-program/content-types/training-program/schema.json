@@ -69,6 +69,13 @@
     },
     "csvData": {
       "type": "json"
+    },
+    "displaySettings": {
+      "type": "json"
+    },
+    "displayRevision": {
+      "type": "integer",
+      "default": 0
     }
   }
 }

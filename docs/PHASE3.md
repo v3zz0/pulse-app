@@ -24,3 +24,10 @@ Backup effettuato prima di applicare le collezioni aggiuntive. Restano fase 4: H
 ## Estensione bozze e annullamento — 17 novembre 2026
 
 Proposte modificabili di peso/ripetizioni, salvataggio degli input indipendente dalla rete e annullamento terminale anche offline. Stato cancelled e cancelledAt additivi; nessuna cancellazione di sessioni o modifica dello storico. Dettagli e rilascio in [WORKOUT_SESSIONS.md](WORKOUT_SESSIONS.md), risultati reali in VALIDATION.md. I file locali Flow sono preservati senza dichiararne completata l’integrazione.
+
+
+## Estensione Allenati e integratori — 17 novembre 2026
+
+Card compatte con risultati indipendenti, nomi/calendario personali A/B/C, standard effettivi e versione attiva visibili. Prodotti integratori e pianificazioni personali separati dalle assunzioni; più orari, frequenze/ON/OFF, promemoria distinti, rettifiche e archiviazione con snapshot. Altro: Installa PULSE prima delle importazioni e collegamenti di gestione al50/50. Nessuna nuova dieta o alterazione dei conclusi. Test e limiti in VALIDATION.md:33browser PASS, API PASS e persistenza PostgreSQL verificata.
+
+Player Flow con pausa/ingrandimento e download offline verificato per associazioni esplicite: operativo e collaudato con fixture sintetica. Non sono ancora completati matching automatico, selezione dal catalogo e report dei31blocchi originali. Vedere [FLOW_DATASET.md](FLOW_DATASET.md) e [TRAINING_SUPPLEMENTS.md](TRAINING_SUPPLEMENTS.md). Nessun deploy online effettuato.

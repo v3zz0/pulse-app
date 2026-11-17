@@ -91,15 +91,32 @@ test("accesso privato, Home persistente e navigazione nutrizione", async ({
   await page.getByRole("button", { name: "Salva peso", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("Peso salvato");
   await page
+    .getByRole("link", { name: "I miei integratori", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Registra assunzione", exact: true })
+    .click();
+  await page
     .getByLabel("Dose effettivamente assunta (includi unità)")
     .first()
     .fill("Dose browser test");
-  await page.getByLabel("Orario locale").first().fill("18:00");
+  await page
+    .getByLabel("Orario locale")
+    .first()
+    .fill(
+      await page.evaluate(() =>
+        new Date().toLocaleTimeString("it-IT", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      ),
+    );
   await page
     .getByRole("button", { name: "Segna assunto", exact: true })
     .first()
     .click();
   await expect(page.getByRole("status")).toContainText("Assunzione aggiornata");
+  await page.getByRole("link", { name: "Torna ad Altro" }).click();
   await expect(
     page.getByRole("button", { name: "Esci", exact: true }),
   ).toHaveCount(0);

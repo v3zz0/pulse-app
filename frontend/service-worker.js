@@ -13,6 +13,23 @@ self.addEventListener("activate", (event) =>
 );
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
+  // Only checksum-verified generic Flow assets explicitly downloaded by the app.
+  if (
+    event.request.method === "GET" &&
+    url.origin === self.location.origin &&
+    /^\/api\/pulse\/flow\/assets\/[a-f0-9]{40}\/\d{4}\/frame-0[012]\.svg$/.test(
+      url.pathname,
+    )
+  ) {
+    event.respondWith(
+      (async () => {
+        const revision = url.pathname.split("/")[5],
+          cache = await caches.open("pulse-flow-" + revision);
+        return (await cache.match(event.request)) || fetch(event.request);
+      })(),
+    );
+    return;
+  }
   // Never store API responses, private PDFs, uploads, admin or arbitrary runtime requests.
   if (
     event.request.method !== "GET" ||
@@ -24,9 +41,15 @@ self.addEventListener("fetch", (event) => {
     return;
   if (event.request.mode === "navigate") {
     if (
-      !["/", "/login", "/allenati", "/dieta", "/progressi", "/altro"].includes(
-        url.pathname,
-      )
+      ![
+        "/",
+        "/login",
+        "/allenati",
+        "/dieta",
+        "/progressi",
+        "/altro",
+        "/integratori",
+      ].includes(url.pathname)
     )
       return;
     event.respondWith(

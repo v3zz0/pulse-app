@@ -58,3 +58,10 @@ La parte preferenze/target e importazione è implementata da questa estensione. 
 ## Estensione: proposte delle serie e annullamento — 17 novembre 2026
 
 Carico standard ed esatte ripetizioni proposti nella bozza, intervalli con selezione rapida e CED esplicito; circuiti senza totale inventato. Input persistiti in IndexedDB indipendentemente dalla velocità della rete. Annullamento confermato anche offline, stato terminale cancelled, timer fermato, esclusione da storico/statistiche e protezione da operazioni obsolete di altri dispositivi. Nessuna riscrittura dei risultati conclusi. Contratto, verifiche e procedura Jenkins in docs/WORKOUT_SESSIONS.md e docs/VALIDATION.md. Flow rimane un’integrazione separata in corso; i file locali preesistenti sono preservati.
+
+
+## Estensione: Allenati, integratori e Altro — 17 novembre 2026
+
+Restyling compatto di Allenati, organizzazione personale di nomi/calendario A/B/C senza cambiare identità o prescrizioni, anteprima degli standard effettivi e chiarezza su versione attiva/bozze. Gestione integratori con prodotti, orari personali multipli, ON/OFF, promemoria per slot, assunzioni, rettifiche e archiviazione conservativa. Altro apre con Installa PULSE e dispone i due accessi alle importazioni al50/50. Schema additivo e API owner/revisionate; nessuna modifica alla dieta. Contratto in docs/TRAINING_SUPPLEMENTS.md.
+
+Build e test unitari/API PASS,33/33 browser PASS mobile/desktop, persistenza dopo riavvio PostgreSQL PASS e55sessioni concluse preesistenti invariate. Player e cache offline Flow operativi per associazioni esplicite; catalogo/matching automatico e report A/B/C restano aperti, come precisato in docs/FLOW_DATASET.md. Produzione non modificata: aggiornamento Jenkins solo seguendo backup/ripristino verificato e procedura in DEPLOYMENT.md.

@@ -249,80 +249,27 @@ module.exports = {
     ctx.body = { day, kg };
   }),
   supplements: guarded(async (ctx, user) => {
-    ctx.body = (
-      await query(strapi, "supplement-product").findMany({
-        where: { owner: user.id },
-        orderBy: { name: "asc" },
-      })
-    ).map((r) => ({
-      id: r.id,
-      name: r.name,
-      instructions: r.instructions,
-      ingredients: r.ingredients,
-      source: r.source,
-    }));
+    ctx.body = await require("../../../pulse/supplements").list(
+      strapi,
+      user.id,
+      ctx.query.includeArchived === "1",
+    );
   }),
   intakes: guarded(async (ctx, user) => {
-    const day = validate.date(ctx.params.day);
-    ctx.body = (
-      await query(strapi, "supplement-intake").findMany({
-        where: { owner: user.id, day },
-        populate: { product: true },
-      })
-    ).map((r) => ({
-      productId: r.product?.id,
-      name: r.productName,
-      dose: r.dose,
-      slot: r.slot || "daily",
-      takenAt: r.takenAt,
-    }));
+    ctx.body = await require("../../../pulse/supplements").listTaken(
+      strapi,
+      user.id,
+      ctx.params.day,
+    );
   }),
   saveIntake: guarded(async (ctx, user) => {
-    const day = validate.notFuture(ctx.params.day),
-      { productId, taken, dose } = ctx.request.body || {};
-    if (!Number.isInteger(productId) || typeof taken !== "boolean")
-      validate.fail("Assunzione non valida");
-    const product = await query(strapi, "supplement-product").findOne({
-      where: { id: productId, owner: user.id },
-    });
-    if (!product) validate.fail("Integratore inesistente", 404);
-    const slot = ctx.request.body.slot || "daily";
-    if (slot !== "daily" && !/^([01]\d|2[0-3]):[0-5]\d$/.test(slot))
-      validate.fail("Orario non valido");
-    const uniqueKey = `${user.id}:${day}:${productId}:${slot}`,
-      existing = await query(strapi, "supplement-intake").findOne({
-        where: { uniqueKey, owner: user.id },
-      });
-    if (!taken) {
-      if (existing)
-        await query(strapi, "supplement-intake").delete({
-          where: { id: existing.id },
-        });
-      ctx.status = 204;
-      return;
-    }
-    const data = {
-      dose: validate.text(dose, 100),
-      takenAt: existing?.takenAt || new Date().toISOString(),
-      productName: product.name,
-      ingredientsSnapshot: product.ingredients,
-    };
-    if (existing)
-      await query(strapi, "supplement-intake").update({
-        where: { id: existing.id },
-        data,
-      });
-    else
-      await query(strapi, "supplement-intake").create({
-        data: {
-          ...data,
-          owner: user.id,
-          product: product.id,
-          uniqueKey,
-          day,
-          slot,
-        },
-      });
-    ctx.body = { saved: true };
+    const b = ctx.request.body || {};
+    ctx.body = await require("../../../pulse/supplements").record(
+      strapi,
+      user.id,
+      ctx.params.day,
+      b,
+    );
+    if (b.taken === false) ctx.status = 204;
   }),
 };

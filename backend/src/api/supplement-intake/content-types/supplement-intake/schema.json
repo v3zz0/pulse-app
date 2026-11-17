@@ -45,6 +45,23 @@
     "slot": {
       "type": "string",
       "default": "daily"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["taken", "skipped", "cancelled"]
+    },
+    "revision": {
+      "type": "integer",
+      "default": 0
+    },
+    "productSnapshot": {
+      "type": "json"
+    },
+    "plannedSnapshot": {
+      "type": "json"
+    },
+    "corrections": {
+      "type": "json"
     }
   }
 }

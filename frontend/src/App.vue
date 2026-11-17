@@ -2,6 +2,7 @@
 import { watch } from "vue";
 import { useWorkout } from "./stores/workout";
 import Reminders from "./Reminders.vue";
+import { dayName } from "./workout-display";
 import Icon from "./components/Icon.vue";
 import { useAuth } from "./stores/auth";
 const auth = useAuth(),
@@ -59,7 +60,10 @@ const tabs = [
       "
       class="card resume-card"
     >
-      <h2>Riprendi allenamento · {{ workout.active.day }}</h2>
+      <h2>
+        Riprendi allenamento ·
+        {{ dayName(workout.program, workout.active.day) }}
+      </h2>
       <RouterLink class="btn primary" to="/allenati"
         >Riprendi allenamento</RouterLink
       >

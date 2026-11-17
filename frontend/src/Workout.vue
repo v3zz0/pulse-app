@@ -3,6 +3,10 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useWorkout } from "./stores/workout";
 import { useAuth } from "./stores/auth";
 import { useRouter } from "vue-router";
+import Icon from "./components/Icon.vue";
+import WorkoutExercise from "./components/WorkoutExercise.vue";
+import { offlineAnimations } from "./flow-media";
+import { dayName, weekdays } from "./workout-display";
 const router = useRouter();
 const menuOpen = ref(false),
   cancelOpen = ref(false),
@@ -54,12 +58,6 @@ const remaining = computed(
       Math.ceil((Date.parse(w.active?.timer?.endAt) - now.value) / 1000),
     ),
 );
-const label = {
-  pending: "Da fare",
-  recorded: "Completata con peso registrato",
-  unlogged: "Completata · peso non registrato",
-  skipped: "Saltata",
-};
 async function run(fn) {
   error.value = "";
   try {
@@ -89,8 +87,6 @@ function result(s, status) {
     }),
   );
 }
-const draftReps = (s) =>
-  Object.hasOwn(s, "draftReps") ? s.draftReps : s.actualReps;
 const registered = computed(
   () =>
     w.active?.snapshot.blocks
@@ -141,6 +137,101 @@ function standard(id) {
   )
     run(() => w.standard(id, value));
 }
+const organizeDialog = ref(null),
+  organization = ref(null),
+  organizationBusy = ref(false);
+const isActive = computed(() => w.active && w.active.status !== "cancelled");
+const selectedDay = computed(() => (isActive.value ? w.active.day : day.value));
+const blocks = computed(() =>
+  isActive.value ? w.active.snapshot.blocks : w.program?.days[day.value] || [],
+);
+const cooldown = computed(() =>
+  isActive.value ? w.active.snapshot.cooldown : w.program?.cooldown,
+);
+const completedCount = computed(
+  () =>
+    blocks.value
+      .flatMap((b) => b.sets)
+      .filter((s) => s.status && s.status !== "pending").length,
+);
+const flowProgress = ref(null),
+  flowBusy = ref(false);
+const flowIds = computed(() =>
+  [
+    ...Object.values(w.program?.days || {}).flat(),
+    ...(w.active?.snapshot.blocks || []),
+  ]
+    .flatMap((b) => [
+      b.flowId,
+      ...(b.movements || []).map((m) => m.flowId),
+      ...b.sets.flatMap((s) => (s.movements || []).map((m) => m.flowId)),
+    ])
+    .filter(Boolean),
+);
+watch(
+  () => w.program?.id,
+  () => (flowProgress.value = null),
+);
+async function downloadFlow() {
+  flowProgress.value = null;
+  flowBusy.value = true;
+  await run(async () => {
+    const result = await offlineAnimations(
+      flowIds.value,
+      (p) => (flowProgress.value = p),
+    );
+    flowProgress.value = {
+      ...flowProgress.value,
+      complete: true,
+      bytes: result.bytes,
+    };
+  });
+  flowBusy.value = false;
+}
+const scheduledToday = computed(() => {
+  if (!w.program?.displaySettings) return [];
+  const local = new Intl.DateTimeFormat("en-CA", {
+    timeZone: w.program.displaySettings.timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+  const n = new Date(local + "T12:00:00Z").getUTCDay();
+  return Object.keys(w.program.days).filter((d) =>
+    w.program.displaySettings.days[d]?.weekdays.includes(n),
+  );
+});
+function organize() {
+  organization.value = {
+    timezone:
+      w.program.displaySettings?.timezone ||
+      Intl.DateTimeFormat().resolvedOptions().timeZone,
+    days: Object.fromEntries(
+      Object.keys(w.program.days).map((d) => [
+        d,
+        {
+          name: dayName(w.program, d),
+          weekdays: [...(w.program.displaySettings?.days?.[d]?.weekdays || [])],
+        },
+      ]),
+    ),
+  };
+  menuOpen.value = false;
+  organizeDialog.value.showModal();
+}
+async function saveOrganization() {
+  organizationBusy.value = true;
+  await run(async () => {
+    await w.layout(organization.value);
+    organizeDialog.value.close();
+  });
+  organizationBusy.value = false;
+}
+function expandAll() {
+  document
+    .querySelectorAll(".compact-exercise > details:first-child")
+    .forEach((d) => (d.open = true));
+}
 onMounted(() => {
   w.init();
   interval = setInterval(() => (now.value = Date.now()), 500);
@@ -148,11 +239,12 @@ onMounted(() => {
 onUnmounted(() => clearInterval(interval));
 </script>
 <template>
-  <div class="pagehead">
+  <div class="pagehead workout-pagehead">
     <div>
-      <div class="eyebrow">LA TUA SCHEDA COMPLETA</div>
       <h1>Allenati<span class="mint">.</span></h1>
-      <p class="text-muted">Standard e carico della seduta restano distinti.</p>
+      <p class="text-muted">
+        La tua scheda completa, con carichi e ripetizioni già pronti.
+      </p>
     </div>
   </div>
   <p v-if="error" role="alert" class="warning">{{ error }}</p>
@@ -164,7 +256,7 @@ onUnmounted(() => clearInterval(interval));
   >
     Accedi per sincronizzare
   </button>
-  <p role="status" data-testid="workout-sync">
+  <p role="status" class="workout-sync" data-testid="workout-sync">
     {{
       w.saving
         ? "Salvataggio sul dispositivo…"
@@ -191,149 +283,167 @@ onUnmounted(() => clearInterval(interval));
     Allenamento annullato sul dispositivo. Attendi la sincronizzazione prima di
     iniziarne un altro.
   </p>
-  <template v-if="!w.active || w.active.status === 'cancelled'">
-    <section v-if="w.program" class="card">
-      <h2>{{ w.program.title }}</h2>
-      <p class="source-note">
-        Note e video provengono dalla scheda privata. I video non confermati
-        sono esplicitamente da revisionare.
-      </p>
-      <div class="switch-seg">
+  <section v-if="w.program || isActive" class="card workout-program">
+    <div class="program-heading">
+      <span class="program-icon"><Icon name="gym" :size="26" /></span>
+      <h2>{{ isActive ? w.active.snapshot.title : w.program.title }}</h2>
+      <div class="program-menu">
         <button
-          v-for="d in Object.keys(w.program.days)"
-          :key="d"
-          :class="{ active: day === d }"
-          @click="day = d"
-        >
-          Scheda {{ d }}
-        </button>
-      </div>
-      <p>
-        {{ (w.program.days[day] || []).length }} blocchi ·
-        {{ (w.program.days[day] || []).reduce((n, b) => n + b.sets.length, 0) }}
-        serie · defaticamento
-        {{
-          w.program.cooldown.durationSeconds
-            ? w.program.cooldown.durationSeconds + " s"
-            : "da verificare"
-        }}
-      </p>
-      <button
-        class="btn primary wide"
-        :disabled="!!w.queue.length"
-        @click="run(() => w.start(day))"
-      >
-        Inizia scheda {{ day }} completa
-      </button>
-      <details
-        v-for="b in w.program.days[day]"
-        :key="b.id"
-        class="training-preview"
-      >
-        <summary>{{ b.name }} · {{ b.prescriptionRaw }}</summary>
-        <p>{{ b.notes }}</p>
-        <p>
-          Recupero: {{ b.restRaw }}
-          {{ b.reviewRequired ? "· da verificare" : "" }}
-        </p>
-        <div v-for="s in b.sets" :key="s.id" class="setting-row">
-          <span
-            >Serie {{ s.id.split(":").at(-1) }} · Standard:
-            {{ w.standards[s.id]?.kg ?? "da impostare" }}
-            {{ w.standards[s.id]?.kg != null ? "kg" : "" }}</span
-          ><button
-            class="textbutton"
-            :aria-label="'Aggiorna standard ' + s.id"
-            @click="standard(s.id)"
-          >
-            Aggiorna carico standard
-          </button>
-        </div>
-      </details>
-    </section>
-    <p v-else-if="w.ready" class="empty">
-      Nessuna scheda assegnata. Importala privatamente da Strapi.
-    </p>
-  </template>
-  <template v-else>
-    <section class="card active-workout-head">
-      <div v-if="w.active.status === 'active'" class="workout-menu">
-        <button
-          class="btn secondary workout-menu-trigger"
+          class="btn secondary"
           aria-label="Menu allenamento"
           :aria-expanded="menuOpen"
           @click="menuOpen = !menuOpen"
         >
-          ⋮
+          <Icon name="more" />
         </button>
-        <div v-if="menuOpen" role="menu" class="workout-menu-items">
+        <div v-if="menuOpen" role="menu">
           <button
-            class="btn secondary danger"
+            v-if="w.active?.status === 'active'"
             role="menuitem"
+            class="danger"
             @click="
               cancelOpen = true;
               menuOpen = false;
             "
           >
-            Annulla allenamento
+            Annulla allenamento</button
+          ><button v-if="w.program" role="menuitem" @click="organize">
+            Riprogramma
           </button>
         </div>
       </div>
-      <h2>
-        Scheda {{ w.active.day }} ·
-        {{
-          w.active.status === "completed"
-            ? "Conclusa sul dispositivo"
-            : "In corso"
+    </div>
+    <div v-if="w.program" class="switch-seg workout-days">
+      <button
+        v-for="d in Object.keys(w.program.days)"
+        :key="d"
+        :class="{ active: selectedDay === d }"
+        :disabled="!!isActive"
+        @click="day = d"
+      >
+        {{ dayName(w.program, d) }}
+      </button>
+    </div>
+    <div class="program-options">
+      <button
+        v-if="w.program"
+        class="textbutton organize-button"
+        @click="organize"
+      >
+        <Icon name="edit" :size="17" />Organizza schede</button
+      ><span v-if="scheduledToday.length" class="smallmuted"
+        >Oggi:
+        {{ scheduledToday.map((d) => dayName(w.program, d)).join(", ") }}</span
+      >
+    </div>
+    <div class="program-summary">
+      <span><Icon name="layers" :size="17" />{{ blocks.length }} blocchi</span
+      ><span
+        ><Icon name="chart" :size="17" />{{
+          blocks.reduce((n, b) => n + b.sets.length, 0)
         }}
-      </h2>
+        serie</span
+      ><span
+        ><Icon name="clock" :size="17" />{{
+          cooldown?.durationSeconds
+            ? cooldown.durationSeconds + " s"
+            : "Da verificare"
+        }}
+        defaticamento</span
+      >
+    </div>
+    <button
+      v-if="!isActive"
+      class="btn primary wide start-workout"
+      :aria-label="'Inizia scheda ' + day + ' completa'"
+      :disabled="!!w.queue.length"
+      @click="run(() => w.start(day))"
+    >
+      <Icon name="play" :size="20" />Inizia allenamento
+    </button>
+    <p v-else class="session-progress">
+      {{ dayName(w.program, w.active.day) }} ·
+      {{
+        w.active.status === "completed"
+          ? "Conclusa sul dispositivo"
+          : "In corso"
+      }}
+      · {{ completedCount }} serie gestite · {{ pending }} da fare
+    </p>
+    <p v-if="w.pendingImports?.length" class="source-note">
+      Versioni CSV ancora in bozza: {{ w.pendingImports.length }}.
+      L’importazione da sola non cambia la scheda attiva: attivala da Altro.
+    </p>
+    <details v-if="w.program" class="program-version">
+      <summary>
+        Piano attivo: {{ w.program.provenance }} · versione
+        {{ w.program.version || "precedente" }} · riferimento {{ selectedDay }}
+      </summary>
       <p>
-        {{ pending }} serie da gestire · Avvio
-        {{ new Date(w.active.startedAt).toLocaleString("it-IT") }}
+        Le versioni importate si attivano da Altro → Gestisci scheda
+        allenamento. Il trasferimento dei carichi precedenti richiede conferma e
+        può sostituire quelli della nuova versione.
       </p>
-      <div
-        v-if="w.active.timer"
-        class="rest-panel"
-        role="timer"
-        aria-label="Timer recupero"
+      <p v-if="w.pendingImports?.length">
+        {{ w.pendingImports.length }} versioni CSV recenti sono ancora in bozza:
+        {{
+          w.pendingImports.map((p) => p.title + " · v" + p.version).join(", ")
+        }}.
+      </p>
+      <p>
+        I carichi della sessione sono quelli presenti all’avvio; aggiornare lo
+        standard vale per la prossima sessione.
+      </p>
+    </details>
+  </section>
+  <p v-else-if="w.ready" class="empty">
+    Nessuna scheda attiva. Controlla le versioni importate in Altro.
+  </p>
+  <template v-if="isActive">
+    <section
+      v-if="w.active.timer"
+      class="rest-panel compact-timer"
+      role="timer"
+      aria-label="Timer recupero"
+    >
+      <Icon name="clock" /><strong
+        >{{ Number.isFinite(remaining) ? remaining : 0 }} s</strong
+      ><span>{{
+        w.active.timer.pausedRemaining != null ? "In pausa" : "Recupero"
+      }}</span
+      ><button
+        class="btn secondary"
+        @click="
+          run(() =>
+            w.act({
+              action: 'timer',
+              command: w.active.timer.endAt ? 'pause' : 'resume',
+            }),
+          )
+        "
       >
-        <b>{{ Number.isFinite(remaining) ? remaining : 0 }} s</b> ·
-        {{ w.active.timer.pausedRemaining != null ? "In pausa" : "Recupero" }}
-        <div class="btnrow">
-          <button
-            class="btn secondary"
-            @click="
-              run(() =>
-                w.act({
-                  action: 'timer',
-                  command: w.active.timer.endAt ? 'pause' : 'resume',
-                }),
-              )
-            "
-          >
-            {{
-              w.active.timer.endAt ? "Pausa recupero" : "Riprendi recupero"
-            }}</button
-          ><button
-            class="btn secondary"
-            @click="run(() => w.act({ action: 'timer', command: 'stop' }))"
-          >
-            Ferma recupero
-          </button>
-        </div>
-      </div>
-      <label class="fieldlabel" for="manual-rest"
-        >Recupero manuale in secondi</label
+        {{
+          w.active.timer.endAt ? "Pausa recupero" : "Riprendi recupero"
+        }}</button
+      ><button
+        class="btn ghost"
+        @click="run(() => w.act({ action: 'timer', command: 'stop' }))"
       >
+        Ferma recupero
+      </button>
+    </section>
+    <details class="manual-recovery">
+      <summary>Recupero manuale</summary>
       <div class="btnrow">
-        <input
-          id="manual-rest"
-          v-model.number="seconds"
-          class="field"
-          type="number"
-          min="1"
-          max="3600"
-        /><button
+        <label class="fieldlabel" for="manual-rest"
+          >Recupero manuale in secondi<input
+            id="manual-rest"
+            v-model.number="seconds"
+            class="field"
+            type="number"
+            min="1"
+            max="3600" /></label
+        ><button
           class="btn secondary"
           @click="
             run(() => w.act({ action: 'timer', command: 'start', seconds }))
@@ -342,7 +452,7 @@ onUnmounted(() => clearInterval(interval));
           Avvia recupero
         </button>
       </div>
-    </section>
+    </details>
     <dialog
       ref="cancelDialog"
       class="card workout-modal"
@@ -370,189 +480,46 @@ onUnmounted(() => clearInterval(interval));
         </button>
       </div>
     </dialog>
-    <section
-      v-for="b in w.active.snapshot.blocks"
-      :key="b.id"
-      class="card workout-block"
-      :data-testid="'block-' + b.id"
+  </template>
+  <details v-if="flowIds.length" class="media-download">
+    <summary>Animazioni offline</summary>
+    <button
+      v-if="flowIds.length"
+      class="btn secondary"
+      :disabled="flowBusy"
+      @click="downloadFlow"
     >
-      <div class="card-head">
-        <div>
-          <span class="eyebrow">{{ b.phase }}</span>
-          <h2>{{ b.name }}</h2>
-        </div>
-        <button
-          class="textbutton"
-          :disabled="w.conflict || w.active.status !== 'active'"
-          @click="run(() => w.act({ action: 'skip-block', blockId: b.id }))"
-        >
-          Salta esercizio
-        </button>
-      </div>
-      <p>
-        {{ b.prescriptionRaw }} · Recupero
-        {{ b.restSeconds == null ? b.restRaw : b.restSeconds + " s" }}
-        <span v-if="b.reviewRequired" class="pill yellow"
-          >Da verificare · timer manuale</span
-        >
-      </p>
-      <p class="smallmuted">{{ b.notes }}</p>
-      <p v-if="b.movements.length">
-        {{ b.movements.map((m) => m.name + " × " + m.reps).join(" → ") }}
-      </p>
-      <div class="video-list">
-        <a
-          v-for="(v, i) in b.videos"
-          :key="i"
-          class="video"
-          :href="v.url"
-          target="_blank"
-          rel="noopener noreferrer"
-          :title="v.reviewNote"
-          >Video {{ v.candidateMovement || i + 1 }} ·
-          {{
-            v.reviewRequired
-              ? "da revisionare"
-              : "associazione confermata dal titolo ufficiale"
-          }}</a
-        ><span v-if="!b.videos.length" class="smallmuted"
-          >Nessun video associato nella fonte.</span
-        >
-      </div>
-      <div
-        v-for="(s, i) in b.sets"
-        :key="s.id"
-        class="session-set"
-        :data-testid="'set-' + s.id"
-      >
-        <div class="set-foot">
-          <b
-            >Serie {{ i + 1 }} · {{ s.kind || b.phase }} · Obiettivo: {{ s.reps
-            }}{{ s.toFailure ? " · cedimento" : ""
-            }}{{ s.perLeg ? " · per gamba" : "" }}</b
-          ><span class="pill grey">{{ label[s.status] }}</span>
-        </div>
-        <p v-if="s.movements?.length" class="note">
-          {{ s.movements.map((m) => m.name + " × " + m.reps).join(" → ") }}
-        </p>
-        <p class="smallmuted">
-          Standard all’avvio:
-          {{
-            s.standardAtStart == null
-              ? "Imposta carico standard"
-              : s.standardAtStart + " kg"
-          }}
-          <span v-if="s.previous">
-            · Precedente registrata: {{ s.previous.kg }} kg ×
-            {{ s.previous.reps ?? "rip. non registrate" }}</span
-          >
-        </p>
-        <template v-if="s.status === 'pending' && w.active.status === 'active'">
-          <div class="field-row">
-            <label class="fieldlabel"
-              >Carico della seduta (kg)<input
-                class="field"
-                type="number"
-                min="0"
-                max="1500"
-                step="0.5"
-                :value="s.draftKg"
-                @input="draft(s, 'kg', $event)" /></label
-            ><label v-if="s.repProposal?.kind !== 'compound'" class="fieldlabel"
-              >Ripetizioni effettive<input
-                class="field"
-                type="number"
-                min="0"
-                max="1000"
-                :value="draftReps(s)"
-                @input="draft(s, 'reps', $event)"
-            /></label>
-          </div>
-          <p v-if="s.repProposal?.kind === 'compound'" class="smallmuted">
-            Ripetizioni dei singoli movimenti conservate come sopra. Nessun
-            totale viene registrato.
-          </p>
-          <div
-            v-if="s.repProposal?.kind === 'range'"
-            class="btnrow"
-            aria-label="Scelta rapida ripetizioni"
-          >
-            <span
-              >Previste {{ s.repProposal.min }}–{{ s.repProposal.max }}:</span
-            >
-            <label v-if="!s.repProposal.options.length" class="fieldlabel">
-              Scelta rapida ripetizioni previste
-              <select
-                class="field"
-                :value="draftReps(s) ?? ''"
-                @change="draft(s, 'reps', $event)"
-              >
-                <option value="">Scegli un valore</option>
-                <option
-                  v-for="n in s.repProposal.max - s.repProposal.min + 1"
-                  :key="n"
-                  :value="s.repProposal.min + n - 1"
-                >
-                  {{ s.repProposal.min + n - 1 }}
-                </option>
-              </select>
-            </label>
-            <button
-              v-for="n in s.repProposal.options"
-              :key="n"
-              class="btn secondary rep-choice"
-              :aria-label="`Proponi ${n} ripetizioni`"
-              @click="draft(s, 'reps', { target: { value: String(n) } })"
-            >
-              {{ n }}
-            </button>
-          </div>
-          <p v-if="s.repProposal?.kind === 'open'" class="smallmuted">
-            {{ s.reps }}: inserisci le ripetizioni effettivamente eseguite.
-          </p>
-          <p class="smallmuted">
-            I valori proposti restano una bozza fino al completamento.
-          </p>
-          <div class="set-buttons">
-            <button
-              class="btn primary"
-              :disabled="s.draftKg == null || w.conflict"
-              @click="result(s, 'recorded')"
-            >
-              Completa e registra peso</button
-            ><button
-              class="btn secondary"
-              :disabled="w.conflict"
-              @click="result(s, 'unlogged')"
-            >
-              Completa senza peso</button
-            ><button
-              class="btn secondary"
-              :disabled="w.conflict"
-              @click="result(s, 'skipped')"
-            >
-              Salta serie
-            </button>
-          </div>
-        </template>
-        <p v-else>
-          {{ s.actualKg === null ? "Peso non registrato" : s.actualKg + " kg" }}
-          ·
-          {{
-            s.actualReps === null
-              ? "Ripetizioni non registrate"
-              : s.actualReps + " ripetizioni"
-          }}
-        </p>
-        <button
-          class="textbutton"
-          :aria-label="'Aggiorna standard ' + s.id"
-          @click="standard(s.id)"
-        >
-          Aggiorna carico standard
-        </button>
-      </div>
-    </section>
+      Scarica animazioni offline
+    </button>
+    <p v-if="flowProgress" class="note" role="status">
+      {{
+        flowProgress.complete ? "Animazioni disponibili offline" : "Download"
+      }}
+      · {{ flowProgress.done }}/{{ flowProgress.total }} ·
+      {{ (flowProgress.bytes / 1024).toFixed(1) }} KiB
+    </p>
+  </details>
+  <div v-if="blocks.length" class="section-title workout-exercises-title">
+    <h2>Esercizi della scheda</h2>
+    <button class="textbutton" @click="expandAll">
+      Mostra tutti ({{ blocks.length }}) <Icon name="arrow" :size="16" />
+    </button>
+  </div>
+  <div class="workout-exercises">
+    <WorkoutExercise
+      v-for="b in blocks"
+      :key="b.id"
+      :block="b"
+      :loads="w.standards"
+      :active="!!isActive"
+      :disabled="w.conflict || (isActive && w.active.status !== 'active')"
+      @draft="draft"
+      @result="result"
+      @standard="standard"
+      @skip="(id) => run(() => w.act({ action: 'skip-block', blockId: id }))"
+    />
+  </div>
+  <template v-if="isActive">
     <section class="card workout-block">
       <h2>
         {{ w.active.snapshot.cooldown.name }} ·
@@ -604,6 +571,58 @@ onUnmounted(() => clearInterval(interval));
       </button>
     </section>
   </template>
+  <dialog
+    ref="organizeDialog"
+    class="card workout-modal"
+    aria-labelledby="organize-title"
+  >
+    <form v-if="organization" @submit.prevent="saveOrganization">
+      <h2 id="organize-title">Organizza schede</h2>
+      <p class="note">
+        Nomi e calendario sono personali. I riferimenti originali e i carichi
+        restano invariati; puoi avviare qualsiasi scheda.
+      </p>
+      <fieldset
+        v-for="d in Object.keys(organization.days)"
+        :key="d"
+        class="organize-day"
+      >
+        <legend>Riferimento {{ d }}</legend>
+        <label class="fieldlabel"
+          >Nome scheda {{ d
+          }}<input
+            class="field"
+            v-model="organization.days[d].name"
+            required
+            maxlength="60"
+        /></label>
+        <div class="weekday-options">
+          <label v-for="(name, n) in weekdays" :key="n"
+            ><input
+              type="checkbox"
+              :value="n"
+              v-model="organization.days[d].weekdays"
+              :aria-label="`Scheda ${d}: ${name}`"
+            />{{ name }}</label
+          >
+        </div>
+      </fieldset>
+      <label class="fieldlabel"
+        >Fuso calendario<input
+          class="field"
+          v-model="organization.timezone"
+          required
+      /></label>
+      <p v-if="error" role="alert" class="warning">{{ error }}</p>
+      <div class="btnrow">
+        <button type="button" class="btn ghost" @click="organizeDialog.close()">
+          Indietro</button
+        ><button class="btn primary" :disabled="organizationBusy">
+          Salva organizzazione
+        </button>
+      </div>
+    </form>
+  </dialog>
 </template>
 
 <style scoped>

@@ -88,6 +88,26 @@ test("CSV: esempi, anteprima, conferma, versioni, obiettivi e scheda completa", 
     await page
       .getByRole("link", { name: "Torna ad Altro", exact: true })
       .click();
+    const imports = page.getByRole("region", { name: "Piani e importazioni" });
+    const dietButton = page.getByRole("link", {
+      name: "Gestisci piano alimentare",
+      exact: true,
+    });
+    const workoutButton = page.getByRole("link", {
+      name: "Gestisci scheda allenamento",
+      exact: true,
+    });
+    const dietBox = await dietButton.boundingBox(),
+      workoutBox = await workoutButton.boundingBox();
+    expect(Math.abs(dietBox.width - workoutBox.width)).toBeLessThan(1);
+    expect(dietBox.y).toBe(workoutBox.y);
+    expect(
+      (
+        await page
+          .getByRole("heading", { name: "Installa PULSE" })
+          .boundingBox()
+      ).y,
+    ).toBeLessThan((await imports.boundingBox()).y);
     await page
       .getByRole("link", {
         name:

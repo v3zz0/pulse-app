@@ -17,7 +17,7 @@ const route = useRoute(),
   notification = ref(
     "Notification" in window ? Notification.permission : "unsupported",
   );
-let timer;
+let timer, updates;
 const names = {
   meal: "Pasto",
   supplement: "Integratore",
@@ -81,6 +81,15 @@ async function refreshNow() {
     )
       await navigator.locks.request("pulse-reminder-delivery", async () => {
         const items = await api("/reminders/due");
+        try {
+          const registration = await navigator.serviceWorker.getRegistration();
+          for (const n of (await registration?.getNotifications()) || [])
+            if (
+              n.data?.kind &&
+              !items.some((r) => n.tag === `pulse-${r.id}-${r.date}`)
+            )
+              n.close();
+        } catch {}
         for (const r of items.filter((r) => !r.delivered)) {
           const registration = await navigator.serviceWorker.getRegistration();
           if (!registration) continue;
@@ -94,6 +103,8 @@ async function refreshNow() {
                 url: "/",
                 kind: r.settings.kind,
                 target: r.settings.target,
+                scheduleId: r.settings.scheduleId,
+                at: r.settings.at,
               },
             },
           );
@@ -171,6 +182,9 @@ async function toggleNow(r) {
   }
 }
 onMounted(() => {
+  window.addEventListener("pulse-reminders-changed", refresh);
+  updates = new BroadcastChannel("pulse-reminders");
+  updates.onmessage = refresh;
   refresh();
   if (route.path === "/altro") loadTargets();
   timer = setInterval(refresh, 30000);
@@ -184,7 +198,11 @@ watch(
     }
   },
 );
-onUnmounted(() => clearInterval(timer));
+onUnmounted(() => {
+  clearInterval(timer);
+  window.removeEventListener("pulse-reminders-changed", refresh);
+  updates?.close();
+});
 </script>
 <template>
   <section
@@ -287,7 +305,13 @@ onUnmounted(() => clearInterval(timer));
         {{ r.settings.timezone }} ·
         {{ r.settings.enabled ? "Attivo" : "Disattivato" }}
       </p>
-      <div class="btnrow">
+      <RouterLink
+        v-if="r.settings.scheduleId"
+        to="/integratori"
+        class="btn secondary"
+        >Gestisci in I miei integratori</RouterLink
+      >
+      <div v-else class="btnrow">
         <button class="btn secondary" @click="toggle(r)">
           {{ r.settings.enabled ? "Disattiva" : "Attiva" }}</button
         ><button class="btn secondary" @click="change(r, 'delete')">

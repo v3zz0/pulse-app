@@ -17,9 +17,12 @@ async function completed(app, owner, s, day) {
     );
   }
   if (s.kind === "supplement")
-    return !!(await q(app, "supplement-intake").findOne({
-      where: { owner, day, product: Number(s.target) },
-    }));
+    return require("../../../pulse/supplements").reminderDone(
+      app,
+      owner,
+      s,
+      day,
+    );
   const sessions = await q(app, "workout-session").findMany({
     where: { owner, day: s.target },
   });
@@ -60,6 +63,8 @@ module.exports = {
         r = await repo.findOne({ where: { owner: user.id, uniqueKey } });
       if (!Number.isInteger(b.revision) || b.revision !== (r?.revision || 0))
         fail("Promemoria modificato altrove", 409);
+      if (r?.settings.scheduleId && ["settings", "delete"].includes(b.action))
+        fail("Modifica questo promemoria da I miei integratori", 409);
       if (b.action === "delete") {
         if (r) await repo.delete({ where: { id: r.id, owner: user.id } });
         ctx.status = 204;
@@ -77,7 +82,8 @@ module.exports = {
           const product = await q(app, "supplement-product").findOne({
             where: { owner: user.id, id: Number(s.target) || 0 },
           });
-          if (!product) fail("Integratore inesistente", 404);
+          if (!product || product.active === false)
+            fail("Integratore inesistente o archiviato", 404);
           s.label = product.name;
         }
         if (s.kind === "meal") {

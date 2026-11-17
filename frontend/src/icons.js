@@ -1,1 +1,33 @@
-export const icons = {home:'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',food:'<path d="M4 3v7a3 3 0 0 0 6 0V3M7 3v18M19 3v18M19 3c-4 2-5 7-5 11h5"/>',gym:'<path d="m6 8 2-2m8 10 2-2M4 10l6-6m4 16 6-6M3 13l10-10m8 8L11 21M6 18l12-12"/>',chart:'<path d="M3 19V5m0 14h18M7 15l4-4 3 2 5-7"/>',more:'<circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/>',arrow:'<path d="m9 18 6-6-6-6"/>',check:'<path d="m4 12 5 5L20 6"/>',bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/>',bolt:'<path d="m13 2-9 12h7l-1 8 10-13h-7z"/>',weight:'<path d="M7 7a5 5 0 0 1 10 0M5 7h14l2 14H3L5 7zM12 10v5"/>',list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',edit:'<path d="M12 20h9M16 4l4 4-12 12H4v-4z"/>',video:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3z"/>',down:'<path d="m6 9 6 6 6-6"/>',close:'<path d="M5 5l14 14M19 5 5 19"/>',plus:'<path d="M12 5v14M5 12h14"/>',save:'<path d="M4 4h13l3 3v13H4zM7 4v6h10V4M8 20v-7h8v7"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5"/>',flame:'<path d="M12 22c5-1 8-5 8-10 0-3-2-6-4-8 0 4-2 5-4 7-1-3-3-5-5-6 0 4-3 7-3 11 0 4 4 6 8 6z"/>',info:'<circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7h.01"/>'};
+export const icons = {
+  layers: '<path d="m12 3 10 5-10 5L2 8zm-9 9 9 5 9-5m-18 5 9 5 9-5"/>',
+  dumbbell: '<path d="M7 7v10M3 9v6m14-8v10m4-8v6M7 12h10M3 12h4m10 0h4"/>',
+  reps: '<path d="M4 8a8 8 0 0 1 14-3l2 3M20 3v5h-5M20 16a8 8 0 0 1-14 3l-2-3M4 21v-5h5"/>',
+  "no-weight": '<circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/>',
+  skip: '<path d="m3 5 8 7-8 7zm9 0 8 7-8 7z"/>',
+  play: '<path d="m7 3 14 9L7 21z"/>',
+  home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',
+  food: '<path d="M4 3v7a3 3 0 0 0 6 0V3M7 3v18M19 3v18M19 3c-4 2-5 7-5 11h5"/>',
+  gym: '<path d="m6 8 2-2m8 10 2-2M4 10l6-6m4 16 6-6M3 13l10-10m8 8L11 21M6 18l12-12"/>',
+  chart: '<path d="M3 19V5m0 14h18M7 15l4-4 3 2 5-7"/>',
+  more: '<circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/>',
+  arrow: '<path d="m9 18 6-6-6-6"/>',
+  check: '<path d="m4 12 5 5L20 6"/>',
+  bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
+  calendar:
+    '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/>',
+  bolt: '<path d="m13 2-9 12h7l-1 8 10-13h-7z"/>',
+  weight: '<path d="M7 7a5 5 0 0 1 10 0M5 7h14l2 14H3L5 7zM12 10v5"/>',
+  list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  edit: '<path d="M12 20h9M16 4l4 4-12 12H4v-4z"/>',
+  video:
+    '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3z"/>',
+  down: '<path d="m6 9 6 6 6-6"/>',
+  close: '<path d="M5 5l14 14M19 5 5 19"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  save: '<path d="M4 4h13l3 3v13H4zM7 4v6h10V4M8 20v-7h8v7"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5"/>',
+  flame:
+    '<path d="M12 22c5-1 8-5 8-10 0-3-2-6-4-8 0 4-2 5-4 7-1-3-3-5-5-6 0 4-3 7-3 11 0 4 4 6 8 6z"/>',
+  info: '<circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7h.01"/>',
+};

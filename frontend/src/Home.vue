@@ -175,7 +175,7 @@ onUnmounted(() => clearInterval(interval));
             <div class="action-icon"><Icon name="gym" :size="24" /></div>
             <div class="mealinfo">
               <h3>La tua scheda completa</h3>
-              <p>Carichi da impostare, recuperi e note del trainer</p>
+              <p>Carichi standard, recuperi e note del trainer</p>
             </div>
           </div>
           <button class="btn primary wide" @click="router.push('/allenati')">
@@ -191,7 +191,7 @@ onUnmounted(() => clearInterval(interval));
             <Icon name="weight" /><span
               ><strong>Registra peso</strong><small>Apri registro</small></span
             ></button
-          ><button class="quick-action" @click="router.push('/altro')">
+          ><button class="quick-action" @click="router.push('/integratori')">
             <Icon name="plus" /><span
               ><strong>Integratori</strong><small>Apri registro</small></span
             >
@@ -253,7 +253,10 @@ onUnmounted(() => clearInterval(interval));
               <b>Integratori</b>
               <div class="meta">{{ intakes.length }} assunzioni registrate</div>
             </div>
-            <button class="btn secondary sm" @click="router.push('/altro')">
+            <button
+              class="btn secondary sm"
+              @click="router.push('/integratori')"
+            >
               Gestisci
             </button>
           </div>
@@ -276,6 +279,12 @@ onUnmounted(() => clearInterval(interval));
       >
     </div>
   </div>
+  <RouterLink
+    v-if="!day.meals.length"
+    to="/integratori"
+    class="btn secondary wide"
+    >I miei integratori</RouterLink
+  >
   <p role="status" class="source-note">{{ message }}</p>
   <MealDialog :meal="selected" @close="selected = null" />
 </template>

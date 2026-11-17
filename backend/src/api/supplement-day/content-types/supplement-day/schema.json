@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pulse_supplement_days",
+  "info": {
+    "singularName": "supplement-day",
+    "pluralName": "supplement-days",
+    "displayName": "Giornate integratori"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "uniqueKey": {
+      "type": "string",
+      "unique": true,
+      "required": true
+    },
+    "day": {
+      "type": "date",
+      "required": true
+    },
+    "mode": {
+      "type": "enumeration",
+      "enum": ["ON", "OFF"]
+    },
+    "revision": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

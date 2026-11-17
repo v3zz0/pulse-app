@@ -1,36 +1,17 @@
 <script setup>
 import Pwa from "./Pwa.vue";
-import { onMounted, ref, computed } from "vue";
+import { onMounted, ref } from "vue";
 import { api, send } from "./api";
 import { localDate } from "./stores/day";
 const date = ref(localDate()),
   weight = ref(""),
   weights = ref([]),
-  products = ref([]),
-  intakes = ref([]),
-  doses = ref({}),
-  times = ref({}),
   message = ref(""),
   error = ref(""),
   busy = ref(false);
-const overlap = computed(
-  () => intakes.value.filter((i) => /creatin|powa/i.test(i.name)).length > 1,
-);
 async function load() {
   try {
-    [weights.value, products.value, intakes.value] = await Promise.all([
-      api("/weights"),
-      api("/supplements"),
-      api("/intakes/" + date.value),
-    ]);
-    for (const p of products.value)
-      if (!times.value[p.id])
-        times.value[p.id] = new Intl.DateTimeFormat("it-IT", {
-          timeZone: "Europe/Rome",
-          hour: "2-digit",
-          minute: "2-digit",
-        }).format(new Date());
-    for (const i of intakes.value) doses.value[i.productId] = i.dose;
+    weights.value = await api("/weights");
   } catch (e) {
     error.value = e.message;
   }
@@ -48,24 +29,6 @@ async function saveWeight() {
     busy.value = false;
   }
 }
-async function take(product, removeSlot = null) {
-  busy.value = true;
-  error.value = "";
-  try {
-    await send("/intakes/" + date.value, {
-      productId: product.id,
-      taken: removeSlot === null,
-      slot: removeSlot || times.value[product.id] || "08:00",
-      dose: doses.value[product.id],
-    });
-    await load();
-    message.value = "Assunzione aggiornata";
-  } catch (e) {
-    error.value = e.message;
-  } finally {
-    busy.value = false;
-  }
-}
 onMounted(load);
 </script>
 <template>
@@ -75,13 +38,14 @@ onMounted(load);
       <h1>Il tuo spazio<span style="color: var(--accent)">.</span></h1>
     </div>
   </div>
-  <section class="card" aria-labelledby="plan-settings-title">
+  <Pwa />
+  <section class="card plan-imports" aria-labelledby="plan-settings-title">
     <h2 id="plan-settings-title">Piani e importazioni</h2>
     <p class="note">
       Scarica i modelli, importa ed esporta CSV e gestisci le versioni salvate
       della dieta e della scheda di allenamento.
     </p>
-    <div class="btnrow">
+    <div class="plan-import-actions">
       <RouterLink class="btn secondary" to="/altro/piani"
         >Gestisci piano alimentare</RouterLink
       >
@@ -124,67 +88,31 @@ onMounted(load);
     </div>
     <p class="note">Il peso non misura direttamente la massa muscolare.</p>
   </form>
-  <section class="card" style="margin-top: 14px">
+  <section class="card">
     <h2>Integratori</h2>
-    <p class="warning">
-      Registrare soltanto le assunzioni effettive. Non sommare automaticamente
-      prodotti e prescrizioni storiche.
+    <p class="note">
+      Prodotti personali, pianificazione, assunzioni e storico.
     </p>
-    <div v-if="overlap" role="alert" class="warning">
-      Possibile sovrapposizione di creatina: verifica la dose totale con il
-      professionista.
-    </div>
-    <div v-for="product in products" :key="product.id" class="setting-row">
-      <div style="width: 100%">
-        <h3>{{ product.name }}</h3>
-        <p class="note">{{ product.instructions }}</p>
-        <p class="source-note">
-          {{ product.ingredients }} ·
-          {{
-            product.source === "historical-plan"
-              ? "Piano storico da rivedere"
-              : "Prodotto manuale"
-          }}
-        </p>
-        <label class="fieldlabel" :for="'dose-' + product.id"
-          >Dose effettivamente assunta (includi unità)</label
-        ><input
-          :id="'dose-' + product.id"
-          v-model="doses[product.id]"
-          class="field"
-          placeholder="Dose e unità"
-        /><label class="fieldlabel" :for="'time-' + product.id"
-          >Orario locale</label
-        ><input
-          :id="'time-' + product.id"
-          v-model="times[product.id]"
-          class="field"
-          type="time"
-        /><button
-          class="btn secondary wide"
-          :disabled="busy"
-          @click="take(product)"
-        >
-          Segna assunto
-        </button>
-        <div
-          v-for="intake in intakes.filter((i) => i.productId === product.id)"
-          :key="intake.slot"
-          class="soft-row"
-        >
-          <span
-            >{{ intake.slot === "daily" ? "Registrato" : intake.slot }} ·
-            {{ intake.dose }}</span
-          ><button
-            class="btn ghost sm"
-            :disabled="busy"
-            @click="take(product, intake.slot)"
-          >
-            Annulla assunzione
-          </button>
-        </div>
-      </div>
-    </div>
+    <RouterLink to="/integratori" class="btn primary wide"
+      >I miei integratori</RouterLink
+    >
   </section>
-  <Pwa />
 </template>
+
+<style scoped>
+.plan-imports {
+  margin-top: 14px;
+}
+.plan-import-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.plan-import-actions .btn {
+  width: 100%;
+  min-height: 54px;
+  white-space: normal;
+  text-align: center;
+  text-decoration: none;
+}
+</style>

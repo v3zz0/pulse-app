@@ -36,6 +36,7 @@ services:
       context: ./backend
       args: {PUBLIC_API_URL: "${PULSE_API_URL:?Configura PULSE_API_URL}"}
     environment:
+      FLOW_DATA_PATH: /app/flow
       NODE_ENV: production
       PULSE_ENV: production
       PUBLIC_ORIGIN: ${PULSE_PUBLIC_ORIGIN:?Configura PULSE_PUBLIC_ORIGIN}
@@ -57,7 +58,9 @@ services:
       JWT_SECRET: ${JWT_SECRET:?}
     # Solo per il pannello admin (apipulse.*): NPM lo limita al tuo IP con una Access List.
     ports: ['${PULSE_BIND_IP:?}:${PULSE_API_PORT:?}:1337']
-    volumes: [uploads:/app/public/uploads]
+    volumes:
+      - uploads:/app/public/uploads
+      - ${FLOW_STORAGE_PATH:-./storage/flow}:/app/flow:ro
     networks: [database, application, edge]
     depends_on: {postgres: {condition: service_healthy}}
     healthcheck:

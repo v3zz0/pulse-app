@@ -119,3 +119,9 @@ GET template/list/detail/export; POST preview/import; PUT sul piano con action a
 I nuovi import creano le voci separate nella stessa transazione. Per i programmi già presenti: `node scripts/split-training-days.js` produce solo un conteggio; dopo backup verificato e autorizzazione usare PULSE_SPLIT_TRAINING_DAYS=1 con `--apply`. La procedura è idempotente e non reimporta PDF o CSV. Non è stata eseguita sulla produzione. In locale il collaudo usa `--synthetic-only`.
 
 Preferiti/non graditi nell’account sono elenchi di chip: scrivere Riso e premere Invio, poi Pollo e Invio; la × rimuove il singolo alimento. I vecchi testi separati da virgole/a-capo vengono letti senza perdita e convertiti in elenchi. Nessun campo tempo per cucinare viene mostrato o incluso nei prompt AI.
+
+## Gestione dalla PWA: schede e integratori
+
+Allenati → Organizza schede modifica solo displaySettings/displayRevision del programma del proprietario. Non rinominare gli ID tecnici A/B/C per cambiare una scritta. Le preview dei piani mostrano i carichi effettivi della versione; importazione e attivazione restano due conferme distinte.
+
+Home/Altro → I miei integratori permette creazione, modifica, archiviazione, pianificazione e registrazioni con rettifiche. I modelli esistenti sono estesi e supplement-day conserva solo gli override ON/OFF specifici. Non cancellare manualmente record per annullare un’assunzione: usare la rettifica, che conserva snapshot e audit. I promemoria associati agli slot si modificano dal prodotto, senza duplicarne gli UUID. Guida completa: TRAINING_SUPPLEMENTS.md; player opzionale con flowId esplicito: FLOW_DATASET.md.

@@ -8,6 +8,7 @@ export const useWorkout = defineStore("workout", {
   state: () => ({
     program: null,
     standards: {},
+    pendingImports: [],
     active: null,
     history: [],
     queue: [],
@@ -23,6 +24,7 @@ export const useWorkout = defineStore("workout", {
       await write(`workout:${this.owner}`, {
         program: this.program,
         standards: this.standards,
+        pendingImports: this.pendingImports,
         active: this.active,
         history: this.history,
         queue: this.queue,
@@ -461,6 +463,28 @@ export const useWorkout = defineStore("workout", {
           Object.assign(this, await api("/training"));
           await this.persist();
           this.error = "Versione server caricata. Copia della bozza scaricata.";
+          channel?.postMessage("changed");
+        }),
+      );
+    },
+    async layout(data) {
+      const owner = this.owner,
+        programId = this.program.id;
+      return navigator.locks.request("pulse-workout-sync", () =>
+        exclusive(async () => {
+          if (this.owner !== owner || useAuth().user?.id !== owner)
+            throw new Error("Account cambiato");
+          this.restore(await read(`workout:${owner}`));
+          if (this.program.id !== programId)
+            throw new Error("Programma cambiato: ricarica");
+          const r = await send("/training/layout", {
+            programId,
+            revision: this.program.displayRevision || 0,
+            data,
+            confirm: true,
+          });
+          Object.assign(this.program, r);
+          await this.persist();
           channel?.postMessage("changed");
         }),
       );

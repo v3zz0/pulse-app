@@ -18,6 +18,7 @@ services:
   strapi:
     build: ./backend
     environment:
+      FLOW_DATA_PATH: /app/flow
       NODE_ENV: production
       STRAPI_TELEMETRY_DISABLED: 'true'
       DATABASE_HOST: postgres
@@ -32,7 +33,9 @@ services:
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Configurare ENCRYPTION_KEY}
       JWT_SECRET: ${JWT_SECRET:?Configurare JWT_SECRET}
     ports: ['127.0.0.1:1337:1337']
-    volumes: [uploads:/app/public/uploads]
+    volumes:
+      - uploads:/app/public/uploads
+      - ${FLOW_STORAGE_PATH:-./storage/flow}:/app/flow:ro
     networks: [private, edge]
     depends_on:
       postgres: {condition: service_healthy}

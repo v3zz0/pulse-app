@@ -10,6 +10,7 @@ import Personal from "./Personal.vue";
 import Account from "./Account.vue";
 import ManagePlans from "./ManagePlans.vue";
 import Workout from "./Workout.vue";
+import Supplements from "./Supplements.vue";
 import Progress from "./Progress.vue";
 import { useAuth } from "./stores/auth";
 import "./style.css";
@@ -34,6 +35,7 @@ const router = createRouter({
     { path: "/allenati/schede", redirect: "/altro/schede" },
     { path: "/altro", component: Personal },
     { path: "/account", component: Account },
+    { path: "/integratori", component: Supplements },
     { path: "/allenati", component: Workout },
     { path: "/progressi", component: Progress },
     { path: "/:pathMatch(.*)*", redirect: "/" },

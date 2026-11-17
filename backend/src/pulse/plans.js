@@ -332,13 +332,30 @@ async function activation(app, kind, owner, p) {
 async function detail(app, kind, owner, id) {
   const p = await owned(app, kind, owner, id),
     a = await activation(app, kind, owner, p),
-    s = await settings.get(app, owner);
+    s = await settings.get(app, owner),
+    targetLoads = kind === "training" ? await standards(app, owner, p.id) : {};
   return {
     plan: decorate(kind, {
       ...summary(p, a.activeId),
       ...(kind === "nutrition"
         ? { meals: p.meals, notes: p.notes }
-        : { days: p.days, cooldown: p.cooldown }),
+        : {
+            days: Object.fromEntries(
+              Object.entries(p.days).map(([day, blocks]) => [
+                day,
+                blocks.map((block) => ({
+                  ...block,
+                  sets: block.sets.map((set) => ({
+                    ...set,
+                    standardKg: Object.hasOwn(targetLoads, set.id)
+                      ? targetLoads[set.id]
+                      : (set.standardKg ?? null),
+                  })),
+                })),
+              ]),
+            ),
+            cooldown: p.cooldown,
+          }),
       report: p.importReport,
     }),
     activation: a,

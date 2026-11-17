@@ -67,6 +67,7 @@ test("scheda completa, peso temporaneo, timer, offline/reload, sync e storico", 
   await expect(page.getByTestId("workout-sync")).toHaveText(
     "Tutte le modifiche sincronizzate",
   );
+  await page.locator(".manual-recovery > summary").click();
   await page.getByLabel("Recupero manuale in secondi").fill("60");
   await page
     .getByRole("button", { name: "Avvia recupero", exact: true })

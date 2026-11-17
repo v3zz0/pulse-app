@@ -117,3 +117,5 @@ Plan imports, exports and version management are available in **Altro → Piani 
 See [CSV_AI_GUIDE.md](docs/CSV_AI_GUIDE.md) for formats, limits and safe imports. Server upgrade requires a verified backup and explicit authorization before production schema changes.
 
 Workout draft proposals, offline cancellation and the Jenkins update procedure: [WORKOUT_SESSIONS.md](docs/WORKOUT_SESSIONS.md).
+
+Training now has compact exercise cards and personal day names/calendars. **I miei integratori**, linked from Home and Altro, manages products, schedules, actual intake and retained history. See [TRAINING_SUPPLEMENTS.md](docs/TRAINING_SUPPLEMENTS.md) and [FLOW_DATASET.md](docs/FLOW_DATASET.md) for optional self-hosted animations with explicit IDs, offline download, schema additions and the backup-first Jenkins procedure. No automatic exercise matching or personal-plan migration is performed.

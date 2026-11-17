@@ -30,6 +30,36 @@
       "type": "enumeration",
       "enum": ["historical-plan", "manual"],
       "default": "manual"
+    },
+    "brand": {
+      "type": "string"
+    },
+    "labelQuantity": {
+      "type": "string"
+    },
+    "labelUnit": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "text"
+    },
+    "declaredActives": {
+      "type": "json"
+    },
+    "schedule": {
+      "type": "json"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "revision": {
+      "type": "integer",
+      "default": 0
+    },
+    "clientKey": {
+      "type": "string",
+      "unique": true
     }
   }
 }

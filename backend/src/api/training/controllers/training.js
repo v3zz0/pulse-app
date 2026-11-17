@@ -76,6 +76,31 @@ async function standardMap(app, owner, programId) {
   );
 }
 module.exports = {
+  layout: guard(async (ctx, user, app) =>
+    lock(app, user.id, async () => {
+      const b = ctx.request.body || {},
+        p = await q(app, "training-program").findOne({
+          where: { id: Number(b.programId) || 0, owner: user.id },
+        });
+      if (!p) fail("Programma inesistente", 404);
+      if (b.confirm !== true) fail("Conferma esplicita richiesta");
+      if (
+        !Number.isInteger(b.revision) ||
+        b.revision !== (p.displayRevision || 0)
+      )
+        fail("Organizzazione modificata altrove: ricarica", 409);
+      const displaySettings =
+        require("../../../pulse/training-layout").validateLayout(
+          b.data,
+          p.days,
+        );
+      await q(app, "training-program").update({
+        where: { id: p.id, owner: user.id },
+        data: { displaySettings, displayRevision: b.revision + 1 },
+      });
+      ctx.body = { displaySettings, displayRevision: b.revision + 1 };
+    }),
+  ),
   overview: guard(async (ctx, user, app) => {
     const p = await program(app, user.id);
     const active = await q(app, "workout-session").findOne({
@@ -93,8 +118,19 @@ module.exports = {
             days: p.days,
             cooldown: p.cooldown,
             reviewStatus: p.reviewStatus,
+            version: p.versionLabel || String(p.importVersion),
+            provenance: p.provenance || "PDF storico",
+            displaySettings: p.displaySettings || null,
+            displayRevision: p.displayRevision || 0,
           }
         : null,
+      pendingImports: (
+        await q(app, "training-program").findMany({
+          where: { owner: user.id, status: "draft", provenance: "csv" },
+          orderBy: { id: "desc" },
+          limit: 3,
+        })
+      ).map((r) => ({ id: r.id, title: r.title, version: r.versionLabel })),
       standards: p ? await standardMap(app, user.id, p.id) : {},
       active: present(active),
       history: history.map(present),

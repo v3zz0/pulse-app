@@ -23,6 +23,8 @@ test("due tab e conflitto con un altro dispositivo senza perdita silenziosa", as
   await expect(tab.getByTestId("workout-sync")).toHaveText(
     "Tutte le modifiche sincronizzate",
   );
+  await page.locator(".manual-recovery > summary").click();
+  await tab.locator(".manual-recovery > summary").click();
   await Promise.all([
     page.getByRole("button", { name: "Avvia recupero", exact: true }).click(),
     tab.getByRole("button", { name: "Avvia recupero", exact: true }).click(),
@@ -35,6 +37,7 @@ test("due tab e conflitto con un altro dispositivo senza perdita silenziosa", as
   );
   await tab.close();
   await page.reload();
+  await page.locator(".manual-recovery > summary").click();
   await expect(page.getByTestId("workout-sync")).toHaveText(
     "Tutte le modifiche sincronizzate",
   );
@@ -164,6 +167,7 @@ test("ciclo completo UI: standard 60, temporaneo 50, senza peso, nuova scheda an
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
   await page.getByRole("link", { name: "Allenati", exact: true }).click();
   async function finish() {
+    await page.getByRole("button", { name: /Mostra tutti/ }).click();
     const buttons = page.getByRole("button", {
       name: "Salta esercizio",
       exact: true,
