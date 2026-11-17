@@ -28,3 +28,7 @@ PULSE_Starter_Codex_Cloud/
 *.pdf
 *.PDF
 /private/
+
+# Self-hosted Flow releases (installed separately, never in Git/images)
+/storage/
+/reports/

@@ -1,0 +1,18 @@
+{
+  "repository": "https://github.com/ozansozuozgit/flow-exercise-dataset",
+  "revision": "961bb2739015da373daa43b960c28ee839fe93e6",
+  "files": {
+    "data/exercises.json": "2a5b937fe4974a267b8f98ad860814c2413bcedc623014006bd4c160e5beeff7",
+    "data/dataset.json": "a1529903f7b4211022516746357cd7f51597562d9b0ef8fc99124eb8fc9e00f7",
+    "data/checksums.json": "748eae96d54e6d4e169a8e6fe2c500ac2e56c3bb860a6b24e1b7f05de73499b5",
+    "LICENSE": "85cd6fbfa1ece67ce1bf11f120d18f197dfa8356b32a0b2a15d7e137a1951f1b",
+    "ARTWORK-LICENSE": "0ba6daf9c0af12655bd2acf956a7332d94196c230e7a0bdcced969f284309899",
+    "NOTICE.md": "f554f6fedbf5777a6369cd5984551735024ed96b6052150e0e836a0efc114738"
+  },
+  "counts": {
+    "exercises": 1324,
+    "animations": 1257,
+    "frames": 3771,
+    "instructionsOnly": 67
+  }
+}
