@@ -2,7 +2,7 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const settings = require("../src/pulse/plan-settings");
 const { cards, protect } = require("../src/pulse/training-day-cards");
-test("food chips accept legacy strings, remove duplicates and retire cooking time", async () => {
+test("food chips accept legacy strings, remove duplicates and retire removed preference fields", async () => {
   const old = {
     favoriteFoods: "Riso, Pollo\nRISO",
     avoidedFoods: "Broccoli",
@@ -20,14 +20,27 @@ test("food chips accept legacy strings, remove duplicates and retire cooking tim
   const r = settings.validate(old);
   assert.deepEqual(r.favoriteFoods, ["Riso", "Pollo"]);
   assert.deepEqual(r.avoidedFoods, ["Broccoli"]);
-  assert(!Object.hasOwn(r, "cookingMinutes"));
+  assert.deepEqual(Object.keys(r).sort(), [
+    "avoidedFoods",
+    "favoriteFoods",
+    "goals",
+  ]);
+  assert.deepEqual(
+    settings.validate({ favoriteFoods: [], avoidedFoods: [], goals: null }),
+    { favoriteFoods: [], avoidedFoods: [], goals: null },
+  );
   const app = {
     db: {
       query: () => ({ findOne: async () => ({ data: old, revision: 1 }) }),
     },
   };
   const got = await settings.get(app, 1);
-  assert(!Object.hasOwn(got.data, "cookingMinutes"));
+  assert.deepEqual(Object.keys(got.data).sort(), [
+    "avoidedFoods",
+    "favoriteFoods",
+    "goals",
+  ]);
+  assert.equal(old.mealCount, 4);
   assert.equal(old.cookingMinutes, 20);
   assert.deepEqual(got.data.favoriteFoods, ["Riso", "Pollo"]);
   assert.throws(() => settings.validate({ ...old, favoriteFoods: [{}] }));

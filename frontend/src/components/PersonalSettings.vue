@@ -10,15 +10,6 @@ const data = ref(null),
   suggested = ref(null),
   hasGoals = ref(false),
   savedGoals = ref(false);
-const fields = {
-  allergies: "Allergie dichiarate",
-  intolerances: "Intolleranze dichiarate",
-  easyFoods: "Alimenti facili da preparare",
-  breakfast: "Preferenze colazione",
-  lunch: "Preferenze pranzo",
-  dinner: "Preferenze cena",
-  budget: "Vincoli di spesa",
-};
 const labels = {
   kcal: "Calorie (kcal)",
   protein_g: "Proteine (g)",
@@ -70,11 +61,10 @@ async function save() {
   message.value = "";
   try {
     const payload = {
-      ...data.value,
+      favoriteFoods: data.value.favoriteFoods,
+      avoidedFoods: data.value.avoidedFoods,
       goals: hasGoals.value ? data.value.goals : null,
     };
-    for (const k of ["mealCount"])
-      payload[k] = payload[k] === "" ? null : payload[k];
     const r = await send("/personal-settings", {
       data: payload,
       revision: revision.value,
@@ -99,8 +89,7 @@ async function save() {
     <h2>Preferenze alimentari e obiettivi</h2>
     <p class="note">
       Informazioni private e modificabili. Non cambiano automaticamente la dieta
-      e non sostituiscono il confronto con il professionista. Allergie e
-      intolleranze sono dichiarazioni dell’utente, non diagnosi.
+      e non sostituiscono il confronto con il professionista.
     </p>
     <p v-if="error" role="alert" class="warning">{{ error }}</p>
     <p v-if="message" role="status" class="inline-note">{{ message }}</p>
@@ -116,25 +105,6 @@ async function save() {
           id="avoided-foods"
           label="Alimenti non graditi"
         />
-        <label v-for="(label, key) in fields" :key="key" class="fieldlabel"
-          >{{ label
-          }}<textarea
-            v-model="data[key]"
-            class="field"
-            rows="2"
-            maxlength="2000"
-          ></textarea>
-        </label>
-        <div class="field-row">
-          <label class="fieldlabel"
-            >Numero di pasti preferito<input
-              v-model.number="data.mealCount"
-              type="number"
-              min="1"
-              max="12"
-              class="field"
-          /></label>
-        </div>
         <div class="divider"></div>
         <h3>Obiettivi indicativi</h3>
         <label class="grocery-item"

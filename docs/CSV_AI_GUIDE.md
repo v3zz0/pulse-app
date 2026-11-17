@@ -120,7 +120,7 @@ I video devono essere HTTPS, senza credenziali o porte; indirizzi locali evident
 
 ## Preferenze e obiettivi
 
-Avatar → **Preferenze alimentari e obiettivi**: cibi preferiti/non graditi, allergie e intolleranze dichiarate, alimenti facili, preferenze dei pasti, numero pasti, budget e target. Record privato, revisioni e conferma di salvataggio. I target 2900 kcal / P140 / C405 / G80 sono proposti solo quando non ne esistono di salvati: nessuna scrittura o sostituzione automatica. Sono indicativi, non clinici. Le preferenze non generano né attivano da sole una dieta.
+Avatar → **Preferenze alimentari e obiettivi**: solo alimenti preferiti/non graditi e obiettivi nutrizionali. Record privato, revisioni e conferma di salvataggio. I target 2900 kcal / P140 / C405 / G80 sono proposti solo quando non ne esistono di salvati: nessuna scrittura o sostituzione automatica. Sono indicativi, non clinici. Le preferenze non generano né attivano da sole una dieta.
 
 Il prompt AI può includere queste informazioni solo su opt-in: incollarle su un servizio esterno significa condividerle con quel servizio. Nessun PDF personale è incluso nei modelli pubblici e nessuna chiamata AI remota viene effettuata da PULSE.
 

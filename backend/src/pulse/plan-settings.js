@@ -2,15 +2,6 @@
 const { fail } = require("./validation");
 const repo = (app) => app.db.query("api::personal-setting.personal-setting");
 const suggestedGoals = { kcal: 2900, protein_g: 140, carbs_g: 405, fat_g: 80 };
-const fields = [
-  "allergies",
-  "intolerances",
-  "easyFoods",
-  "breakfast",
-  "lunch",
-  "dinner",
-  "budget",
-];
 function foodList(value) {
   const values = typeof value === "string" ? value.split(/[,;\n]+/) : value;
   if (
@@ -41,23 +32,6 @@ function validate(data) {
     favoriteFoods: foodList(data.favoriteFoods),
     avoidedFoods: foodList(data.avoidedFoods),
   };
-  for (const k of fields) {
-    if (typeof data[k] !== "string" || data[k].length > 2000)
-      fail(`Campo ${k} non valido, massimo 2.000 caratteri`);
-    out[k] = data[k].trim();
-  }
-  for (const [k, max] of [["mealCount", 12]]) {
-    const v = data[k];
-    if (
-      v !== null &&
-      (!Number.isInteger(v) ||
-        v < 0 ||
-        v > max ||
-        (k === "mealCount" && v === 0))
-    )
-      fail(`Campo ${k} non valido`);
-    out[k] = v;
-  }
   if (data.goals !== null) {
     if (!data.goals || typeof data.goals !== "object")
       fail("Obiettivi non validi");
@@ -78,16 +52,13 @@ function validate(data) {
 }
 async function get(app, owner) {
   const r = await repo(app).findOne({ where: { owner } });
-  const stored = r?.data || {
-    ...Object.fromEntries(fields.map((k) => [k, ""])),
-    mealCount: null,
-    goals: null,
-    favoriteFoods: [],
-    avoidedFoods: [],
+  const stored = r?.data || {};
+  // Expose only current settings; legacy fields are not reused in AI prompts.
+  const data = {
+    favoriteFoods: foodList(stored.favoriteFoods || []),
+    avoidedFoods: foodList(stored.avoidedFoods || []),
+    goals: stored.goals ?? null,
   };
-  const { cookingMinutes: retired, ...data } = stored;
-  data.favoriteFoods = foodList(data.favoriteFoods || []);
-  data.avoidedFoods = foodList(data.avoidedFoods || []);
   return {
     data,
     revision: r?.revision || 0,

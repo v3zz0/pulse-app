@@ -28,6 +28,20 @@ test("preferenze: card separate, chip Invio/rimozione e persistenza senza tempo 
   await expect(
     page.getByText("Tempo per cucinare (minuti)", { exact: true }),
   ).toHaveCount(0);
+  for (const label of [
+    "Allergie dichiarate",
+    "Intolleranze dichiarate",
+    "Alimenti facili da preparare",
+    "Preferenze colazione",
+    "Preferenze pranzo",
+    "Preferenze cena",
+    "Numero di pasti preferito",
+    "Vincoli di spesa",
+  ])
+    await expect(section.getByLabel(label, { exact: true })).toHaveCount(0);
+  const before = await page.request
+    .get("http://127.0.0.1:8081/api/pulse/personal-settings")
+    .then((r) => r.json());
   const favorite = page.getByLabel("Alimenti preferiti", { exact: true });
   await favorite.fill("Riso");
   await favorite.press("Enter");
@@ -79,7 +93,12 @@ test("preferenze: card separate, chip Invio/rimozione e persistenza senza tempo 
     .then((r) => r.json());
   expect(saved.data.favoriteFoods).toContain("Riso");
   expect(saved.data.avoidedFoods).toContain("Broccoli");
-  expect(saved.data).not.toHaveProperty("cookingMinutes");
+  expect(saved.data.goals).toEqual(before.data.goals);
+  expect(Object.keys(saved.data).sort()).toEqual([
+    "avoidedFoods",
+    "favoriteFoods",
+    "goals",
+  ]);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -89,4 +108,15 @@ test("preferenze: card separate, chip Invio/rimozione e persistenza senza tempo 
     path: `test-results/profile-chips-${test.info().project.name}.png`,
     fullPage: true,
   });
+  await page.goto("http://127.0.0.1:8081/altro/piani");
+  await page
+    .getByLabel("Includi le mie preferenze private nel testo per l’AI")
+    .check();
+  await page.getByRole("button", { name: "Copia istruzioni per AI" }).click();
+  const prompt = page.getByLabel("Istruzioni per AI");
+  await expect(prompt).toHaveValue(/favoriteFoods/);
+  expect(await prompt.inputValue()).toContain(JSON.stringify(saved.data));
+  expect(await prompt.inputValue()).not.toMatch(
+    /allergies|intolerances|easyFoods|mealCount|cookingMinutes|breakfast|lunch|dinner|budget/,
+  );
 });

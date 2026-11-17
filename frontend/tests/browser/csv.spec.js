@@ -26,9 +26,6 @@ test("CSV: esempi, anteprima, conferma, versioni, obiettivi e scheda completa", 
   await page
     .getByLabel("Alimenti preferiti", { exact: true })
     .fill("Riso e pollo sintetici");
-  await page
-    .getByLabel("Allergie dichiarate", { exact: true })
-    .fill("Dato sintetico di test");
   const goals = page.getByLabel("Configura i miei obiettivi nutrizionali");
   if (!(await goals.isChecked())) await goals.check();
   await page.getByLabel("Calorie (kcal)", { exact: true }).fill("2500");

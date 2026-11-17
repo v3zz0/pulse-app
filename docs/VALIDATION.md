@@ -1,3 +1,11 @@
+# Semplificazione preferenze personali — 17 novembre 2026
+
+Rimossi dal profilo allergie, intolleranze, alimenti facili da preparare, preferenze colazione/pranzo/cena, numero pasti e vincoli di spesa. Rimangono chip preferiti/non graditi e obiettivi nutrizionali. GET/PUT impostazioni espongono e salvano soltanto questi tre dati; i campi ritirati non vengono inclusi nei prompt AI e non sono più richiesti per salvare. I vecchi JSON non vengono migrati automaticamente: lettura senza modifica, nuovo salvataggio esplicito nel formato ridotto. Nessun cambio di schema o dei piani alimentari.
+
+Build Vite e Docker frontend/backend PASS; unit test backend 8 file e frontend 1 file PASS. Browser del profilo **3/3 PASS** a 360/390/1440 px: assenza degli otto campi, chip Invio/rimozione, salvataggio e reload tramite API reali, risposta limitata ai campi correnti, obiettivi identici a prima del salvataggio, testo AI privato senza i campi rimossi. README e guida CSV aggiornati. Nessun deploy o modifica al database di produzione.
+
+---
+
 # Proposte delle serie e annullamento offline — 17 novembre 2026
 
 Main sincronizzato in fast-forward con origin su 2400fd2; conservati i file Flow già modificati/non tracciati, senza includerli nel commit di questa estensione. Standard e ripetizioni esatte vengono proposti solo nella bozza; intervalli con scelta rapida (pulsanti o selettore per quelli ampi), CED da compilare, circuiti con movimenti separati. Nuovo stato terminale cancelled con cancelledAt, conferma accessibile, stop timer e notifiche pertinenti, esclusione da storico/metriche e protezione dalle operazioni obsolete. Guida: [WORKOUT_SESSIONS.md](WORKOUT_SESSIONS.md).
