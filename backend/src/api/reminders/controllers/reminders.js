@@ -23,6 +23,9 @@ async function completed(app, owner, s, day) {
       s,
       day,
     );
+  if (s.kind === "custom") return false;
+  if (s.kind === "weight")
+    return !!(await q(app, "weight-entry").findOne({ where: { owner, day } }));
   const sessions = await q(app, "workout-session").findMany({
     where: { owner, day: s.target },
   });
@@ -56,27 +59,31 @@ module.exports = {
         `reminder:${user.id}`,
       ]);
       const id = ctx.params.id;
-      if (!/^[a-f0-9-]{36}$/i.test(id)) fail("Identificatore non valido");
+      if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)) fail("Identificatore non valido");
       const b = ctx.request.body || {},
         uniqueKey = `${user.id}:${id}`,
         repo = q(app, "reminder"),
         r = await repo.findOne({ where: { owner: user.id, uniqueKey } });
       if (!Number.isInteger(b.revision) || b.revision !== (r?.revision || 0))
         fail("Promemoria modificato altrove", 409);
-      if (r?.settings.scheduleId && ["settings", "delete"].includes(b.action))
-        fail("Modifica questo promemoria da I miei integratori", 409);
       if (b.action === "delete") {
         if (r) await repo.delete({ where: { id: r.id, owner: user.id } });
         ctx.status = 204;
         return;
       }
       let data = { revision: b.revision + 1 };
-      if (b.action === "settings") {
-        const s = settings(b.settings);
-        s.label = s.kind === "workout" ? "Scheda " + s.target : s.target;
+      if (b.action === "toggle") {
+        if (!r || typeof b.enabled !== "boolean") fail("Stato non valido");
+        data.settings = { ...r.settings, enabled: b.enabled };
+      } else if (b.action === "settings") {
+        const s = settings(b.settings || {});
+        if (s.kind === "custom" && !s.label) fail("Inserisci un nome");
+        if (s.kind === "weight") s.label ||= "Pesarsi";
         if (s.kind === "workout") {
           const program = await activePlan(app, "training", user.id);
-          if (!program?.days[s.target]) fail("Scheda non valida");
+          if (!program || !Object.hasOwn(program.days, s.target))
+            fail("Scheda non valida");
+          s.label ||= program.displaySettings?.days?.[s.target]?.name || "Scheda " + s.target;
         }
         if (s.kind === "supplement") {
           const product = await q(app, "supplement-product").findOne({
@@ -84,7 +91,7 @@ module.exports = {
           });
           if (!product || product.active === false)
             fail("Integratore inesistente o archiviato", 404);
-          s.label = product.name;
+          s.label ||= product.name;
         }
         if (s.kind === "meal") {
           const p = await activePlan(app, "nutrition", user.id);
@@ -97,7 +104,7 @@ module.exports = {
             ...(daily?.meals || []),
           ].find((m) => m.id === s.target);
           if (!meal) fail("Pasto inesistente", 404);
-          s.label = meal.name;
+          s.label ||= meal.name;
         }
         data.settings = s;
         data.occurrence = null;

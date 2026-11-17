@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import Icon from "./Icon.vue";
 import WorkoutSetRow from "./WorkoutSetRow.vue";
 import FlowPlayer from "./FlowPlayer.vue";
@@ -10,6 +10,7 @@ const p = defineProps({
   active: Boolean,
   disabled: Boolean,
 });
+const detailsOpen = ref(false);
 const emit = defineEmits(["draft", "result", "standard", "skip"]);
 const mediaMovements = computed(() => [
   ...new Map(
@@ -54,7 +55,7 @@ const target = computed(() =>
 </script>
 <template>
   <section class="card compact-exercise" :data-testid="'block-' + block.id">
-    <details :class="active ? 'exercise-details' : 'training-preview'">
+    <details :class="active ? 'exercise-details' : 'training-preview'" @toggle="detailsOpen = $event.target.open">
       <summary class="compact-ex-head">
         <span class="expand-ex"><Icon name="down" :size="19" /></span>
         <span class="compact-ex-info"
@@ -82,9 +83,9 @@ const target = computed(() =>
         >
       </summary>
       <div class="exercise-extra">
-        <FlowPlayer v-if="block.flowId" :id="block.flowId" />
+        <FlowPlayer v-if="detailsOpen && block.flowId" :id="block.flowId" />
         <template v-for="(m, i) in mediaMovements" :key="i"
-          ><div v-if="m.flowId">
+          ><div v-if="detailsOpen && m.flowId">
             <h4>{{ m.name }}</h4>
             <FlowPlayer :id="m.flowId" /></div
         ></template>
@@ -114,7 +115,7 @@ const target = computed(() =>
         </div>
         <div v-for="(s, i) in block.sets" :key="s.id" class="standard-setting">
           <span
-            >Serie {{ i + 1 }} · {{ phase(s.kind || block.phase) }} · Standard:
+            >Serie {{ i + 1 }} · {{ phase(s.kind || block.phase) }} · {{ s.reps }} rip. · Standard:
             <b>{{ loads[i] == null ? "da impostare" : loads[i] + " kg" }}</b
             ><small v-if="s.previous">
               · Precedente: {{ s.previous.kg }} kg ×
@@ -138,6 +139,12 @@ const target = computed(() =>
         </button>
       </div>
     </details>
+    <ul v-if="!active && !detailsOpen && new Set(block.sets.map((s, i) => JSON.stringify([s.kind, s.reps, loads[i]]))).size > 1"
+      class="prescribed-sets" aria-label="Prescrizioni per serie">
+      <li v-for="(s, i) in block.sets" :key="s.id">
+        {{ phase(s.kind || block.phase) }} · {{ s.reps }} rip. · {{ loads[i] == null ? 'Da impostare' : loads[i] + ' kg' }}
+      </li>
+    </ul>
     <template v-if="active && featured">
       <WorkoutSetRow
         :set="featured"

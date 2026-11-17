@@ -3,14 +3,14 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useDay, localDate } from "./stores/day.js";
 import Icon from "./components/Icon.vue";
+import TodaySupplements from "./components/TodaySupplements.vue";
 import MealDialog from "./components/MealDialog.vue";
 import { api } from "./api";
 const day = useDay(),
   router = useRouter(),
   selected = ref(null),
   message = ref(""),
-  tomorrow = ref(null),
-  intakes = ref([]);
+  tomorrow = ref(null);
 const date = new Intl.DateTimeFormat("it-IT", {
   timeZone: "Europe/Rome",
   weekday: "long",
@@ -28,10 +28,7 @@ let interval;
 onMounted(async () => {
   await day.load();
   try {
-    [tomorrow.value, intakes.value] = await Promise.all([
-      api("/days/" + localDate(1)),
-      api("/intakes/" + localDate()),
-    ]);
+    tomorrow.value = await api("/days/" + localDate(1));
   } catch {}
   interval = setInterval(() => {
     if (localDate() !== dayStarted) location.reload();
@@ -44,10 +41,9 @@ onUnmounted(() => clearInterval(interval));
     <div>
       <div class="focus-label">IL TUO OGGI · {{ date.toUpperCase() }}</div>
       <h1>La tua giornata<span style="color: var(--accent)">.</span></h1>
-      <p>Prima mangia e allenati, poi pensa alle statistiche.</p>
     </div>
-    <span class="pill">PULSE</span>
   </div>
+  <TodaySupplements />
   <div class="source-note phase-note">
     {{
       day.plan?.provenance === "csv"
@@ -191,11 +187,10 @@ onUnmounted(() => clearInterval(interval));
             <Icon name="weight" /><span
               ><strong>Registra peso</strong><small>Apri registro</small></span
             ></button
-          ><button class="quick-action" @click="router.push('/integratori')">
-            <Icon name="plus" /><span
-              ><strong>Integratori</strong><small>Apri registro</small></span
-            >
-          </button>
+          >
+          <RouterLink to="/altro/promemoria" class="quick-action">
+            <Icon name="bell" /><span><strong>Promemoria</strong><small>Gestisci avvisi</small></span>
+          </RouterLink>
         </div>
         <section class="card">
           <div class="home-control-head">
@@ -225,45 +220,6 @@ onUnmounted(() => clearInterval(interval));
             salvata.
           </div>
         </section>
-        <section class="card">
-          <div class="home-control-head">
-            <div>
-              <div class="focus-label">04 · PROMEMORIA</div>
-              <h2>Non dimenticarti</h2>
-            </div>
-            <span class="pill grey">CONFIGURABILI</span>
-          </div>
-          <div class="soft-row">
-            <div>
-              <b>Prossimo pasto</b>
-              <div class="meta">
-                {{
-                  day.next
-                    ? day.next.name + " · " + day.next.time
-                    : "Pasti completati"
-                }}
-              </div>
-            </div>
-            <button class="btn secondary" @click="router.push('/altro')">
-              Configura
-            </button>
-          </div>
-          <div class="soft-row">
-            <div>
-              <b>Integratori</b>
-              <div class="meta">{{ intakes.length }} assunzioni registrate</div>
-            </div>
-            <button
-              class="btn secondary sm"
-              @click="router.push('/integratori')"
-            >
-              Gestisci
-            </button>
-          </div>
-          <div class="source-note">
-            Promemoria configurabili in Altro; avvisi mentre l’app è aperta.
-          </div>
-        </section>
       </div>
     </div>
     <div class="home-compact-grid">
@@ -279,12 +235,6 @@ onUnmounted(() => clearInterval(interval));
       >
     </div>
   </div>
-  <RouterLink
-    v-if="!day.meals.length"
-    to="/integratori"
-    class="btn secondary wide"
-    >I miei integratori</RouterLink
-  >
   <p role="status" class="source-note">{{ message }}</p>
   <MealDialog :meal="selected" @close="selected = null" />
 </template>

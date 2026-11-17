@@ -1,3 +1,20 @@
+# Restyling quotidiano PULSE — 17 novembre 2026
+
+- Altro: comando Installa PULSE in apertura, dialog con guida Android/desktop, azione nativa quando disponibile e stato già installata. Data, peso, invio e feedback nella stessa card. Richieste simultanee per la stessa pesata serializzate su owner/data.
+- I miei integratori: configurazione di prodotti, quantità/unità, frequenza quotidiana e orari facoltativi. Eliminazione confermata dalla pianificazione con conservazione delle registrazioni. Oggi mostra e registra le assunzioni separatamente, con rettifica e coda offline. Il salvataggio della configurazione non crea o aggiorna promemoria.
+- Allenati: card verticali per tutte le giornate reali, anteprima completa, avvio diretto, organizzazione e descrizione facoltativa. La vista precedente sostituiva il riepilogo dei carichi con «Carichi per serie» oltre tre valori distinti. L’anteprima mostra ora ogni prescrizione distinta e la sessione usa lo standard della singola serie. Il campo della seduta accetta incrementi a due decimali. L’audit locale ha trovato 42 versioni CSV e 44 serie con valore originale, tutte collegate alla riga standard del programma. Il caso di produzione non è stato riprodotto sul server.
+- I miei promemoria: pagina dedicata, wizard in quattro passi, modifica con UUID invariato, frequenza/giorni, attivazione ed eliminazione. Aggiunti i tipi Peso e Personalizzato usando gli stessi record. Le notifiche di sistema sono supportate mentre PULSE è aperta e connessa.
+
+Build Vite, admin Strapi e Docker PASS. Test unitari, 10 file backend e 2 frontend PASS. Suite Chromium **33/33 PASS** a 360, 390 e 1440 px. Verificati CSV con 60, 47,25, 0 e 32,75 kg, precompilazione, ciclo 60 → 50 → senza peso → 60, annullamento e ripresa offline, Flow già associato, installabilità e dialog PWA, coda IndexedDB delle assunzioni, wizard e notifica reale del service worker. Resa mobile ispezionata tramite screenshot.
+
+API con due account sintetici PASS per proprietà dei dati e CSRF, invii duplicati, indipendenza delle assunzioni e rettifica con snapshot conservati, eliminazione dalla pianificazione, promemoria indipendenti e pesata concorrente. Riavvio reale di PostgreSQL e Strapi seguito da confronto di standard, scheda, storico integratori, promemoria e pesate PASS. Impronte delle **69 sessioni concluse preesistenti** identiche dopo i test. Export legacy senza scritture PASS, 186 righe dieta e 82 allenamento. Smoke HTTP locale PASS.
+
+Chromium desktop con profilo temporaneo: installazione della PWA locale e avvio in finestra standalone PASS. Il dialog riconosce l’app installata, si chiude con Escape e la navigazione Allenati funziona. Il collaudo mobile è Chromium con viewport ridotti e ramo Android verificato con user agent simulato. Nessun dispositivo Android fisico disponibile.
+
+Riuso delle tabelle e dei campi JSON esistenti. Nessuna migrazione per questa release. Manifest, service worker e strumenti di importazione restano gli stessi. Rilascio manuale descritto in [DEPLOYMENT.md](../DEPLOYMENT.md).
+
+---
+
 # Allenati, integratori e ordine di Altro — 17 novembre 2026
 
 Main sincronizzato con origin senza sovrascrivere modifiche locali. Restyling compatto di Allenati con serie indipendenti, proposte modificabili, dettagli espandibili, timer e menu di annullamento conservati. Organizzazione personale dei riferimenti A/B/C con nomi, giorni multipli e fuso; nessuna modifica agli ID, alla fonte CSV o agli snapshot conclusi. Anteprima dei carichi corretta usando gli standard effettivi e distinguendo null/0; versione attiva e bozze CSV ora visibili. Nel database locale gli standard dei programmi esaminati erano già presenti: nessuna diagnosi del database di produzione o riparazione automatica dei carichi personali.

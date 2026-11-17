@@ -10,6 +10,7 @@ const p = defineProps({ id: String }),
   large = ref(null);
 const preference = matchMedia("(prefers-reduced-motion: reduce)");
 let timer,
+  mounted = true,
   index = 0;
 const current = computed(() => data.value?.animation?.frames[frame.value]?.url);
 function animate() {
@@ -32,7 +33,7 @@ onMounted(async () => {
   preference.addEventListener("change", reduced);
   try {
     data.value = await flowExercise(p.id);
-    if (!data.value.animation) return;
+    if (!mounted || !data.value.animation) return;
     await Promise.all(
       data.value.animation.frames.map(
         (f) =>
@@ -44,6 +45,7 @@ onMounted(async () => {
           }),
       ),
     );
+    if (!mounted) return;
     ready.value = true;
     paused.value = preference.matches;
     animate();
@@ -53,6 +55,7 @@ onMounted(async () => {
 });
 watch(paused, animate);
 onUnmounted(() => {
+  mounted = false;
   clearInterval(timer);
   preference.removeEventListener("change", reduced);
 });

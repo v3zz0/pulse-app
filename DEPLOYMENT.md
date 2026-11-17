@@ -181,3 +181,11 @@ La procedura resta manuale. **Non avviare il job Jenkins prima di backup con rip
 5. Terminare/sincronizzare le sessioni prima di chiudere tutte le finestre PWA e riaprirle per la nuova shell. Non cancellare i dati del sito con una coda ancora in attesa. Nessun aggiornamento forzato mentre ci si allena.
 
 Per il rollback preferire una correzione in avanti: il vecchio backend eliminava fisicamente le assunzioni annullate e non interpretava gli stati skipped/cancelled. Tornare al vecchio codice sul database aggiornato può mostrare questi record come assunti. Un rollback completo richiede manutenzione e ripristino coordinato del backup, preservando esplicitamente le nuove registrazioni successive; non eliminare colonne o volumi.
+
+
+## Aggiornamento interfaccia PULSE
+
+1. Verificare che il job Jenkins esistente usi il repository `v3zz0/pulse-app`, branch `main`, script `Jenkinsfile`, nodo `docker-vezzo` e credenziale file `pulse-env`. Conservare progetto Compose, bind e volumi della release in uso.
+2. Prima dell’aggiornamento, eseguire il backup con `sudo PULSE_CONFIG=/etc/pulse/backup.conf ./infra/backup-full.sh` sul server. In un ambiente isolato con accesso alla chiave di recupero, verificare l’archivio appena prodotto con `./infra/restore-isolated.sh /percorso/backup.tar.gpg`. Se l’istanza parte da una release precedente a `3f1d0da`, seguire anche le istruzioni sopra per l’estensione dello schema. Il restyling qui descritto non richiede nuove colonne o migrazioni.
+3. Nel job main scegliere **Build Now** e controllare che il checkout includa il commit del restyling. Verificare gli stage **Verifica configurazione**, **Deploy** e **Verifica**. La pipeline ricostruisce entrambe le immagini e attende gli healthcheck. Se Flow è installato, mantenere `FLOW_STORAGE_PATH` e la stessa release del dataset.
+4. A sessione sincronizzata, chiudere e riaprire tutte le finestre PULSE per attivare la nuova versione della PWA. Verificare le card Allenati, una pesata sintetica, le assunzioni in Oggi e un promemoria di prova. Controllare che Configura integratori non aggiunga promemoria.

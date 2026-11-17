@@ -1,16 +1,17 @@
 <script setup>
 import { watch } from "vue";
+import { useIntakes } from "./stores/supplement-intakes";
 import { useWorkout } from "./stores/workout";
 import Reminders from "./Reminders.vue";
 import { dayName } from "./workout-display";
 import Icon from "./components/Icon.vue";
 import { useAuth } from "./stores/auth";
 const auth = useAuth(),
-  workout = useWorkout();
+  workout = useWorkout(), intakes = useIntakes();
 watch(
   () => auth.user?.id,
   (id) => {
-    if (id) workout.init();
+    if (id) { workout.init(); intakes.init(); intakes.load().catch(() => {}); }
   },
   { immediate: true },
 );
@@ -78,11 +79,11 @@ const tabs = [
       :to="path"
       class="navitem"
       :class="{
-        active: path === '/altro' && $route.path.startsWith('/altro/'),
+        active: path === '/altro' && ($route.path.startsWith('/altro/') || $route.path === '/integratori'),
       }"
       :aria-current="
         $route.path === path ||
-        (path === '/altro' && $route.path.startsWith('/altro/'))
+        (path === '/altro' && ($route.path.startsWith('/altro/') || $route.path === '/integratori'))
           ? 'page'
           : undefined
       "

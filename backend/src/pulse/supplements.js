@@ -193,91 +193,38 @@ async function list(app, owner, all = false) {
   });
   return rows.filter((p) => all || p.active !== false).map(present);
 }
-async function syncReminders(app, owner, product) {
-  const repo = q(app, "reminder"),
-    rows = await repo.findMany({ where: { owner } }),
-    keep = new Set();
-  for (const s of product.active === false ? [] : product.schedule || []) {
-    const key = `${owner}:${s.id}`,
-      old = rows.find((r) => r.uniqueKey === key);
-    if (
-      old &&
-      (old.settings.kind !== "supplement" ||
-        old.settings.target !== String(product.id))
-    )
-      fail("Identificatore orario già utilizzato", 409);
-    if (!s.reminderEnabled) continue;
-    keep.add(key);
-    const settings = {
-      kind: "supplement",
-      target: String(product.id),
-      label: product.name,
-      at: s.at,
-      timezone: s.timezone,
-      weekdays: s.weekdays,
-      enabled: product.active !== false && s.reminderEnabled,
-      scheduleId: s.id,
-      mode: s.mode,
-      everyDays: s.everyDays,
-      startDate: s.startDate,
-    };
-    if (old) {
-      if (JSON.stringify(old.settings) !== JSON.stringify(settings))
-        await repo.update({
-          where: { id: old.id, owner },
-          data: {
-            settings,
-            occurrence:
-              JSON.stringify({ ...old.settings, label: null }) ===
-              JSON.stringify({ ...settings, label: null })
-                ? old.occurrence
-                : null,
-            revision: (old.revision || 0) + 1,
-          },
-        });
-    } else {
-      if ((await repo.count({ where: { owner } })) >= 30)
-        fail(
-          "Massimo 30 promemoria: disattiva o elimina quelli non utilizzati",
-        );
-      await repo.create({
-        data: {
-          owner,
-          uniqueKey: key,
-          settings,
-          occurrence: null,
-          revision: 1,
-        },
-      });
-    }
-  }
-  for (const r of rows.filter(
-    (r) =>
-      r.settings.kind === "supplement" &&
-      r.settings.target === String(product.id),
-  )) {
-    if (r.settings.scheduleId && !keep.has(r.uniqueKey))
-      await repo.delete({ where: { id: r.id, owner } });
-    else if (
-      !r.settings.scheduleId &&
-      product.active === false &&
-      r.settings.enabled
-    )
-      await repo.update({
-        where: { id: r.id, owner },
-        data: {
-          settings: { ...r.settings, enabled: false },
-          revision: r.revision + 1,
-        },
-      });
-  }
+function dailyProduct(b) {
+  if (!b || !Array.isArray(b.slots) || b.slots.length < 1 || b.slots.length > 8)
+    fail("Scegli da 1 a 8 assunzioni al giorno");
+  const quantity = b.quantity;
+  if (typeof quantity !== "number" || !Number.isFinite(quantity) ||
+      quantity <= 0 || quantity > 1e6)
+    fail("Quantità non valida");
+  const unit = text(b.unit, 40), timezone = zone(b.timezone),
+    ids = new Set(), times = new Set();
+  return {
+    name: text(b.name, 160),
+    active: true,
+    schedule: b.slots.map((slot) => {
+      const id = uid(slot?.id), at = slot.at ? clock(slot.at) : null;
+      if (ids.has(id) || (at && times.has(at))) fail("Orario duplicato");
+      ids.add(id);
+      if (at) times.add(at);
+      return {
+        id, at, timezone, weekdays: [0, 1, 2, 3, 4, 5, 6],
+        mode: "any", everyDays: 1, startDate: null,
+        quantity, unit, dose: quantity + " " + unit, doseConfirmed: true,
+        meal: "", reminderEnabled: false,
+      };
+    }),
+  };
 }
 async function saveProduct(app, owner, id, b) {
   return lock(app, owner, async () => {
     if (b.confirm !== true) fail("Conferma esplicita richiesta");
-    if (b.action && !["save", "archive"].includes(b.action))
+    if (b.action && !["save", "archive", "delete"].includes(b.action))
       fail("Azione non valida");
-    if (!id && b.action === "archive") fail("Integratore inesistente", 404);
+    if (!id && ["archive", "delete"].includes(b.action)) fail("Integratore inesistente", 404);
     let p = id ? await owned(app, owner, id) : null;
     if (!id) {
       const clientKey = `${owner}:${uid(b.clientId)}`;
@@ -286,6 +233,7 @@ async function saveProduct(app, owner, id, b) {
       });
       if (p) return present(p);
     }
+    if (p?.active === false && b.action === "delete") return present(p);
     if (
       id &&
       (!Number.isInteger(b.revision) || b.revision !== (p.revision || 0))
@@ -293,13 +241,15 @@ async function saveProduct(app, owner, id, b) {
       fail("Integratore modificato altrove: ricarica", 409);
     if (
       !id &&
-      (await q(app, "supplement-product").count({ where: { owner } })) >= 100
+      (await q(app, "supplement-product").count({
+        where: { owner, $or: [{ active: true }, { active: { $null: true } }] },
+      })) >= 100
     )
       fail("Massimo 100 prodotti per account");
     const validated =
-      b.action === "archive"
-        ? { ...present(p), active: false }
-        : validateProduct(b.data);
+      ["archive", "delete"].includes(b.action)
+        ? { active: false }
+        : b.daily === true ? dailyProduct(b.data) : validateProduct(b.data);
     const data = { ...validated, revision: (p?.revision || 0) + 1 };
     delete data.id;
     delete data.source;
@@ -316,7 +266,6 @@ async function saveProduct(app, owner, id, b) {
             clientKey: `${owner}:${b.clientId}`,
           },
         });
-    await syncReminders(app, owner, p);
     return present(p);
   });
 }
@@ -385,10 +334,10 @@ function overlaps(products) {
     .filter(([, v]) => v.length > 1)
     .map(([ingredient, products]) => ({ ingredient, products }));
 }
-async function dashboard(app, owner, day) {
+async function dashboard(app, owner, day, daily = false) {
   date(day);
   const products = await list(app, owner, true),
-    m = await dayMode(app, owner, day);
+    m = daily ? {} : await dayMode(app, owner, day);
   const rows = (
       await q(app, "supplement-intake").findMany({
         where: { owner, day },
@@ -401,7 +350,7 @@ async function dashboard(app, owner, day) {
     for (const s of p.schedule) {
       if (!m.mode && s.mode !== "any" && applies(s, day, null, true))
         modeRequired = true;
-      if (!applies(s, day, m.mode)) continue;
+      if (!daily && !applies(s, day, m.mode)) continue;
       const record = rows.find((r) => r.productId === p.id && r.slot === s.id);
       entries.push({
         key: `${p.id}:${s.id}`,
@@ -427,7 +376,7 @@ async function dashboard(app, owner, day) {
         unscheduled: true,
       });
   entries.sort((a, b) =>
-    (a.planned?.at || a.slot).localeCompare(b.planned?.at || b.slot),
+    (a.planned?.at || "99:99").localeCompare(b.planned?.at || "99:99"),
   );
   return {
     day,
@@ -502,6 +451,9 @@ async function record(app, owner, day, b) {
     if (b.revision !== undefined && b.revision !== (old?.revision || 0))
       fail("Assunzione modificata altrove: ricarica", 409);
     if (!old && next === "cancelled") return null;
+    if (b.productRevision !== undefined &&
+        b.productRevision !== (p.revision || 0) && next === "taken")
+      fail("Programmazione modificata altrove", 409);
     if (!old && p.active === false)
       fail("Prodotto archiviato: nessuna nuova assunzione", 409);
     const timezone = zone(b.timezone || planned?.timezone || "Europe/Rome");
@@ -590,15 +542,6 @@ async function reminderDone(app, owner, s, day) {
     where: { owner, id: Number(s.target) || 0 },
   });
   if (!p || p.active === false) return true;
-  if (s.scheduleId) {
-    const slot = (p.schedule || []).find((t) => t.id === s.scheduleId);
-    if (
-      !slot ||
-      !slot.reminderEnabled ||
-      !applies(slot, day, (await dayMode(app, owner, day)).mode)
-    )
-      return true;
-  }
   const rows = await q(app, "supplement-intake").findMany({
     where: { owner, day, product: p.id },
   });

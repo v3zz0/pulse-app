@@ -234,18 +234,19 @@ module.exports = {
     const day = validate.notFuture(ctx.params.day),
       kg = validate.kg(ctx.request.body?.kg),
       uniqueKey = `${user.id}:${day}`;
-    const existing = await query(strapi, "weight-entry").findOne({
-      where: { uniqueKey, owner: user.id },
+    await strapi.db.transaction(async ({ trx }) => {
+      await trx.raw("SELECT pg_advisory_xact_lock(hashtext(?))", [
+        `weight:${uniqueKey}`,
+      ]);
+      const weights = query(strapi, "weight-entry");
+      const existing = await weights.findOne({
+        where: { uniqueKey, owner: user.id },
+      });
+      if (existing)
+        await weights.update({ where: { id: existing.id, owner: user.id }, data: { kg } });
+      else
+        await weights.create({ data: { owner: user.id, uniqueKey, day, kg } });
     });
-    if (existing)
-      await query(strapi, "weight-entry").update({
-        where: { id: existing.id },
-        data: { kg },
-      });
-    else
-      await query(strapi, "weight-entry").create({
-        data: { owner: user.id, uniqueKey, day, kg },
-      });
     ctx.body = { day, kg };
   }),
   supplements: guarded(async (ctx, user) => {

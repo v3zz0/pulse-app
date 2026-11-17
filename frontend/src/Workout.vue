@@ -24,7 +24,8 @@ function reauthenticate() {
   router.push("/login");
 }
 const w = useWorkout(),
-  day = ref("A"),
+  day = ref(null),
+  starting = ref(false),
   error = ref(""),
   seconds = ref(60),
   now = ref(Date.now());
@@ -39,8 +40,7 @@ let interval;
 watch(
   () => w.program?.id,
   () => {
-    if (w.program && !w.program.days[day.value])
-      day.value = Object.keys(w.program.days)[0];
+    day.value = null;
   },
   { immediate: true },
 );
@@ -97,6 +97,7 @@ async function cancelWorkout() {
   await run(async () => {
     const cancelledDay = w.active.day;
     await w.act({ action: "cancel", confirm: true });
+    day.value = null;
     cancelOpen.value = false;
     menuOpen.value = false;
     const registration = await navigator.serviceWorker?.getRegistration();
@@ -142,6 +143,19 @@ const organizeDialog = ref(null),
   organizationBusy = ref(false);
 const isActive = computed(() => w.active && w.active.status !== "cancelled");
 const selectedDay = computed(() => (isActive.value ? w.active.day : day.value));
+const dayKeys = computed(() => Object.keys(w.program?.days || {}));
+const fullWeek = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+function scheduleFor(key) {
+  const days = w.program.displaySettings?.days?.[key]?.weekdays || [];
+  return [1, 2, 3, 4, 5, 6, 0].filter((n) => days.includes(n)).map((n) => fullWeek[n]).join(" · ")
+    || "Giorno non assegnato";
+}
+async function start(key) {
+  if (starting.value) return;
+  starting.value = true;
+  await run(() => w.start(key));
+  starting.value = false;
+}
 const blocks = computed(() =>
   isActive.value ? w.active.snapshot.blocks : w.program?.days[day.value] || [],
 );
@@ -188,19 +202,6 @@ async function downloadFlow() {
   });
   flowBusy.value = false;
 }
-const scheduledToday = computed(() => {
-  if (!w.program?.displaySettings) return [];
-  const local = new Intl.DateTimeFormat("en-CA", {
-    timeZone: w.program.displaySettings.timezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
-  const n = new Date(local + "T12:00:00Z").getUTCDay();
-  return Object.keys(w.program.days).filter((d) =>
-    w.program.displaySettings.days[d]?.weekdays.includes(n),
-  );
-});
 function organize() {
   organization.value = {
     timezone:
@@ -211,6 +212,7 @@ function organize() {
         d,
         {
           name: dayName(w.program, d),
+          description: w.program.displaySettings?.days?.[d]?.description || "",
           weekdays: [...(w.program.displaySettings?.days?.[d]?.weekdays || [])],
         },
       ]),
@@ -239,13 +241,18 @@ onMounted(() => {
 onUnmounted(() => clearInterval(interval));
 </script>
 <template>
-  <div class="pagehead workout-pagehead">
+  <button v-if="day && !isActive" class="textbutton page-back" @click="day = null">
+    ‹ Tutte le schede
+  </button>
+  <div class="feature-heading">
+    <Icon name="dumbbell" :size="36" />
     <div>
-      <h1>Allenati<span class="mint">.</span></h1>
-      <p class="text-muted">
-        La tua scheda completa, con carichi e ripetizioni già pronti.
-      </p>
+      <h1>{{ isActive ? 'Allenamento in corso' : day ? dayName(w.program, day) : 'Le mie schede' }}</h1>
+      <p v-if="!day && !isActive">Seleziona una scheda o consulta i suoi esercizi.</p>
     </div>
+    <button v-if="w.program && !day && !isActive" class="btn secondary" @click="organize">
+      <Icon name="edit" :size="17" /> Modifica programma
+    </button>
   </div>
   <p v-if="error" role="alert" class="warning">{{ error }}</p>
   <p v-if="w.error" role="status" class="warning">{{ w.error }}</p>
@@ -283,7 +290,40 @@ onUnmounted(() => clearInterval(interval));
     Allenamento annullato sul dispositivo. Attendi la sincronizzazione prima di
     iniziarne un altro.
   </p>
-  <section v-if="w.program || isActive" class="card workout-program">
+  <template v-if="w.program && !day && !isActive">
+    <div class="feature-list training-list">
+      <article v-for="d in dayKeys" :key="d" class="card feature-card" :data-testid="'training-day-' + d">
+        <div class="feature-row">
+          <span class="feature-icon"><Icon name="calendar" /></span>
+          <div class="feature-content">
+            <div class="focus-label">{{ scheduleFor(d) }}</div>
+            <h2>{{ dayName(w.program, d) }}</h2>
+            <p class="note">
+              {{ w.program.displaySettings?.days?.[d]?.description ||
+                w.program.days[d].length + ' esercizi · ' +
+                  w.program.days[d].reduce((count, block) => count + block.sets.length, 0) + ' serie' }}
+            </p>
+          </div>
+          <Icon name="arrow" :size="17" />
+        </div>
+        <div class="feature-actions feature-pair">
+          <button class="btn secondary" @click="day = d">
+            <Icon name="eye" :size="16" /> Visualizza scheda
+          </button>
+          <button class="btn primary" :aria-label="'Inizia scheda ' + d + ' completa'"
+            :disabled="starting || !!w.queue.length" @click="start(d)">
+            <Icon name="play" :size="16" /> Inizia allenamento
+          </button>
+        </div>
+      </article>
+    </div>
+    <p class="note">{{ w.program.title }} · Versione {{ w.program.version }}</p>
+    <p v-if="w.pendingImports?.length" class="note">
+      {{ w.pendingImports.length }} versioni CSV in bozza.
+      <RouterLink to="/altro/schede">Gestisci le versioni</RouterLink>
+    </p>
+  </template>
+  <section v-if="(w.program && day) || isActive" class="card workout-program">
     <div class="program-heading">
       <span class="program-icon"><Icon name="gym" :size="26" /></span>
       <h2>{{ isActive ? w.active.snapshot.title : w.program.title }}</h2>
@@ -308,33 +348,10 @@ onUnmounted(() => clearInterval(interval));
           >
             Annulla allenamento</button
           ><button v-if="w.program" role="menuitem" @click="organize">
-            Riprogramma
+            Modifica programma
           </button>
         </div>
       </div>
-    </div>
-    <div v-if="w.program" class="switch-seg workout-days">
-      <button
-        v-for="d in Object.keys(w.program.days)"
-        :key="d"
-        :class="{ active: selectedDay === d }"
-        :disabled="!!isActive"
-        @click="day = d"
-      >
-        {{ dayName(w.program, d) }}
-      </button>
-    </div>
-    <div class="program-options">
-      <button
-        v-if="w.program"
-        class="textbutton organize-button"
-        @click="organize"
-      >
-        <Icon name="edit" :size="17" />Organizza schede</button
-      ><span v-if="scheduledToday.length" class="smallmuted"
-        >Oggi:
-        {{ scheduledToday.map((d) => dayName(w.program, d)).join(", ") }}</span
-      >
     </div>
     <div class="program-summary">
       <span><Icon name="layers" :size="17" />{{ blocks.length }} blocchi</span
@@ -356,8 +373,8 @@ onUnmounted(() => clearInterval(interval));
       v-if="!isActive"
       class="btn primary wide start-workout"
       :aria-label="'Inizia scheda ' + day + ' completa'"
-      :disabled="!!w.queue.length"
-      @click="run(() => w.start(day))"
+      :disabled="starting || !!w.queue.length"
+      @click="start(day)"
     >
       <Icon name="play" :size="20" />Inizia allenamento
     </button>
@@ -396,7 +413,7 @@ onUnmounted(() => clearInterval(interval));
       </p>
     </details>
   </section>
-  <p v-else-if="w.ready" class="empty">
+  <p v-else-if="w.ready && !w.program" class="empty">
     Nessuna scheda attiva. Controlla le versioni importate in Altro.
   </p>
   <template v-if="isActive">
@@ -481,7 +498,7 @@ onUnmounted(() => clearInterval(interval));
       </div>
     </dialog>
   </template>
-  <details v-if="flowIds.length" class="media-download">
+  <details v-if="(day || isActive) && flowIds.length" class="media-download">
     <summary>Animazioni offline</summary>
     <button
       v-if="flowIds.length"
@@ -596,6 +613,9 @@ onUnmounted(() => clearInterval(interval));
             required
             maxlength="60"
         /></label>
+        <label class="fieldlabel">Descrizione scheda {{ d }}
+          <input class="field" v-model="organization.days[d].description" maxlength="160" />
+        </label>
         <div class="weekday-options">
           <label v-for="(name, n) in weekdays" :key="n"
             ><input

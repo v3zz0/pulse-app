@@ -194,12 +194,9 @@ test("ciclo completo UI: standard 60, temporaneo 50, senza peso, nuova scheda an
       }),
     ).toBeVisible();
   }
-  if (
-    await page
-      .getByRole("button", { name: "Salta esercizio", exact: true })
-      .count()
-  )
-    await finish();
+  await expect(page.getByTestId("workout-sync")).toHaveText("Tutte le modifiche sincronizzate");
+  if (await page.locator(".session-progress").count()) await finish();
+  await page.getByTestId("training-day-A").getByRole("button", { name: "Visualizza scheda" }).click();
   await page.locator(".training-preview").first().locator("summary").click();
   page.on("dialog", (d) => d.accept(d.type() === "prompt" ? "60" : undefined));
   await page

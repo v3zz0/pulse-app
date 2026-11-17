@@ -75,12 +75,12 @@ test("Allenati: card compatte, CSV, nomi e calendario, Flow verificato offline e
     await page.goto(base + "/allenati");
     await synced(page);
     await expect(
-      page.getByRole("heading", { name: "Test Allenati e Integratori" }),
+      page.getByRole("heading", { name: "Le mie schede" }),
     ).toBeVisible();
     const before = (
       await call(page, "/plans/training/" + fixture.program.id + "/export")
     ).csv;
-    await page.getByRole("button", { name: "Organizza schede" }).click();
+    await page.getByRole("button", { name: "Modifica programma" }).click();
     for (const [d, name] of Object.entries({
       A: "Lunedì",
       B: "Mercoledì",
@@ -98,7 +98,7 @@ test("Allenati: card compatte, CSV, nomi e calendario, Flow verificato offline e
       page.getByRole("dialog", { name: "Organizza schede" }),
     ).toHaveCount(0);
     await expect(
-      page.getByRole("button", { name: "Lunedì", exact: true }),
+      page.getByTestId("training-day-A").getByRole("heading", { name: "Lunedì", exact: true }),
     ).toBeVisible();
     expect(
       (await call(page, "/training")).program.displaySettings.days.A.weekdays,
@@ -107,6 +107,11 @@ test("Allenati: card compatte, CSV, nomi e calendario, Flow verificato offline e
       (await call(page, "/plans/training/" + fixture.program.id + "/export"))
         .csv,
     ).toBe(before);
+    const card = page.getByTestId("training-day-A");
+    await expect(card).toContainText("Lunedì · Mercoledì");
+    expect((await card.boundingBox()).y).toBeLessThan((await page.getByTestId("training-day-B").boundingBox()).y);
+    await page.screenshot({ path: `test-results/schede-${test.info().project.name}.png` });
+    await card.getByRole("button", { name: "Visualizza scheda" }).click();
     const block = page.getByTestId("block-A:press1");
     await expect(block).toContainText("60 kg");
     await block.locator("details").first().locator("summary").click();
@@ -125,6 +130,7 @@ test("Allenati: card compatte, CSV, nomi e calendario, Flow verificato offline e
     await page.evaluate(() => navigator.serviceWorker.ready);
     await page.reload();
     await synced(page);
+    await card.getByRole("button", { name: "Visualizza scheda" }).click();
     await page.locator(".media-download > summary").click();
     await page
       .getByRole("button", { name: "Scarica animazioni offline" })
@@ -207,7 +213,6 @@ test("Allenati: card compatte, CSV, nomi e calendario, Flow verificato offline e
     await expect(set.getByLabel("Carico della seduta (kg)")).toHaveValue("60");
     await cancel(page);
     await synced(page);
-    await page.getByRole("button", { name: "Venerdì", exact: true }).click();
     await page
       .getByRole("button", { name: "Inizia scheda C completa" })
       .click();
@@ -224,170 +229,61 @@ test("Allenati: card compatte, CSV, nomi e calendario, Flow verificato offline e
       await activate(page, previous);
   }
 });
-test("Integratori: crea, pianifica due orari ON, registra e rettifica, sovrapposizioni e archiviazione", async ({
-  page,
-}) => {
+test("Integratori quotidiani in Oggi: gestione separata, assunzioni indipendenti e ripresa offline", async ({ page, context }) => {
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
   await login(page);
+  const name = "Prodotto UI " + crypto.randomUUID().slice(0, 8);
+  const beforeReminders = await call(page, "/reminders");
   await page.getByRole("link", { name: "Altro", exact: true }).click();
-  await page
-    .getByRole("link", { name: "I miei integratori", exact: true })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "I miei integratori." }),
-  ).toBeVisible();
-  const tag = test.info().project.name + " " + crypto.randomUUID().slice(0, 6),
-    name = "Test UI " + tag,
-    second = "Secondo UI " + tag;
-  const ids = [];
+  await page.getByRole("link", { name: "Gestisci i miei integratori" }).click();
+  await page.getByRole("button", { name: "Aggiungi integratore" }).click();
+  await page.getByLabel("Nome integratore").fill(name);
+  await page.getByLabel("Quantità per assunzione").fill("2.5");
+  await page.getByRole("combobox", { name: "Unità", exact: true }).selectOption("g");
+  await page.getByLabel("Assunzioni al giorno").selectOption("3");
+  await page.getByLabel("Orario assunzione 2").fill("14:00");
+  await page.getByLabel("Orario assunzione 3").fill("20:00");
+  await page.getByRole("button", { name: "Salva integratore" }).click();
+  const productCard = page.locator("article").filter({ has: page.getByRole("heading", { name, exact: true }) });
+  await expect(productCard).toContainText("Da lunedì a domenica");
+  await expect(page.getByText("Storico assunzioni", { exact: true })).toHaveCount(0);
+  expect(await call(page, "/reminders")).toEqual(beforeReminders);
+  await page.screenshot({ path: `test-results/integratori-config-${test.info().project.name}.png` });
+
+  await page.getByRole("link", { name: "Oggi", exact: true }).click();
+  const slots = productCard.locator(".intake-slot");
+  await expect(slots).toHaveCount(3);
+  await slots.nth(1).getByRole("button", { name: "Segna assunto" }).click();
+  await expect(slots.nth(1).locator(".intake-state")).toHaveText("Assunto");
+  await expect(slots.first().locator(".intake-state")).toHaveText("Da assumere");
+  await slots.nth(1).getByRole("button", { name: "Annulla registrazione" }).click();
+  await expect(slots.nth(1).locator(".intake-state")).toHaveText("Da assumere");
+
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.reload();
+  await expect(slots).toHaveCount(3);
+  await context.setOffline(true);
   try {
-    await page
-      .getByRole("button", { name: "Aggiungi integratore", exact: true })
-      .click();
-    const dialog = page.getByRole("dialog", { name: "Aggiungi integratore" });
-    await dialog.getByLabel("Nome commerciale").fill(name);
-    await dialog
-      .getByLabel("Ingredienti dichiarati")
-      .fill("Creatina dichiarata in fixture sintetica");
-    await dialog
-      .getByRole("button", { name: "Aggiungi principio attivo" })
-      .click();
-    await dialog
-      .getByLabel("Principio attivo 1", { exact: true })
-      .fill("Creatina");
-    await dialog.getByLabel("Quantità dichiarata 1").fill("3");
-    await dialog.getByLabel("Unità ingrediente 1").fill("g");
-    for (let i = 1; i <= 2; i++) {
-      await dialog
-        .getByRole("button", { name: "Aggiungi orario", exact: true })
-        .click();
-      await dialog
-        .getByLabel("Ora prevista " + i, { exact: true })
-        .fill(i === 1 ? "00:01" : "00:02");
-      const dose = dialog.getByLabel(
-        "Dose pianificata " + i + " (facoltativa)",
-        { exact: true },
-      );
-      await expect(dose).toHaveValue("");
-      await dose.fill("1 g sintetico");
-      await dialog
-        .getByLabel("Confermo personalmente questa dose " + i, { exact: true })
-        .check();
-      await dialog.getByLabel("Tipo di giornata " + i).selectOption("ON");
-      await dialog
-        .getByLabel("Promemoria per orario " + i, { exact: true })
-        .check();
-    }
-    await dialog.getByRole("button", { name: "Salva integratore" }).click();
-    await expect(dialog).toHaveCount(0);
-    await expect(page.getByRole("status")).toContainText(
-      "Integratore e programmazione salvati",
-    );
-    let p = (await call(page, "/supplements")).find((p) => p.name === name);
-    ids.push(p.id);
-    expect(p.schedule).toHaveLength(2);
-    const reminderIds = (await call(page, "/reminders"))
-      .filter((r) => r.settings.target === String(p.id))
-      .map((r) => r.id)
-      .sort();
-    expect(reminderIds).toHaveLength(2);
-    await page.getByRole("button", { name: "ON", exact: true }).click();
-    const one = page.getByTestId("supplement-slot-" + p.schedule[0].id),
-      two = page.getByTestId("supplement-slot-" + p.schedule[1].id);
-    await expect(one).toContainText("Da assumere");
-    await one
-      .getByLabel("Dose effettiva (facoltativa)")
-      .fill("Dose effettiva sintetica diversa");
-    await one
-      .getByRole("button", { name: "Segna assunto", exact: true })
-      .click();
-    await expect(one).toContainText("Assunto");
-    expect(
-      (await call(page, "/reminders/due")).some(
-        (r) => r.settings.scheduleId === p.schedule[1].id,
-      ),
-    ).toBeTruthy();
-    await two.getByRole("button", { name: "Salta", exact: true }).click();
-    await expect(two).toContainText("Saltato");
-    page.once("dialog", (d) => d.accept());
-    await two.getByRole("button", { name: "Annulla registrazione" }).click();
-    await expect(two).toContainText("Da assumere");
-    await one.getByRole("button", { name: "Correggi registrazione" }).click();
-    const record = page.getByRole("dialog", { name: "Rettifica assunzione" });
-    await record
-      .getByLabel("Dose effettivamente assunta (includi unità)")
-      .fill("Dose rettificata sintetica");
-    await record
-      .getByRole("button", { name: "Segna assunto", exact: true })
-      .click();
-    await expect(record).toHaveCount(0);
-    await expect(one).toContainText("Dose rettificata sintetica");
-    await page
-      .getByRole("button", { name: "Modifica " + name, exact: true })
-      .click();
-    const edit = page.getByRole("dialog", { name: "Modifica integratore" });
-    await edit.getByLabel("Nome commerciale").fill(name + " aggiornato");
-    await edit.getByLabel("Ora prevista 1", { exact: true }).fill("00:05");
-    await edit.getByRole("button", { name: "Salva integratore" }).click();
-    await expect(edit).toHaveCount(0);
-    expect(
-      (await call(page, "/reminders"))
-        .filter((r) => r.settings.target === String(p.id))
-        .map((r) => r.id)
-        .sort(),
-    ).toEqual(reminderIds);
-    let rows = await call(page, "/supplements/history"),
-      taken = rows.find((r) => r.productId === p.id && r.status === "taken");
-    expect(taken.name).toBe(name);
-    expect(taken.plannedSnapshot.dose).toBe("1 g sintetico");
-    expect(taken.corrections).toHaveLength(1);
-    await page
-      .getByRole("button", { name: "Aggiungi integratore", exact: true })
-      .click();
-    const add = page.getByRole("dialog", { name: "Aggiungi integratore" });
-    await add.getByLabel("Nome commerciale").fill(second);
-    await add.getByLabel("Ingredienti dichiarati").fill("Creatine");
-    await add.getByRole("button", { name: "Salva integratore" }).click();
-    await expect(add).toHaveCount(0);
-    ids.push(
-      (await call(page, "/supplements")).find((p) => p.name === second).id,
-    );
-    await expect(
-      page.getByRole("heading", { name: "Possibili sovrapposizioni" }),
-    ).toBeVisible();
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-    ).toBeTruthy();
-    await page.screenshot({
-      path: `test-results/integratori-${test.info().project.name}.png`,
-      fullPage: true,
-    });
-    page.once("dialog", (d) => d.accept());
-    await page
-      .getByRole("button", {
-        name: "Archivia " + name + " aggiornato",
-        exact: true,
-      })
-      .click();
-    await expect(page.getByTestId("supplement-product-" + p.id)).toHaveCount(0);
-    await page.getByLabel("Mostra archiviati").check();
-    await expect(page.getByTestId("supplement-product-" + p.id)).toContainText(
-      "Archiviato",
-    );
-    rows = await call(page, "/supplements/history");
-    expect(rows.some((r) => r.id === taken.id && r.name === name)).toBeTruthy();
-  } finally {
-    for (const id of ids) {
-      const p = (await call(page, "/supplements?includeArchived=1")).find(
-        (p) => p.id === id,
-      );
-      if (p?.active)
-        await call(page, "/supplements/" + id, {
-          action: "archive",
-          revision: p.revision,
-          confirm: true,
-        });
-    }
-  }
+    await slots.last().getByRole("button", { name: "Segna assunto" }).click();
+    await expect(slots.last().locator(".intake-state")).toHaveText("Da sincronizzare");
+    await page.reload();
+    await expect(slots.last().locator(".intake-state")).toHaveText("Da sincronizzare");
+  } finally { await context.setOffline(false); }
+  await expect(slots.last().locator(".intake-state")).toHaveText("Assunto");
+  await expect(slots.first().locator(".intake-state")).toHaveText("Da assumere");
+  await page.screenshot({ path: `test-results/oggi-integratori-${test.info().project.name}.png` });
+  await page.getByRole("link", { name: "Altro", exact: true }).click();
+  await page.getByRole("link", { name: "Gestisci i miei integratori" }).click();
+  await page.getByRole("button", { name: "Modifica " + name }).click();
+  await page.getByLabel("Quantità per assunzione").fill("3");
+  await page.getByRole("button", { name: "Salva integratore" }).click();
+  await expect(productCard).toContainText("3 g");
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Elimina " + name }).click();
+  await expect(productCard).toHaveCount(0);
+  const history = await call(page, "/supplements/history");
+  expect(history.find((r) => r.name === name && r.status === "taken").plannedSnapshot.dose).toBe("2.5 g");
+  expect(await call(page, "/reminders")).toEqual(beforeReminders);
+  expect(errors).toEqual([]);
 });

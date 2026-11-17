@@ -2,9 +2,9 @@
 
 ## Allenati
 
-Card compatte con titolo, fase, serie/ripetizioni, carico standard e recupero. La serie corrente resta visibile; le altre serie e le note/video si aprono nei dettagli. Ogni serie mantiene il proprio ID e il proprio risultato: il pulsante Completa non completa tutto il blocco. Il recupero manuale rimane nel pannello espandibile. Le ambiguità della fonte, compreso 1/2′, non diventano tempi inventati per imitare il mockup.
+Allenati apre con una card per ogni giornata del piano, con nome, giorni, descrizione quando configurata, anteprima e avvio. L’anteprima elenca tutti gli esercizi e rende subito visibili le prescrizioni delle serie eterogenee. Card esercizio compatte con titolo, fase, serie/ripetizioni, carico standard e recupero. La serie corrente resta visibile; le altre serie e le note/video si aprono nei dettagli. Ogni serie mantiene il proprio ID e il proprio risultato: il pulsante Completa non completa tutto il blocco. Il recupero manuale rimane nel pannello espandibile. Le ambiguità della fonte, compreso 1/2′, non diventano tempi inventati per imitare il mockup.
 
-Organizza schede permette un nome di presentazione e più giorni della settimana per ogni riferimento originale, più il fuso del calendario. A/B/C e gli ID restano immutati. Il calendario usa la data nel fuso selezionato e l’elenco dei giorni assegnati, mai il nome personalizzato. L’avvio manuale è sempre consentito quando non c’è già una sessione attiva. La modifica richiede connessione e una revisione valida; non cambia la scheda, il CSV, i carichi o gli snapshot conclusi.
+Modifica programma permette un nome e una descrizione facoltativa, più giorni della settimana per ogni riferimento originale, più il fuso del calendario. A/B/C e gli ID restano immutati. Il calendario usa la data nel fuso selezionato e l’elenco dei giorni assegnati, mai il nome personalizzato. L’avvio manuale è sempre consentito quando non c’è già una sessione attiva. La modifica richiede connessione e una revisione valida; non cambia la scheda, il CSV, i carichi o gli snapshot conclusi.
 
 ### Carichi CSV: cosa è stato verificato
 
@@ -23,27 +23,21 @@ Non viene riparato o sovrascritto automaticamente alcun carico personale. CED e 
 
 ## I miei integratori
 
-Accesso da Home e Altro. Prodotti con nome, marca facoltativa, ingredienti testuali e principi attivi strutturati, quantità/unità per porzione, note, istruzioni e stato attivo/archiviato. I dati sono dichiarazioni dell’utente sull’etichetta, non valori certificati. Nessun prodotto o dose viene aggiunto automaticamente.
+Altro → Gestisci i miei integratori apre la configurazione. Per ogni prodotto si impostano nome, quantità e unità per assunzione, da una a otto assunzioni al giorno e orari facoltativi. Ogni posto della pianificazione ha un UUID. Modificare la quantità o l’orario conserva gli identificativi dei posti mantenuti. Eliminare con conferma nasconde il prodotto dalla pianificazione impostando active=false. Le righe e gli snapshot delle assunzioni rimangono nel database. Gli attributi storici del prodotto restano memorizzati.
 
-Ogni prodotto può avere fino a otto orari personali con UUID stabile. Per ciascuno: ora e fuso, giorni della settimana, frequenza ogni N giorni con data iniziale, ON/OFF/entrambi, dose facoltativa confermata dall’utente, indicazione testuale del pasto e promemoria. Frequenza e giorni della settimana sono filtri congiunti. La relazione col pasto è una nota personale: non consuma un pasto e non ne deduce una dose.
+Oggi → Integratori di oggi è indipendente dalla dieta e mostra uno stato per ogni assunzione. Segna assunto registra il solo posto scelto con data e ora effettive. Annulla registrazione aggiunge una rettifica. Le pianificazioni precedenti vengono lette quotidianamente in Oggi conservando gli orari, le dosi dichiarate e gli UUID. La nuova configurazione salva soltanto ricorrenze quotidiane. I prodotti precedenti senza posti pianificati rimangono configurabili in Altro. Nessuna dose viene dedotta dall’etichetta o impostata d’ufficio.
 
-Il giorno ON/OFF usa, in assenza di una scelta specifica per gli integratori, la giornata già salvata in Dieta. Se non esiste, rimane sconosciuto: i soli slot limitati a ON/OFF attendono una scelta. Il selettore per gli integratori salva un override per quella data, senza modificare Dieta. Non si deduce ON/OFF dal nome della scheda né dall’orario previsto.
-
-La dashboard distingue da assumere, assunto e saltato. La dose pianificata è una proposta modificabile; Segna assunto registra un’azione esplicita e l’istante effettivo. Se manca una dose, non viene inventata. Per date precedenti occorre inserire l’orario effettivo. Più slot nello stesso giorno restano distinti. Le registrazioni manuali hanno un UUID per evento: due assunzioni esplicite nello stesso minuto non collidono, mentre un retry dello stesso evento non crea un duplicato. Correggi registra una nuova revisione e conserva la precedente nei dati di rettifica; Annulla rende la registrazione cancelled senza cancellare la riga. Le correzioni sono esplicite e soggette a controllo revisione.
-
-Lo storico ha filtro per date e pagine da 200. Uno snapshot conserva nome, ingredienti, etichetta e pianificazione al momento della prima registrazione; modificare o archiviare un prodotto non lo riscrive. Le vecchie registrazioni senza etichetta completa conservano ciò che era noto: non vengono riempite con i dati attuali. Archiviare disabilita i promemoria e non crea nuove assunzioni; una rettifica di una registrazione esistente resta possibile.
-
-Il controllo sovrapposizioni confronta nomi espliciti dei principi attivi e alcuni sinonimi noti negli ingredienti testuali, con un avviso da verificare sulle etichette. Non è un controllo farmacologico: può non riconoscere tutti i sinonimi. Non somma quantità, non converte unità e non prescrive dosi o orari.
+La coda delle assunzioni usa IndexedDB per account e lo stesso coordinamento di sincronizzazione del logout e degli allenamenti. La UI mostra Da sincronizzare finché il server conferma. La revisione di prodotto evita di registrare una nuova assunzione contro una programmazione modificata altrove. Una risposta persa viene confrontata con lo stato server prima di risolvere la coda. La configurazione dei prodotti richiede connessione.
 
 ### Promemoria
 
-Ogni slot abilitato ha un promemoria con lo stesso UUID: modificare l’orario aggiorna quel record, non ne crea un altro. Archiviare o disabilitare uno slot rimuove soltanto il promemoria generato, liberando il limite di configurazioni: la pianificazione resta nel prodotto e può rigenerarlo con lo stesso UUID. Il primo slot assunto o saltato non sopprime gli altri slot della giornata. Annullare una registrazione può riaprire soltanto quel promemoria/data. I rinvii 15/30/60 minuti usano il servizio già esistente. I promemoria degli slot si modificano dal prodotto; i promemoria legacy restano compatibili. Limite complessivo esistente: 30 promemoria per account. I prodotti sono limitati a 100 per account.
+Altro → Promemoria gestisce autorizzazione, creazione e modifica guidate, attivazione e cancellazione confermata. Supporta pasti, integratori, allenamenti, pesate e avvisi personalizzati. Gli avvisi delle pesate vengono soppressi dopo il salvataggio di una misura per la data. I promemoria esistenti mantengono i propri orari. Quelli generati dalla versione precedente sono modificabili o eliminabili nello stesso elenco. Un collegamento a un integratore eliminato sospende la consegna di quel promemoria, che resta disponibile per modifica o eliminazione.
 
-Notifiche in-app e di sistema mentre PULSE è aperta e connessa, con consenso del browser. Nessuna consegna push garantita ad app chiusa. Creazione/modifica prodotti e assunzioni richiedono connessione; non vengono messi nella coda offline delle serie. La ripresa offline degli allenamenti resta invariata.
+Configurare un integratore non crea né riprogramma promemoria. I rinvii 15/30/60 minuti continuano a funzionare. Le notifiche di sistema usano il service worker mentre PULSE è aperta e connessa, con consenso del browser. Il sistema non contiene infrastruttura Web Push a PWA chiusa.
 
 ## Schema e API
 
-Estensioni additive, senza rimozione di tabelle o colonne:
+Il restyling riusa le estensioni già introdotte dalle versioni precedenti:
 
 - training-program: displaySettings JSON e displayRevision. Il JSON dei giorni, la fonte CSV e gli ID non vengono sostituiti per rinominare una scheda.
 - supplement-product: brand, labelQuantity, labelUnit, notes, declaredActives JSON, schedule JSON, active, revision e clientKey univoca per owner/UUID di creazione.
@@ -52,11 +46,11 @@ Estensioni additive, senza rimozione di tabelle o colonne:
 
 Tutti gli endpoint personali usano il proprietario della sessione server. Nessuna rotta CRUD generica Public. Scritture serializzate tramite advisory lock, revisioni sui prodotti/assunzioni/calendario e chiavi univoche; body owner ignorato. Il vecchio GET /supplements restituisce solo gli attivi; includeArchived=1 resta limitato all’owner. GET /intakes/:day restituisce solo assunzioni effettive per compatibilità; il nuovo storico espone anche salti e annullamenti.
 
-Nuove rotte: PUT /training/layout; POST /supplements; PUT /supplements/:id; GET/PUT /supplements/day/:day; GET /supplements/history con from/to/offset. Le rotte esistenti /intakes/:day e /reminders restano in uso.
+Nuove rotte: PUT /training/layout; POST /supplements; PUT /supplements/:id; GET/PUT /supplements/day/:day; GET /supplements/history con from/to/offset. Le rotte esistenti /intakes/:day e /reminders restano in uso. GET /supplements/day/:day?daily=1 restituisce le occorrenze quotidiane di Oggi. POST/PUT /supplements con daily=true valida quantità, unità e posti. La scrittura del peso mantiene la chiave owner/data sotto lock PostgreSQL. Nessuna migrazione è necessaria per questo restyling.
 
 ## Collaudi e rilascio
 
-Preparazione e collaudo API locale: `node tests/restyle-supplements-api.mjs`, con le credenziali sintetiche CSV in un file privato. Lo script importa o riusa soltanto il piano sintetico restyle-features-test, non reimporta PDF personali. Per la sola prova Flow usare `PULSE_TEST_FIXTURES=1 node scripts/attach-test-flow.js` dentro il backend locale e poi `node tests/restyle-supplements-api.mjs --capture-flow`. Dopo un riavvio locale di PostgreSQL/Strapi: `--verify-persistence` confronta programma, standard, prodotti, promemoria e storico con la fotografia privata in /tmp. `--restore` riattiva il precedente programma sintetico senza trasferimenti. Nessuno di questi script deve essere usato in produzione.
+Preparazione e collaudo API locale: `node tests/restyle-supplements-api.mjs`, con le credenziali sintetiche CSV in un file privato. Lo script importa o riusa soltanto il piano sintetico restyle-features-test, non reimporta PDF personali. Per la sola prova Flow usare `PULSE_TEST_FIXTURES=1 node scripts/attach-test-flow.js` dentro il backend locale prima di eseguire le prove browser. Dopo un riavvio locale di PostgreSQL/Strapi: `--verify-persistence` confronta programma, standard, prodotti, pesate, promemoria e storico con la fotografia privata in /tmp. `--restore` riattiva il precedente programma sintetico senza trasferimenti. Nessuno di questi script deve essere usato in produzione.
 
 Le nuove prove browser sono features.spec.js, a 360/390 px e desktop. Le prove esistenti continuano a verificare CSV, standard, annullamento, offline, storico, account, notifiche e logout.
 

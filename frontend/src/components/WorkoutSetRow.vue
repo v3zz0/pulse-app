@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import Icon from "./Icon.vue";
+import { phase } from "../workout-display";
 const props = defineProps({ set: Object, index: Number, disabled: Boolean });
 const emit = defineEmits(["draft", "result"]);
 const reps = computed(() =>
@@ -20,7 +21,7 @@ const change = (field, event) => emit("draft", props.set, field, event);
   <div class="session-set compact-set" :data-testid="'set-' + set.id">
     <div class="compact-set-caption">
       <span
-        >Serie {{ index + 1 }} · {{ set.reps
+        >Serie {{ index + 1 }} · {{ phase(set.kind) }} · {{ set.reps
         }}{{ set.toFailure ? " · cedimento" : ""
         }}{{ set.perLeg ? " · per gamba" : "" }} · Standard
         {{
@@ -38,7 +39,7 @@ const change = (field, event) => emit("draft", props.set, field, event);
                 type="number"
                 min="0"
                 max="1500"
-                step="0.5"
+                step="0.01"
                 :value="set.draftKg"
                 :disabled="disabled"
                 @input="change('kg', $event)" /></span

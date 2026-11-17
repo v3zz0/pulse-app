@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import fs from "node:fs";
 test.use({ channel: "chromium" });
-const [user] = JSON.parse(
+const [, user] = JSON.parse(
   fs.readFileSync(
     process.env.PULSE_TEST_CREDENTIALS ||
       "/tmp/pulse-phase3-test/credentials.json",
@@ -27,45 +27,47 @@ test("consenso, notifica reale service worker, rinvio e disattivazione", async (
       ),
     ]),
   );
-  const old = await page.request
-    .get("http://127.0.0.1:8081/api/pulse/reminders")
-    .then((r) => r.json());
-  for (const r of old.filter(
-    (r) => r.settings.kind === "workout" && r.settings.target === "C",
-  ))
-    await page.request.put(
-      "http://127.0.0.1:8081/api/pulse/reminders/" + r.id,
-      {
-        data: { action: "delete", revision: r.revision },
-      },
-    );
-  await page.reload();
-  await page.getByLabel("Tipo promemoria").selectOption("workout");
-  await page.getByRole("combobox", { name: /Attività/ }).selectOption("C");
+  await page.getByRole("link", { name: "Promemoria", exact: true }).click();
+  const name = "Avviso sintetico " + crypto.randomUUID().slice(0, 8);
+  const card = page.locator("article").filter({ has: page.getByRole("heading", { name, exact: true }) });
+  const advance = () => page.getByRole("button", { name: "Continua", exact: true }).click();
+  await page.getByRole("button", { name: "Nuovo promemoria" }).click();
+  await page.getByLabel("Tipo promemoria").selectOption("custom");
+  await advance();
+  await page.getByLabel("Nome del promemoria").fill(name);
+  await advance();
   await page.getByLabel("Orario promemoria").fill("00:00");
-  await page.getByRole("button", { name: "Aggiungi promemoria" }).click();
-  await expect(
-    page.getByRole("region", { name: "Promemoria in scadenza" }),
-  ).toBeVisible();
-  await expect
-    .poll(() =>
-      page.evaluate(async () => {
-        const r = await navigator.serviceWorker.ready;
-        return (await r.getNotifications()).length;
-      }),
-    )
-    .toBeGreaterThan(0);
-  await page
-    .getByRole("button", { name: "Rinvia 15 min", exact: true })
-    .click();
-  await expect(
-    page.getByRole("region", { name: "Promemoria in scadenza" }),
-  ).not.toBeVisible();
-  await page
-    .getByRole("button", { name: "Disattiva", exact: true })
-    .last()
-    .click();
-  await expect(
-    page.locator(".reminder-row").filter({ hasText: "Scheda C" }).last(),
-  ).toContainText("Disattivato");
+  await advance();
+  await expect(page.getByRole("dialog")).toContainText("Ogni giorno");
+  await page.getByRole("button", { name: "Salva promemoria" }).click();
+  await expect(card.getByRole("switch")).toBeChecked();
+  const due = page.getByRole("region", { name: "Promemoria in scadenza" })
+    .locator(".reminder-row").filter({ hasText: name });
+  await expect(due).toBeVisible();
+  await expect.poll(() => page.evaluate(async () => {
+    const registration = await navigator.serviceWorker.ready;
+    return (await registration.getNotifications()).some((n) => n.data.kind === "custom");
+  })).toBe(true);
+  await due.getByRole("button", { name: "Rinvia 15 min" }).click();
+  await expect(due).toHaveCount(0);
+
+  await page.reload();
+  await card.getByRole("button", { name: "Modifica", exact: true }).click();
+  await advance();
+  await advance();
+  await page.getByLabel("Orario promemoria").fill("23:59");
+  await page.getByLabel("Lun", { exact: true }).uncheck();
+  await advance();
+  await page.getByRole("button", { name: "Salva promemoria" }).click();
+  await expect(card).toContainText("23:59");
+  await expect(card).not.toContainText("Ogni giorno");
+  await expect(card).toHaveCount(1);
+  await card.getByRole("switch").click();
+  await expect(card).toContainText("Disattivato");
+  await page.reload();
+  await expect(card.getByRole("switch")).not.toBeChecked();
+  await page.screenshot({ path: "test-results/promemoria-desktop.png" });
+  page.once("dialog", (dialog) => dialog.accept());
+  await card.getByRole("button", { name: "Elimina", exact: true }).click();
+  await expect(card).toHaveCount(0);
 });

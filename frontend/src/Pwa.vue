@@ -1,56 +1,47 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
-const install = ref(null),
-  installed = ref(matchMedia("(display-mode: standalone)").matches),
-  status = ref("");
-function offer(e) {
-  e.preventDefault();
-  install.value = e;
-}
-function done() {
-  installed.value = true;
-  install.value = null;
-}
+import { ref } from "vue";
+import Icon from "./components/Icon.vue";
+import { installed, installPrompt } from "./pwa-install";
+const dialog = ref(null), status = ref("");
+const ua = navigator.userAgent;
+const appleMobile = /iPhone|iPad|iPod/.test(ua) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 async function start() {
-  await install.value.prompt();
-  const choice = await install.value.userChoice;
-  status.value =
-    choice.outcome === "accepted"
-      ? "Installazione richiesta."
-      : "Installazione rimandata.";
-  install.value = null;
+  const prompt = installPrompt.value;
+  installPrompt.value = null;
+  try {
+    await prompt.prompt();
+    status.value = (await prompt.userChoice).outcome === "accepted"
+      ? "Installazione richiesta." : "Installazione rimandata.";
+  } catch {
+    status.value = "Usa il menu del browser per installare PULSE.";
+  }
 }
-onMounted(() => {
-  window.addEventListener("beforeinstallprompt", offer);
-  window.addEventListener("appinstalled", done);
-});
-onUnmounted(() => {
-  window.removeEventListener("beforeinstallprompt", offer);
-  window.removeEventListener("appinstalled", done);
-});
 </script>
+
 <template>
-  <section class="card workout-block">
-    <h2>Installa PULSE</h2>
-    <p v-if="installed">PULSE è aperta come app installata.</p>
-    <template v-else
-      ><button v-if="install" class="btn primary" @click="start">
-        Installa PULSE
+  <section class="card compact-settings">
+    <button class="settings-link" @click="status = ''; dialog.showModal()">
+      <Icon name="download" /> <strong>Installa PULSE</strong><Icon name="arrow" />
+    </button>
+    <dialog ref="dialog" class="card pulse-dialog" aria-labelledby="install-title">
+      <h2 id="install-title">Installa PULSE</h2>
+      <p v-if="installed">PULSE è già installata su questo dispositivo.</p>
+      <button v-else-if="installPrompt" class="btn primary wide" @click="start">
+        Installa sul dispositivo
       </button>
-      <p v-else class="smallmuted">
-        Su Chrome Android: menu ⋮ → Aggiungi a schermata Home → Installa. Su
-        desktop: icona Installa nella barra degli indirizzi o menu del browser.
-        L’opzione appare quando il browser supporta l’installazione e l’app è
-        servita da HTTPS o localhost.
-      </p></template
-    >
-    <p v-if="status" role="status">{{ status }}</p>
-    <p class="source-note">
-      La scheda di allenamento già aperta si riprende offline su questo
-      dispositivo. Primo accesso, avvio della sessione e cambi ai carichi
-      standard richiedono connessione. Su un telefono localhost indica il
-      telefono stesso: l’accesso a questo PC richiederà un’origine HTTPS
-      privata, da configurare nella fase server.
-    </p>
+      <p v-else-if="appleMobile">
+        In Safari, apri il menu Condividi e scegli Aggiungi alla schermata Home.
+      </p>
+      <p v-else-if="/Android/.test(ua)">
+        Apri il menu ⋮ di Chrome e scegli Installa app o Aggiungi a schermata Home.
+      </p>
+      <p v-else>
+        Usa l’icona di installazione nella barra degli indirizzi o cerca
+        «Installa PULSE» nel menu di Chrome o Edge.
+      </p>
+      <p v-if="status" role="status">{{ status }}</p>
+      <form method="dialog"><button class="btn secondary wide" autofocus>Chiudi</button></form>
+    </dialog>
   </section>
 </template>

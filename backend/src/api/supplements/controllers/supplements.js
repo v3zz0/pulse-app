@@ -13,7 +13,7 @@ module.exports = {
     );
   }),
   dashboard: guard(async (ctx, u, a) => {
-    ctx.body = await service.dashboard(a, u.id, ctx.params.day);
+    ctx.body = await service.dashboard(a, u.id, ctx.params.day, ctx.query.daily === "1");
   }),
   mode: guard(async (ctx, u, a) => {
     ctx.body = await service.saveMode(

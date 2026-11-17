@@ -20,6 +20,12 @@ test("scheda completa, peso temporaneo, timer, offline/reload, sync e storico", 
   page,
   context,
 }) => {
+  const mobile = test.info().project.name.startsWith("mobile");
+  await page.addInitScript((android) => {
+    if (android) Object.defineProperty(navigator, "userAgent", {
+      get: () => "Mozilla/5.0 (Linux; Android 15) Chrome/131.0 Mobile",
+    });
+  }, mobile);
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await login(page);
@@ -95,11 +101,26 @@ test("scheda completa, peso temporaneo, timer, offline/reload, sync e storico", 
     page.getByRole("img", { name: "Andamento peso corporeo" }),
   ).toBeVisible();
   await page.getByRole("link", { name: "Altro", exact: true }).click();
+  await page.getByRole("button", { name: "Installa PULSE" }).click();
+  const installDialog = page.getByRole("dialog", { name: "Installa PULSE" });
+  await expect(installDialog).toContainText(mobile ? "menu ⋮ di Chrome" : "barra degli indirizzi");
+  await page.getByRole("button", { name: "Chiudi", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Installa PULSE" })).toHaveCount(0);
   await expect(
-    page.getByRole("heading", { name: "Installa PULSE" }),
+    page.getByRole("link", { name: "Promemoria", exact: true }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Promemoria", exact: true }),
-  ).toBeVisible();
+  await page.evaluate(() => {
+    const event = new Event("beforeinstallprompt", { cancelable: true });
+    event.prompt = () => Promise.resolve();
+    event.userChoice = Promise.resolve({ outcome: "accepted" });
+    window.dispatchEvent(event);
+  });
+  await page.getByRole("button", { name: "Installa PULSE" }).click();
+  await installDialog.getByRole("button", { name: "Installa sul dispositivo" }).click();
+  await expect(installDialog).toContainText("Installazione richiesta.");
+  await page.evaluate(() => window.dispatchEvent(new Event("appinstalled")));
+  await expect(installDialog).toContainText("già installata");
+  await page.keyboard.press("Escape");
+  await expect(installDialog).toHaveCount(0);
   expect(errors).toEqual([]);
 });

@@ -23,7 +23,10 @@ function validateLayout(data, days) {
       s.weekdays.some((n) => !Number.isInteger(n) || n < 0 || n > 6)
     )
       fail("Giorni non validi");
+    const description = s.description === undefined || s.description === ""
+      ? "" : text(s.description, 160);
     result.days[day] = {
+      ...(description ? { description } : {}),
       name: text(s.name, 60),
       weekdays: [...new Set(s.weekdays)].sort(),
     };

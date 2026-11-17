@@ -1,5 +1,5 @@
 "use strict";
-const { fail } = require("./validation");
+const { fail, text } = require("./validation");
 function localParts(time, timezone) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: timezone,
@@ -18,7 +18,7 @@ function localParts(time, timezone) {
 }
 function settings(b) {
   if (
-    !["meal", "supplement", "workout"].includes(b.kind) ||
+    !["meal", "supplement", "workout", "weight", "custom"].includes(b.kind) ||
     typeof b.enabled !== "boolean" ||
     !/^([01]\d|2[0-3]):[0-5]\d$/.test(b.at)
   )
@@ -38,7 +38,8 @@ function settings(b) {
     fail("Giorni non validi");
   return {
     kind: b.kind,
-    target: String(b.target || ""),
+    target: ["weight", "custom"].includes(b.kind) ? "" : String(b.target || ""),
+    label: b.label ? text(b.label, 160) : "",
     at: b.at,
     timezone: b.timezone,
     enabled: b.enabled,

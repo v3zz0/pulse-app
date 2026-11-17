@@ -104,7 +104,7 @@ test("CSV: esempi, anteprima, conferma, versioni, obiettivi e scheda completa", 
     expect(
       (
         await page
-          .getByRole("heading", { name: "Installa PULSE" })
+          .getByRole("button", { name: "Installa PULSE" })
           .boundingBox()
       ).y,
     ).toBeLessThan((await imports.boundingBox()).y);
@@ -158,6 +158,10 @@ test("CSV: esempi, anteprima, conferma, versioni, obiettivi e scheda completa", 
       .map((r) => ({ ...r, plan_id: "ui-" + tag, plan_name: title }));
     if (kind === "training") {
       rows[0].standard_kg = "60";
+      rows[1].standard_kg = "47,25";
+      rows.push(...["0", "32.75"].map((weight, i) => ({
+        ...rows[0], set_order: String(i + 3), set_type: "back-off", standard_kg: weight,
+      })));
       for (const r of rows) if (r.day === "A") r.day = "D";
     }
     await expect(page.getByLabel("File CSV da controllare")).toBeEnabled();
@@ -220,7 +224,10 @@ test("CSV: esempi, anteprima, conferma, versioni, obiettivi e scheda completa", 
     });
   }
   await page.goto(base + "/allenati");
-  await page.getByRole("button", { name: "Scheda D", exact: true }).click();
+  await page.getByTestId("training-day-D").getByRole("button", { name: "Visualizza scheda" }).click();
+  const prescriptions = page.getByRole("list", { name: "Prescrizioni per serie" });
+  for (const kg of ["60", "47.25", "0", "32.75"])
+    await expect(prescriptions).toContainText(` · ${kg} kg`);
   await page.getByRole("button", { name: "Inizia scheda D completa" }).click();
   const set = page.getByTestId("set-D:press1:1");
   await expect(set).toContainText("60 kg");

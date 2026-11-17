@@ -49,73 +49,19 @@ async function client(u) {
 const a = await client(users[0]),
   b = await client(users[1]);
 const file = "/tmp/pulse-csv-test/restyle-supplements-state.json";
-if (process.argv.includes("--capture-flow")) {
-  const state = JSON.parse(fs.readFileSync(file)),
-    training = await a("/training");
-  state.program = training.program;
-  state.standards = training.standards;
-  assert.equal(state.program.days.A[0].flowId, "0025");
-  const ids = state.products.map((p) => p.id);
-  state.products = (await a("/supplements?includeArchived=1")).filter((p) =>
-    ids.includes(p.id),
-  );
-  state.history = await a("/supplements/history");
-  state.reminders = (await a("/reminders")).filter((r) =>
-    ids.map(String).includes(r.settings.target),
-  );
-  state.today = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Rome",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
-  const dashboard = await a("/supplements/day/" + state.today);
-  state.dayMode = {
-    mode: dashboard.mode,
-    modeSource: dashboard.modeSource,
-    modeRevision: dashboard.modeRevision,
-  };
-  fs.writeFileSync(file, JSON.stringify(state), { mode: 0o600 });
-  console.log(
-    "Fotografia privata di programma, carichi, prodotti, modalità e storico aggiornata per il restart.",
-  );
-  process.exit(0);
-}
 if (process.argv.includes("--verify-persistence")) {
-  const state = JSON.parse(fs.readFileSync(file)),
-    training = await a("/training"),
-    products = await a("/supplements?includeArchived=1");
+  const state = JSON.parse(fs.readFileSync(file));
+  const training = await a("/training");
   assert.deepEqual(training.program, state.program);
   assert.deepEqual(training.standards, state.standards);
-  for (const p of state.products)
-    assert.deepEqual(
-      products.find((v) => v.id === p.id),
-      p,
-    );
+  const products = await a("/supplements?includeArchived=1");
+  assert.deepEqual(products.find((p) => p.id === state.product.id), state.product);
   assert.deepEqual(await a("/supplements/history"), state.history);
-  const ids = state.products.map((p) => String(p.id));
-  assert.deepEqual(
-    (await a("/reminders"))
-      .filter((r) => ids.includes(r.settings.target))
-      .sort((a, b) => a.id.localeCompare(b.id)),
-    state.reminders.sort((a, b) => a.id.localeCompare(b.id)),
-  );
-  assert.deepEqual(
-    await a("/plans/training/" + state.program.id + "/export"),
-    state.csv,
-  );
-  const dashboard = await a("/supplements/day/" + state.today);
-  assert.deepEqual(
-    {
-      mode: dashboard.mode,
-      modeSource: dashboard.modeSource,
-      modeRevision: dashboard.modeRevision,
-    },
-    state.dayMode,
-  );
-  console.log(
-    "PASS PostgreSQL: nomi, calendario, carichi, prodotti archiviati, pianificazioni, promemoria e storico dopo restart.",
-  );
+  assert.deepEqual((await a("/reminders")).find((r) => r.id === state.reminder.id), state.reminder);
+  assert.deepEqual(await a("/weights"), state.weights);
+  await a("/reminders/" + state.reminder.id, { action: "delete", revision: state.reminder.revision }, "PUT", 204);
+  assert.deepEqual(await a("/plans/training/" + state.program.id + "/export"), state.csv);
+  console.log("PASS persistenza PostgreSQL: scheda, standard, pesate, storico e promemoria.");
   process.exit(0);
 }
 async function activate(id) {
@@ -285,296 +231,89 @@ session = await a(
 assert.equal(session.snapshot.blocks[0].sets[0].draftKg, 60);
 await op({ action: "cancel", confirm: true });
 assert.deepEqual((await a("/training")).history, historyBefore);
-const today = new Intl.DateTimeFormat("en-CA", {
-  timeZone: "Europe/Rome",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-}).format(new Date());
-const slot = (at, mode = "ON") => ({
-  id: randomUUID(),
-  at,
-  timezone: "Europe/Rome",
-  weekdays: [0, 1, 2, 3, 4, 5, 6],
-  mode,
-  everyDays: 1,
-  startDate: null,
-  dose: "3 g sintetici",
-  doseConfirmed: true,
-  meal: "Pasto scelto in test",
-  reminderEnabled: true,
+const dayFormat = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Rome", year: "numeric", month: "2-digit", day: "2-digit",
 });
-const product = (name, schedule) => ({
-  name,
-  brand: "Marca sintetica",
-  ingredients: "Creatina e caffeina dichiarate solo per test",
-  labelQuantity: "1",
-  labelUnit: "porzione",
-  notes: "Dati sintetici, nessuna raccomandazione",
-  instructions: "Etichetta sintetica",
-  active: true,
-  declaredActives: [
-    { name: "Creatina", quantity: 3, unit: "g" },
-    { name: "Caffeina", quantity: null, unit: "" },
-  ],
-  schedule,
-});
-const slots = [slot("00:01"), slot("00:02")],
-  clientId = randomUUID();
-let p = await a(
-  "/supplements",
-  { clientId, data: product("Test prodotto uno", slots), confirm: true },
-  "POST",
-);
-assert.equal(
-  (
-    await a(
-      "/supplements",
-      { clientId, data: product("Test prodotto uno", slots), confirm: true },
-      "POST",
-    )
-  ).id,
-  p.id,
-);
-await b(
-  "/supplements/" + p.id,
-  { data: p, revision: p.revision, confirm: true },
-  "PUT",
-  404,
-);
-await a(
-  "/supplements/" + p.id,
-  { data: { ...p, schedule: [null] }, revision: p.revision, confirm: true },
-  "PUT",
-  400,
-);
-await a(
-  "/supplements/" + p.id,
-  { data: p, revision: p.revision, confirm: true },
-  "PUT",
-  403,
-  "https://hostile.invalid",
-);
-const p2 = await a(
-  "/supplements",
-  {
-    clientId: randomUUID(),
-    data: product("Test prodotto due", [slot("00:03", "OFF")]),
-    confirm: true,
-  },
-  "POST",
-);
-let dashboard = await a("/supplements/day/" + today);
-await a("/supplements/day/" + today, {
-  mode: "ON",
-  revision: dashboard.modeRevision,
-});
-dashboard = await a("/supplements/day/" + today);
-assert(
-  dashboard.entries
-    .filter((e) => e.productId === p.id)
-    .every((e) => e.status === "pending"),
-);
-assert(!dashboard.entries.some((e) => e.productId === p2.id));
-assert(dashboard.overlaps.some((o) => o.ingredient === "creatina"));
-let managed = (await a("/reminders")).filter(
-  (r) => r.settings.target === String(p.id) && r.settings.scheduleId,
-);
-assert.equal(managed.length, 2);
-await a(
-  "/reminders/" + managed[0].id,
-  {
-    action: "settings",
-    revision: managed[0].revision,
-    settings: managed[0].settings,
-  },
-  "PUT",
-  409,
-);
-const reminderIds = managed.map((r) => r.id).sort();
-p = await a("/supplements/" + p.id, {
-  data: { ...p, notes: "Modificato in test" },
-  revision: p.revision,
-  confirm: true,
-});
-assert.deepEqual(
-  (await a("/reminders"))
-    .filter((r) => r.settings.target === String(p.id) && r.settings.scheduleId)
-    .map((r) => r.id)
-    .sort(),
-  reminderIds,
-);
-const intakeBody = {
-  productId: p.id,
-  slot: slots[0].id,
-  status: "taken",
-  dose: "2 g effettivi sintetici",
-  takenAt: new Date().toISOString(),
-  timezone: "Europe/Rome",
-  revision: 0,
-  confirm: true,
+const today = dayFormat.format(new Date());
+const tomorrow = new Date(Date.parse(today + "T12:00:00Z") + 86400000).toISOString().slice(0, 10);
+const slots = [null, "13:00", "20:00"].map((at) => ({ id: randomUUID(), at }));
+const draft = {
+  confirm: true, daily: true, clientId: randomUUID(),
+  data: { name: "Integratore sintetico API", quantity: 2.5, unit: "g", timezone: "Europe/Rome", slots },
 };
-let taken = await a("/intakes/" + today, intakeBody);
-assert.equal(taken.dose, intakeBody.dose);
-assert.equal(taken.plannedSnapshot.dose, slots[0].dose);
-await a("/intakes/" + today, intakeBody, "PUT", 409);
-await b("/intakes/" + today, intakeBody, "PUT", 404);
-// Separate explicit manual events may share a timestamp; retrying one UUID cannot duplicate it.
-const manualTime = new Date().toISOString(),
-  manual = {
-    productId: p.id,
-    slot: randomUUID(),
-    manual: true,
-    status: "taken",
-    dose: null,
-    takenAt: manualTime,
-    timezone: "Europe/Rome",
-    revision: 0,
-    confirm: true,
-  };
-const manualOne = await a("/intakes/" + today, manual);
-await a("/intakes/" + today, manual, "PUT", 409);
-const manualTwo = await a("/intakes/" + today, {
-  ...manual,
-  slot: randomUUID(),
-});
-assert.notEqual(manualOne.id, manualTwo.id);
-assert.equal(manualOne.takenAt, manualTwo.takenAt);
-await a(
-  "/intakes/" + today,
-  { ...manual, manual: false, slot: randomUUID() },
-  "PUT",
-  404,
-);
-let due = await a("/reminders/due");
-assert(!due.some((r) => r.settings.scheduleId === slots[0].id));
-assert(due.some((r) => r.settings.scheduleId === slots[1].id));
-p = await a("/supplements/" + p.id, {
-  data: {
-    ...p,
-    name: "Test prodotto rinominato",
-    ingredients: "Etichetta aggiornata",
-  },
-  revision: p.revision,
-  confirm: true,
-});
-let preserved = (await a("/supplements/history")).find(
-  (r) => r.id === taken.id,
-);
-assert.equal(preserved.name, "Test prodotto uno");
-assert.equal(
-  preserved.productSnapshot.ingredients,
-  intakeBody.productSnapshot?.ingredients ||
-    "Creatina e caffeina dichiarate solo per test",
-);
-const skipped = await a("/intakes/" + today, {
-  productId: p.id,
-  slot: slots[1].id,
-  status: "skipped",
-  revision: 0,
-  confirm: true,
-});
-assert.equal(skipped.takenAt, null);
-assert.equal(skipped.dose, null);
-assert(
-  !(await a("/reminders/due")).some((r) => r.settings.target === String(p.id)),
-);
-taken = await a("/intakes/" + today, {
-  ...intakeBody,
-  dose: "1 g rettificato sintetico",
-  revision: taken.revision,
-});
-assert.equal(taken.corrections.length, 1);
-assert.equal(taken.productSnapshot.name, "Test prodotto uno");
-taken = await a("/intakes/" + today, {
-  productId: p.id,
-  slot: slots[0].id,
-  status: "cancelled",
-  revision: taken.revision,
-  confirm: true,
-});
-assert.equal(taken.corrections.length, 2);
-assert.equal(taken.status, "cancelled");
-assert(
-  (await a("/reminders/due")).some(
-    (r) => r.settings.scheduleId === slots[0].id,
-  ),
-);
-for (const minutes of [15, 30, 60]) {
-  const r = (await a("/reminders")).find(
-    (r) => r.settings.scheduleId === slots[0].id,
-  );
-  const updated = await a("/reminders/" + r.id, {
-    action: "snooze",
-    minutes,
-    date: today,
-    revision: r.revision,
-  });
-  assert(Date.parse(updated.occurrence.snoozedUntil) > Date.now());
+const beforeReminders = await a("/reminders");
+await a("/supplements", { ...draft, data: { ...draft.data, quantity: 0 } }, "POST", 400);
+let product = await a("/supplements", draft, "POST");
+assert.equal((await a("/supplements", draft, "POST")).id, product.id);
+assert.deepEqual(await a("/reminders"), beforeReminders);
+assert.equal(product.schedule.length, 3);
+assert.equal(product.schedule[0].at, null);
+assert.equal(product.schedule[0].dose, "2.5 g");
+for (const day of [today, tomorrow]) {
+  const dashboard = await a("/supplements/day/" + day + "?daily=1");
+  const entries = dashboard.entries.filter((e) => e.productId === product.id);
+  assert.equal(entries.length, 3);
+  assert.ok(entries.every((e) => e.status === "pending"));
 }
-assert(
-  !(await a("/reminders/due")).some(
-    (r) => r.settings.scheduleId === slots[0].id,
-  ),
-);
-dashboard = await a("/supplements/day/" + today);
-await a("/supplements/day/" + today, {
-  mode: "OFF",
-  revision: dashboard.modeRevision,
+const intakePath = "/intakes/" + today;
+const intakeBody = {
+  confirm: true, productId: product.id, productRevision: product.revision,
+  slot: slots[0].id, revision: 0, status: "taken", dose: "2.5 g",
+  takenAt: new Date().toISOString(),
+};
+await b(intakePath, intakeBody, "PUT", 404);
+await a(intakePath, intakeBody, "PUT", 403, "https://example.invalid");
+const saved = await a(intakePath, intakeBody);
+await a(intakePath, intakeBody, "PUT", 409);
+assert.equal((await a(intakePath)).filter((r) => r.productId === product.id).length, 1);
+const corrected = await a(intakePath, { ...intakeBody, status: "cancelled", revision: saved.revision });
+assert.equal(corrected.corrections[0].status, "taken");
+const taken = await a(intakePath, { ...intakeBody, slot: slots[1].id });
+assert.equal(taken.takenAt, intakeBody.takenAt);
+product = await a("/supplements/" + product.id, {
+  ...draft, revision: product.revision,
+  data: { ...draft.data, quantity: 3, slots: slots.slice(0, 2) },
 });
-dashboard = await a("/supplements/day/" + today);
-assert(dashboard.entries.some((e) => e.productId === p2.id));
-assert(!dashboard.entries.some((e) => e.productId === p.id && !e.unscheduled));
-await a("/supplements/" + p.id, {
-  action: "archive",
-  revision: p.revision,
-  confirm: true,
+assert.equal(product.schedule[1].id, slots[1].id);
+assert.deepEqual(await a("/reminders"), beforeReminders);
+const history = await a("/supplements/history");
+assert.equal(history.find((r) => r.id === taken.id).plannedSnapshot.dose, "2.5 g");
+product = await a("/supplements/" + product.id, {
+  action: "delete", revision: product.revision, confirm: true,
 });
-await a("/supplements/" + p2.id, {
-  action: "archive",
-  revision: p2.revision,
-  confirm: true,
+assert.ok(!(await a("/supplements")).some((r) => r.id === product.id));
+assert.deepEqual(await a("/supplements/history"), history);
+assert.ok(!(await b("/supplements/history")).some((r) => r.productId === product.id));
+
+const reminderId = randomUUID(), path = "/reminders/" + reminderId;
+const config = {
+  kind: "custom", label: "Promemoria API sintetico", timezone: "Europe/Rome",
+  enabled: true, at: "00:00", weekdays: [0, 1, 2, 3, 4, 5, 6],
+};
+let reminder = await a(path, { action: "settings", revision: 0, settings: config });
+await a(path, { action: "settings", revision: 0, settings: config }, "PUT", 409);
+await b(path, { action: "toggle", revision: reminder.revision, enabled: false }, "PUT", 409);
+const due = (await a("/reminders/due")).find((r) => r.id === reminderId);
+assert.ok(due);
+reminder = await a(path, { action: "snooze", revision: due.revision, date: due.date, minutes: 15 });
+assert.ok(!(await a("/reminders/due")).some((r) => r.id === reminderId));
+reminder = await a(path, {
+  action: "settings", revision: reminder.revision,
+  settings: { ...config, at: "19:07", weekdays: [1, 3] },
 });
-assert(!(await a("/supplements")).some((r) => r.id === p.id));
-assert(
-  !(await a("/reminders/due")).some((r) =>
-    [String(p.id), String(p2.id)].includes(r.settings.target),
-  ),
-);
-await a(
-  "/intakes/" + today,
-  {
-    productId: p.id,
-    slot: "12:34",
-    status: "taken",
-    revision: 0,
-    confirm: true,
-    dose: null,
-  },
-  "PUT",
-  409,
-);
-const otherHistory = await b("/supplements/history");
-assert(!otherHistory.some((r) => r.productId === p.id));
-const products = (await a("/supplements?includeArchived=1")).filter((r) =>
-  [p.id, p2.id].includes(r.id),
-);
-training = await a("/training");
-fs.writeFileSync(
-  file,
-  JSON.stringify({
-    previousProgramId,
-    program: training.program,
-    standards: training.standards,
-    csv: originalCsv,
-    products,
-    history: await a("/supplements/history"),
-    reminders: (await a("/reminders")).filter((r) =>
-      [String(p.id), String(p2.id)].includes(r.settings.target),
-    ),
-  }),
-  { mode: 0o600 },
-);
-console.log(
-  "PASS API: CSV carichi/attivazione e versioni, rinomina/calendario/CSV immutabile, 60→50→senza peso→60, annullamento, CRUD integratori, ON/OFF, multi-orario, rettifiche/snapshot, archiviazione, sovrapposizioni, snooze e owner/CSRF.",
-);
+reminder = await a(path, { action: "toggle", revision: reminder.revision, enabled: false });
+assert.equal(reminder.settings.at, "19:07");
+assert.equal(reminder.settings.enabled, false);
+assert.deepEqual(reminder.settings.weekdays, [1, 3]);
+
+const weightsPath = "/weights/" + today;
+await a(weightsPath, { kg: -2 }, "PUT", 400);
+await Promise.all([a(weightsPath, { kg: 72.4 }), a(weightsPath, { kg: 72.4 })]);
+const weights = await a("/weights");
+assert.deepEqual(weights.filter((r) => r.day === today), [{ day: today, kg: 72.4 }]);
+const finalTraining = await a("/training");
+fs.writeFileSync(file, JSON.stringify({
+  previousProgramId, program: finalTraining.program, standards: finalTraining.standards,
+  csv: originalCsv, product, history, reminder, weights,
+}), { mode: 0o600 });
+console.log("PASS API: CSV e carichi, 60→50→senza peso→60, Flow, assunzioni quotidiane, storico, peso concorrente e promemoria indipendenti.");

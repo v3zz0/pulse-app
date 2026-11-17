@@ -84,39 +84,13 @@ test("accesso privato, Home persistente e navigazione nutrizione", async ({
     ),
   ).toBe(true);
   await page.getByRole("link", { name: "Altro", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Integratori", exact: true }),
-  ).toBeVisible();
-  await page.getByLabel("Peso in kg", { exact: true }).fill("72.4");
-  await page.getByRole("button", { name: "Salva peso", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("Peso salvato");
-  await page
-    .getByRole("link", { name: "I miei integratori", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Registra assunzione", exact: true })
-    .click();
-  await page
-    .getByLabel("Dose effettivamente assunta (includi unità)")
-    .first()
-    .fill("Dose browser test");
-  await page
-    .getByLabel("Orario locale")
-    .first()
-    .fill(
-      await page.evaluate(() =>
-        new Date().toLocaleTimeString("it-IT", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      ),
-    );
-  await page
-    .getByRole("button", { name: "Segna assunto", exact: true })
-    .first()
-    .click();
-  await expect(page.getByRole("status")).toContainText("Assunzione aggiornata");
-  await page.getByRole("link", { name: "Torna ad Altro" }).click();
+  const weightCard = page.locator("form").filter({
+    has: page.getByRole("heading", { name: "Registra peso" }),
+  });
+  await expect(weightCard.getByLabel("Data della misurazione")).toHaveValue(/^\d{4}-\d{2}-\d{2}$/);
+  await weightCard.getByLabel("Peso in kg").fill("72.4");
+  await weightCard.getByRole("button", { name: "Salva peso" }).click();
+  await expect(weightCard.getByRole("status")).toHaveText("Peso salvato");
   await expect(
     page.getByRole("button", { name: "Esci", exact: true }),
   ).toHaveCount(0);
