@@ -60,7 +60,7 @@ services:
     ports: ['${PULSE_BIND_IP:?}:${PULSE_API_PORT:?}:1337']
     volumes:
       - uploads:/app/public/uploads
-      - ${FLOW_STORAGE_PATH:-./storage/flow}:/app/flow:ro
+      - ${FLOW_STORAGE_PATH:-/srv/pulse/flow}:/app/flow:ro
     networks: [database, application, edge]
     depends_on: {postgres: {condition: service_healthy}}
     healthcheck:

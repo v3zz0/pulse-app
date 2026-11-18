@@ -1,3 +1,11 @@
+# Percorso persistente Flow in produzione — 18 novembre 2026
+
+Il controllo del container di produzione ha rilevato il bind dal workspace Jenkins verso `/app/flow` e `ENOENT` per il catalogo. Compose usa ora `/srv/pulse/flow` come sorgente predefinita e conserva l’override esplicito. Verificata la configurazione Compose con entrambi i percorsi e il mount in sola lettura.
+
+L’installatore della revisione fissata, eseguito in Docker Node 24 su directory temporanee, ha verificato 1.324 esercizi e 3.771 SHA-256 SVG. Un processo con UID 1000 ha letto entrambe le copie di collaudo, trovato Panca piana 0025, letto le tre definizioni dei fotogrammi e verificato un SVG. Build Vite e suite Node frontend/backend superate. La configurazione risolta è stata verificata localmente. Il collaudo live è un passaggio distinto.
+
+---
+
 # Spaziatura della scheda in Allenati — 18 novembre 2026
 
 La card di anteprima e sessione attiva separa intestazione, conteggi, azione principale e informazioni sul piano. Build Vite e tre file di test frontend superati. Regressione Allenati su Chromium **3/3**. Nella card di anteprima, spazio verticale misurato di 16 px a 360 e 390 px e di 22 px a 1440 px. Il pulsante di avvio misura 51 px in altezza. Nessun overflow orizzontale in queste prove.
