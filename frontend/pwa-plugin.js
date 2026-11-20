@@ -22,6 +22,7 @@ export function pulsePwa() {
       const version = createHash("sha256");
       for (const f of files) version.update(await readFile("dist" + f));
       const source = await readFile("service-worker.js", "utf8");
+      version.update(source);
       await writeFile(
         "dist/sw.js",
         `const CACHE='pulse-shell-${version.digest("hex").slice(0, 16)}';\nconst FILES=${JSON.stringify(files)};\n` +

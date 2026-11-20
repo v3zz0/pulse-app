@@ -31,33 +31,29 @@ async function refreshNow() {
           const registration = await navigator.serviceWorker.getRegistration();
           for (const n of (await registration?.getNotifications()) || [])
             if (
-              n.data?.kind &&
+              (n.data?.kind || n.data?.pulseReminder) && n.tag !== "pulse-push-test" &&
               !items.some((r) => n.tag === `pulse-${r.id}-${r.date}`)
             )
               n.close();
         } catch {}
-        for (const r of items.filter((r) => !r.delivered)) {
+        for (const r of items.filter((r) => !r.delivered && !r.pushManaged)) {
           const registration = await navigator.serviceWorker.getRegistration();
           if (!registration) continue;
-          await registration.showNotification(
-            "PULSE · " + reminderTypes[r.settings.kind]?.name,
-            {
-              body: "Hai un promemoria da controllare in PULSE.",
-              tag: "pulse-" + r.id + "-" + r.date,
-              icon: "/icons/pulse-192.png",
-              data: {
-                url: "/",
-                kind: r.settings.kind,
-                target: r.settings.target,
-                scheduleId: r.settings.scheduleId,
-                at: r.settings.at,
-              },
-            },
-          );
-          await send("/reminders/" + r.id, {
-            action: "delivered",
-            date: r.date,
-            revision: r.revision,
+          try {
+            await send("/reminders/" + r.id, {
+              action: "delivered",
+              date: r.date,
+              revision: r.revision,
+            });
+          } catch (e) {
+            if (e.status === 409 || e.status === 404) continue;
+            throw e;
+          }
+          await registration.showNotification("PULSE", {
+            body: "Hai un promemoria da controllare in PULSE.",
+            tag: "pulse-" + r.id + "-" + r.date,
+            icon: "/icons/pulse-192.png",
+            data: { pulseReminder: true },
           });
         }
         due.value = await api("/reminders/due");

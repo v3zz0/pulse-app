@@ -46,18 +46,27 @@ function settings(b) {
     weekdays: [...new Set(b.weekdays)],
   };
 }
+function occurrenceDay(reminder, now = Date.now()) {
+  const { settings: s, occurrence: o } = reminder;
+  const p = localParts(now, s.timezone);
+  if (o?.date && o.date < p.date && !o.acknowledged && o.snoozedUntil &&
+      localParts(o.snoozedUntil, s.timezone).date === p.date && p.time < s.at)
+    return o.date;
+  return p.date;
+}
 function isDue(reminder, completed, now = Date.now()) {
   const s = reminder.settings,
     p = localParts(now, s.timezone),
-    o = reminder.occurrence?.date === p.date ? reminder.occurrence : {};
-  const weekday = new Date(p.date + "T12:00:00Z").getUTCDay();
+    day = occurrenceDay(reminder, now),
+    o = reminder.occurrence?.date === day ? reminder.occurrence : {};
+  const weekday = new Date(day + "T12:00:00Z").getUTCDay();
   return (
     s.enabled &&
     s.weekdays.includes(weekday) &&
     !completed &&
-    p.time >= s.at &&
+    (day !== p.date || p.time >= s.at) &&
     !o.acknowledged &&
     (!o.snoozedUntil || Date.parse(o.snoozedUntil) <= now)
   );
 }
-module.exports = { localParts, settings, isDue };
+module.exports = { localParts, settings, isDue, occurrenceDay };

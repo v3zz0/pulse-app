@@ -46,3 +46,21 @@ test("promemoria timezone, rinvii e soppressione dopo completamento", () => {
   );
   a.throws(() => settings({ ...s, timezone: "no/such" }), /Fuso/);
 });
+
+test("un rinvio dopo mezzanotte conserva il giorno della scadenza", () => {
+  const { occurrenceDay } = require("../src/pulse/reminders");
+  const reminder = {
+    settings: { enabled: true, at: "23:55", timezone: "Europe/Rome", weekdays: [5] },
+    occurrence: { date: "2026-11-20", snoozedUntil: "2026-11-20T23:10:00.000Z" },
+  };
+  a.equal(isDue(reminder, false, Date.parse("2026-11-20T23:05:00Z")), false);
+  a.equal(isDue(reminder, false, Date.parse("2026-11-20T23:10:00Z")), true);
+  a.equal(occurrenceDay(reminder, Date.parse("2026-11-20T23:10:00Z")), "2026-11-20");
+});
+
+test("un orario saltato al cambio d’ora scatta al primo minuto valido", () => {
+  const reminder = { settings: { enabled: true, at: "02:30", timezone: "Europe/Rome", weekdays: [0] } };
+  a.equal(isDue(reminder, false, Date.parse("2026-03-29T00:59:00Z")), false);
+  a.equal(isDue(reminder, false, Date.parse("2026-03-29T01:00:00Z")), true);
+  a.equal(isDue(reminder, true, Date.parse("2026-03-29T01:00:00Z")), false);
+});

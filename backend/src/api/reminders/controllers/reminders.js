@@ -1,7 +1,9 @@
+const { checkDue, withReminderLock } = require("../../../pulse/reminder-due");
+const push = require("../../../pulse/push");
 const { activePlan } = require("../../../pulse/active-plan");
 const guard = require("../../../pulse/guarded");
 const { fail, date } = require("../../../pulse/validation");
-const { settings, localParts, isDue } = require("../../../pulse/reminders");
+const { settings, localParts, occurrenceDay } = require("../../../pulse/reminders");
 const q = (app, name) => app.db.query(`api::${name}.${name}`);
 const present = (r) => ({
   id: r.uniqueKey.split(":").at(-1),
@@ -9,28 +11,6 @@ const present = (r) => ({
   occurrence: r.occurrence,
   revision: r.revision,
 });
-async function completed(app, owner, s, day) {
-  if (s.kind === "meal") {
-    const daily = await q(app, "daily-plan").findOne({ where: { owner, day } });
-    return (
-      !daily || !daily.meals.some((m) => m.id === s.target && !m.consumedAt)
-    );
-  }
-  if (s.kind === "supplement")
-    return require("../../../pulse/supplements").reminderDone(
-      app,
-      owner,
-      s,
-      day,
-    );
-  if (s.kind === "custom") return false;
-  if (s.kind === "weight")
-    return !!(await q(app, "weight-entry").findOne({ where: { owner, day } }));
-  const sessions = await q(app, "workout-session").findMany({
-    where: { owner, day: s.target },
-  });
-  return sessions.some((r) => localParts(r.startedAt, s.timezone).date === day);
-}
 module.exports = {
   list: guard(async (ctx, user, app) => {
     ctx.body = (
@@ -42,22 +22,21 @@ module.exports = {
         where: { owner: user.id },
       }),
       due = [];
+    const pushManaged = push.configured() && (await push.activeSubscriptions(app, user.id)).length > 0;
     for (const r of rows) {
-      const day = localParts(Date.now(), r.settings.timezone).date;
-      if (isDue(r, await completed(app, user.id, r.settings, day)))
+      const day = await checkDue(app, user.id, r);
+      if (day)
         due.push({
           ...present(r),
           date: day,
-          delivered: r.occurrence?.date === day && !!r.occurrence.deliveredAt,
+          pushManaged,
+          delivered: r.occurrence?.date === day && !!(r.occurrence.deliveredAt || r.occurrence.pushShownAt),
         });
     }
     ctx.body = due;
   }),
   save: guard(async (ctx, user, app) =>
-    app.db.transaction(async ({ trx }) => {
-      await trx.raw("SELECT pg_advisory_xact_lock(hashtext(?))", [
-        `reminder:${user.id}`,
-      ]);
+    withReminderLock(app, user.id, async () => {
       const id = ctx.params.id;
       if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)) fail("Identificatore non valido");
       const b = ctx.request.body || {},
@@ -112,7 +91,7 @@ module.exports = {
           fail("Massimo 30 promemoria");
       } else {
         if (!r) fail("Promemoria inesistente", 404);
-        const day = localParts(Date.now(), r.settings.timezone).date;
+        const day = occurrenceDay(r);
         if (b.date !== day) fail("Promemoria di un altro giorno", 409);
         const occurrence =
           r.occurrence?.date === day ? { ...r.occurrence } : { date: day };
@@ -122,9 +101,14 @@ module.exports = {
             Date.now() + b.minutes * 60000,
           ).toISOString();
           occurrence.deliveredAt = null;
+          occurrence.pushShownAt = null;
         } else if (b.action === "acknowledge") occurrence.acknowledged = true;
-        else if (b.action === "delivered")
+        else if (b.action === "delivered") {
+          if (occurrence.deliveredAt || occurrence.pushShownAt || !(await checkDue(app, user.id, r)) ||
+              (push.configured() && (await push.activeSubscriptions(app, user.id)).length))
+            fail("Promemoria già preso in carico", 409);
           occurrence.deliveredAt = new Date().toISOString();
+        }
         else fail("Azione non valida");
         data.occurrence = occurrence;
       }

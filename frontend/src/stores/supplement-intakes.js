@@ -10,7 +10,7 @@ const dashboard = (day) => api(`/supplements/day/${day}?daily=1`);
 let channel;
 
 export const useIntakes = defineStore("supplement-intakes", {
-  state: () => ({ ...empty(), busy: false, ready: false, owner: null }),
+  state: () => ({ ...empty(), busy: false, ready: false, owner: null, today: localDate() }),
   actions: {
     async load() {
       const owner = useAuth().user?.id;
@@ -19,6 +19,7 @@ export const useIntakes = defineStore("supplement-intakes", {
         this.$reset();
         this.owner = owner;
       }
+      this.today = localDate();
       await this.local(owner);
       await this.sync();
     },
@@ -112,8 +113,9 @@ export const useIntakes = defineStore("supplement-intakes", {
       channel = new BroadcastChannel("pulse-intakes");
       channel.onmessage = () => this.load().catch(() => {});
       const resume = () => {
+        this.today = localDate();
         if (useAuth().user?.id && this.owner && navigator.onLine &&
-            (this.queue.length || this.data?.day !== localDate()))
+            (this.queue.length || this.data?.day !== this.today))
           this.sync();
       };
       window.addEventListener("online", resume);

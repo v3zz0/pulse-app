@@ -37,6 +37,9 @@ services:
       args: {PUBLIC_API_URL: "${PULSE_API_URL:?Configura PULSE_API_URL}"}
     environment:
       FLOW_DATA_PATH: /app/flow
+      PULSE_WEB_PUSH_PUBLIC_KEY: ${PULSE_WEB_PUSH_PUBLIC_KEY:-}
+      PULSE_WEB_PUSH_PRIVATE_KEY: ${PULSE_WEB_PUSH_PRIVATE_KEY:-}
+      PULSE_WEB_PUSH_SUBJECT: ${PULSE_WEB_PUSH_SUBJECT:-}
       NODE_ENV: production
       PULSE_ENV: production
       PUBLIC_ORIGIN: ${PULSE_PUBLIC_ORIGIN:?Configura PULSE_PUBLIC_ORIGIN}

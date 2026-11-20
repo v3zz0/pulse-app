@@ -46,7 +46,7 @@ test("consenso, notifica reale service worker, rinvio e disattivazione", async (
   await expect(due).toBeVisible();
   await expect.poll(() => page.evaluate(async () => {
     const registration = await navigator.serviceWorker.ready;
-    return (await registration.getNotifications()).some((n) => n.data.kind === "custom");
+    return (await registration.getNotifications()).some((n) => n.data.pulseReminder);
   })).toBe(true);
   await due.getByRole("button", { name: "Rinvia 15 min" }).click();
   await expect(due).toHaveCount(0);

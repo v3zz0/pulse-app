@@ -221,3 +221,7 @@ Per il rollback preferire una correzione in avanti: il vecchio backend eliminava
 5. In caso di problemi, usare l’inventario del backup per il recupero. Un rollback del solo codice non ripristina lo schema e può interpretare in modo diverso le nuove pianificazioni settimanali. Testare il ripristino in copia isolata e valutare le scritture successive al backup prima di intervenire sui volumi online.
 
 [Dettagli sugli editor e sullo schema](docs/PLAN_EDITORS.md)
+
+## Rilascio delle notifiche Web Push
+
+Configura la coppia VAPID e il contatto del mittente nella credenziale esistente `pulse-env`. Strapi applica lo schema delle due collezioni push al primo avvio. Per il rilascio usa il job Jenkins esistente e la procedura di backup, quindi verifica una notifica con PULSE chiusa sul dispositivo. [Configurazione e collaudo Web Push](docs/WEB_PUSH.md)

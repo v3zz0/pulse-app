@@ -545,16 +545,13 @@ async function reminderDone(app, owner, s, day) {
   const rows = await q(app, "supplement-intake").findMany({
     where: { owner, day, product: p.id },
   });
-  return rows.some(
-    (r) =>
-      ["taken", "skipped"].includes(status(r)) &&
-      (s.scheduleId
-        ? r.slot === s.scheduleId
-        : r.slot === "daily" ||
-          !r.slot ||
-          r.slot === s.at ||
-          (p.schedule || []).some((t) => t.at === s.at && t.id === r.slot)),
-  );
+  const done = rows.filter((r) => ["taken", "skipped"].includes(status(r)));
+  if (s.scheduleId) return done.some((r) => r.slot === s.scheduleId);
+  if (done.some((r) => !r.slot || r.slot === "daily" || r.slot === s.at)) return true;
+  const slots = p.schedule || [];
+  const matches = slots.filter((slot) => slot.at === s.at);
+  const relevant = matches.length ? matches : slots;
+  return relevant.length > 0 && relevant.every((slot) => done.some((r) => r.slot === slot.id));
 }
 module.exports = {
   validateProduct,

@@ -77,3 +77,32 @@ self.addEventListener("notificationclick", (event) => {
     })(),
   );
 });
+
+self.addEventListener("push", (event) => {
+  event.waitUntil((async () => {
+    let payload;
+    try { payload = event.data?.json(); } catch { return; }
+    const receipt = payload?.receipt;
+    if (typeof receipt !== "string" || !/^[a-f0-9-]{36}$/.test(receipt)) return;
+    const show = async () => {
+      const response = await fetch("/api/pulse/push/messages/" + receipt, {
+        method: "POST", credentials: "same-origin", cache: "no-store",
+      });
+      if (response.status !== 200) return;
+      const delivery = await response.json();
+      if (!/^pulse-/.test(delivery?.tag)) return;
+      await self.registration.showNotification("PULSE", {
+        body: delivery.test ? "La notifica di prova è arrivata." : "Hai un promemoria da controllare in PULSE.",
+        tag: delivery.tag,
+        icon: "/icons/pulse-192.png",
+        data: { pulseReminder: true },
+      });
+    };
+    try {
+      if (self.navigator.locks) await self.navigator.locks.request("pulse-push-device", show);
+      else await show();
+    } catch {
+      // The receipt expires and the app keeps showing due items when reopened.
+    }
+  })());
+});

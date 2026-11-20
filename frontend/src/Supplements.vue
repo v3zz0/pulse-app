@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref, computed } from "vue";
+import SupplementHistory from "./components/SupplementHistory.vue";
 import Icon from "./components/Icon.vue";
 import { api, send } from "./api";
 
@@ -113,6 +114,7 @@ async function remove(product) {
   <button class="btn primary wide feature-add" :disabled="busy || loading" @click="open()">
     <Icon name="plus" /> Aggiungi integratore
   </button>
+  <SupplementHistory />
   <dialog ref="editorDialog" class="card pulse-dialog" aria-labelledby="supplement-title"
     @cancel.prevent="!busy && editorDialog.close()" @close="editor = null">
     <form v-if="editor" @submit.prevent="save">

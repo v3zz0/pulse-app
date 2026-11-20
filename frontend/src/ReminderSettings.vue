@@ -4,16 +4,19 @@ import { api, send } from "./api";
 import { localDate } from "./stores/day";
 import { dayName } from "./workout-display";
 import { reminderTypes, reminderDays, reminderFrequency, orderedDays } from "./reminder-display";
+import { disablePush, enablePush, pushStatus, pushSupported } from "./web-push";
 import Icon from "./components/Icon.vue";
 
 const rows = ref([]), editor = ref(null), dialog = ref(null), step = ref(1);
 const targets = ref([]), loading = ref(true), targetsBusy = ref(false);
 const busy = ref(false), error = ref(""), editorError = ref("");
 const notification = ref(window.Notification?.permission || "unsupported");
+const push = ref(null), pushBusy = ref(false), pushError = ref(""), pushMessage = ref("");
+const supportsPush = pushSupported();
 const needsTarget = computed(() => reminderTypes[editor.value?.kind]?.target);
 const title = computed(() => ["Tipo di promemoria", "Nome e attività", "Orario e frequenza", "Riepilogo"][step.value - 1]);
 const message = ref("");
-const deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const deviceZone = "Europe/Rome";
 
 async function load() {
   rows.value = await api("/reminders");
@@ -21,6 +24,8 @@ async function load() {
 onMounted(async () => {
   try { await load(); } catch (e) { error.value = e.message; }
   finally { loading.value = false; }
+  try { push.value = await pushStatus(); }
+  catch (e) { pushError.value = e.message; }
 });
 function notify() {
   window.dispatchEvent(new Event("pulse-reminders-changed"));
@@ -33,6 +38,30 @@ async function permission() {
     notification.value = await Notification.requestPermission();
     notify();
   } catch (e) { error.value = e.message; }
+}
+async function changePush(action) {
+  if (pushBusy.value) return;
+  pushError.value = pushMessage.value = "";
+  pushBusy.value = true;
+  try {
+    if (action === "enable") {
+      await enablePush(push.value);
+      pushMessage.value = "Notifiche push attive su questo dispositivo.";
+    } else if (action === "disable") {
+      await disablePush();
+      pushMessage.value = "Notifiche push disattivate su questo dispositivo.";
+    } else {
+      await send("/push/test", {}, "POST");
+      pushMessage.value = "Test accettato dal servizio push. Controlla le notifiche del dispositivo.";
+    }
+  } catch (e) { pushError.value = e.message; }
+  finally {
+    notification.value = window.Notification?.permission || "unsupported";
+    try { push.value = await pushStatus(); }
+    catch (e) { pushError.value ||= e.message; }
+    pushBusy.value = false;
+    notify();
+  }
 }
 function open(row) {
   editor.value = {
@@ -132,14 +161,33 @@ async function change(row, action) {
     <div class="feature-row">
       <span class="feature-icon"><Icon name="bell" /></span>
       <h2>Notifiche</h2>
-      <button v-if="notification === 'default'" class="btn primary" @click="permission">
+      <button v-if="notification === 'default' && push && !push.publicKey" class="btn primary" @click="permission">
         Consenti notifiche
       </button>
       <span v-else class="intake-state" :class="{ taken: notification === 'granted' }">
         {{ { granted: 'Autorizzate', denied: 'Bloccate', unsupported: 'Non supportate' }[notification] }}
       </span>
     </div>
-    <p class="note">Le notifiche di sistema arrivano mentre PULSE è aperta e connessa.</p>
+    <template v-if="supportsPush && push?.publicKey">
+      <p class="note">
+        {{ push.registered && !push.needsRenewal
+          ? 'Push attive su questo dispositivo, anche a PULSE chiusa.'
+          : 'Attiva le push per ricevere i promemoria anche a PULSE chiusa.' }}
+      </p>
+      <div class="feature-actions">
+        <button v-if="!push.registered || push.needsRenewal" class="btn primary"
+          :disabled="pushBusy || notification === 'denied'" @click="changePush('enable')">
+          Attiva notifiche push
+        </button>
+        <button v-if="push.registered && !push.needsRenewal" class="btn secondary"
+          :disabled="pushBusy" @click="changePush('test')">Invia notifica di prova</button>
+        <button v-if="push.registered" class="btn secondary"
+          :disabled="pushBusy" @click="changePush('disable')">Disattiva push</button>
+      </div>
+    </template>
+    <p v-else class="note">Le notifiche locali funzionano con PULSE aperta e connessa.</p>
+    <p v-if="pushError" class="warning" role="alert">{{ pushError }}</p>
+    <p v-if="pushMessage" class="note" role="status">{{ pushMessage }}</p>
     <p v-if="notification === 'denied'" class="note">Puoi abilitarle nelle impostazioni del sito nel browser.</p>
   </section>
   <p v-if="error" class="warning" role="alert">{{ error }}</p>

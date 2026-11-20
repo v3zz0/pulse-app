@@ -44,6 +44,7 @@ async function requireUser(ctx, strapi) {
   )
     fail("Sessione scaduta", 401);
   ctx.state.pulseUser = session.owner;
+  ctx.state.pulseSessionId = session.id;
   if (ctx.method !== "GET") sameOrigin(ctx);
   return session.owner;
 }

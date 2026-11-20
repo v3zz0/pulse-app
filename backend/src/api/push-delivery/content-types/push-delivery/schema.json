@@ -1,0 +1,64 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pulse_push_deliveries",
+  "info": {
+    "singularName": "push-delivery",
+    "pluralName": "push-deliveries",
+    "displayName": "Consegne push"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "deviceId": {
+      "type": "integer",
+      "required": true,
+      "private": true
+    },
+    "reminderId": {
+      "type": "integer",
+      "private": true
+    },
+    "key": {
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "private": true
+    },
+    "receipt": {
+      "type": "uid",
+      "required": true,
+      "unique": true,
+      "private": true
+    },
+    "attempts": {
+      "type": "integer",
+      "required": true,
+      "default": 0
+    },
+    "retryAt": {
+      "type": "datetime",
+      "required": true,
+      "private": true
+    },
+    "validUntil": {
+      "type": "datetime",
+      "required": true,
+      "private": true
+    },
+    "finished": {
+      "type": "boolean",
+      "default": false
+    },
+    "shownAt": {
+      "type": "datetime",
+      "private": true
+    }
+  }
+}

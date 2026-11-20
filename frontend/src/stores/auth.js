@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { api, send } from "../api.js";
+import { stopLocalPush, withPushDeviceLock } from "../web-push";
 import { read, write, clearPrivate, exclusive } from "../offline";
 export const useAuth = defineStore("auth", {
   state: () => ({ user: null, checked: false }),
@@ -28,12 +29,13 @@ export const useAuth = defineStore("auth", {
     },
     async logout() {
       return navigator.locks.request("pulse-workout-sync", () =>
-        exclusive(async () => {
+        exclusive(() => withPushDeviceLock(async () => {
           await send("/logout", {}, "POST");
           await clearPrivate();
           try {
             const registration =
               await navigator.serviceWorker?.getRegistration();
+            await stopLocalPush(registration);
             for (const n of (await registration?.getNotifications()) || [])
               n.close();
           } catch {}
@@ -41,7 +43,7 @@ export const useAuth = defineStore("auth", {
           this.user = null;
           this.checked = false;
           location.assign("/login");
-        }),
+        })),
       );
     },
   },

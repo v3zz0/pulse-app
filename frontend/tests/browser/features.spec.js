@@ -258,31 +258,39 @@ test("Integratori quotidiani in Oggi: gestione separata, assunzioni indipendenti
   await page.getByRole("button", { name: "Salva integratore" }).click();
   const productCard = page.locator("article").filter({ has: page.getByRole("heading", { name, exact: true }) });
   await expect(productCard).toContainText("Da lunedì a domenica");
-  await expect(page.getByText("Storico assunzioni", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Storico assunzioni", { exact: true })).toBeVisible();
   expect(await call(page, "/reminders")).toEqual(beforeReminders);
   await page.screenshot({ path: `test-results/integratori-config-${test.info().project.name}.png` });
 
   await page.getByRole("link", { name: "Oggi", exact: true }).click();
-  const slots = productCard.locator(".intake-slot");
+  const slots = productCard;
   await expect(slots).toHaveCount(3);
-  await slots.nth(1).getByRole("button", { name: "Segna assunto" }).click();
-  await expect(slots.nth(1).locator(".intake-state")).toHaveText("Assunto");
-  await expect(slots.first().locator(".intake-state")).toHaveText("Da assumere");
-  await slots.nth(1).getByRole("button", { name: "Annulla registrazione" }).click();
-  await expect(slots.nth(1).locator(".intake-state")).toHaveText("Da assumere");
-
+  await expect(slots.first()).toContainText("14:00");
+  await slots.first().getByRole("button", { name: /Segna assunto/ }).click();
+  await expect(slots).toHaveCount(2);
+  await expect(slots.first()).toContainText("20:00");
+  await page.getByRole("link", { name: "Storico assunzioni" }).click();
+  const recorded = page.locator("#storico article").filter({ hasText: name });
+  await expect(recorded.first()).toContainText("Assunta");
+  page.once("dialog", (dialog) => dialog.accept());
+  await recorded.first().getByRole("button", { name: "Annulla registrazione" }).click();
+  await expect(recorded.first()).toContainText("Annullata");
+  await page.getByRole("link", { name: "Oggi", exact: true }).click();
+  await expect(slots).toHaveCount(3);
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
   await expect(slots).toHaveCount(3);
   await context.setOffline(true);
   try {
-    await slots.last().getByRole("button", { name: "Segna assunto" }).click();
-    await expect(slots.last().locator(".intake-state")).toHaveText("Da sincronizzare");
+    await slots.last().getByRole("button", { name: /Segna assunto/ }).click();
+    await expect(slots).toHaveCount(2);
+    await expect(page.getByText(/in attesa di sincronizzazione/)).toBeVisible();
     await page.reload();
-    await expect(slots.last().locator(".intake-state")).toHaveText("Da sincronizzare");
+    await expect(slots).toHaveCount(2);
+    await expect(page.getByText(/in attesa di sincronizzazione/)).toBeVisible();
   } finally { await context.setOffline(false); }
-  await expect(slots.last().locator(".intake-state")).toHaveText("Assunto");
-  await expect(slots.first().locator(".intake-state")).toHaveText("Da assumere");
+  await expect(page.getByText(/in attesa di sincronizzazione/)).toHaveCount(0);
+  await expect(slots).toHaveCount(2);
   await page.screenshot({ path: `test-results/oggi-integratori-${test.info().project.name}.png` });
   await page.getByRole("link", { name: "Altro", exact: true }).click();
   await page.getByRole("link", { name: "Gestisci i miei integratori" }).click();

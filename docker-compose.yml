@@ -19,6 +19,9 @@ services:
     build: ./backend
     environment:
       FLOW_DATA_PATH: /app/flow
+      PULSE_WEB_PUSH_PUBLIC_KEY: ${PULSE_WEB_PUSH_PUBLIC_KEY:-}
+      PULSE_WEB_PUSH_PRIVATE_KEY: ${PULSE_WEB_PUSH_PRIVATE_KEY:-}
+      PULSE_WEB_PUSH_SUBJECT: ${PULSE_WEB_PUSH_SUBJECT:-}
       NODE_ENV: production
       STRAPI_TELEMETRY_DISABLED: 'true'
       DATABASE_HOST: postgres

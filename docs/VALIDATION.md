@@ -1,3 +1,13 @@
+# Home integratori e Web Push — 20 novembre 2026
+
+Build Vite, build Strapi e avvio dello stack Docker locale su PostgreSQL riusciti. Unitari superati in 11 file backend e 4 frontend. La configurazione Compose Jenkins risolve le variabili VAPID soltanto per Strapi, con rete in uscita. Nessuna chiave privata nel bundle.
+
+Playwright **7/7**. A 360, 390 e 1440 px sono state verificate le due dosi di creatina in ordine, la scomparsa della singola dose, il messaggio a fine giornata, la coda offline con riapertura e sincronizzazione, la rettifica e l’annullamento nello storico e il rinnovo al cambio di giorno. A tutte le larghezze il job ha generato una consegna cifrata, ricevuta nel service worker con tutte le schede PULSE chiuse. Il test ha verificato la notifica in Chromium e il riscatto una sola volta. Verificati anche test a pagina aperta, supplemento già registrato, rinvio, modifica, disattivazione, eliminazione, iscrizione scaduta e isolamento dopo logout e cambio account. Una prova desktop separata ha verificato la notifica locale e i comandi del promemoria.
+
+Il collaudo chiuso usa il broker di test e CDP per riprodurre la consegna al browser. Il tentativo di registrazione sul servizio esterno dal browser automatizzato non si è concluso entro il tempo di verifica. La consegna tramite provider e la ricezione su Android fisico restano da verificare dopo configurazione e rilascio. [Guida Web Push e prova Android](WEB_PUSH.md)
+
+---
+
 # Percorso persistente Flow in produzione — 18 novembre 2026
 
 Il controllo del container di produzione ha rilevato il bind dal workspace Jenkins verso `/app/flow` e `ENOENT` per il catalogo. Compose usa ora `/srv/pulse/flow` come sorgente predefinita e conserva l’override esplicito. Verificata la configurazione Compose con entrambi i percorsi e il mount in sola lettura.
