@@ -367,3 +367,15 @@ Import privato esplicito dal PDF originale verificato tramite SHA256: 7 pagine, 
 - Allenamenti, carichi standard/temporanei, ripresa IndexedDB, preferenze, domani, integratori, peso, lista spesa, notifiche e PWA sono successive fasi, non test dichiarati superati.
 - HTTPS su dominio pubblico, deploy remoto, restore upload e migrazioni applicative non eseguiti.
 - `npm audit --omit=dev`: frontend 0; backend 34 segnalazioni (23 high, 9 moderate, 2 low, 0 critical), incluse dipendenze transitive Strapi. I suggerimenti automatici includono downgrade a Strapi 4, incompatibili col requisito: non applicati. Serve revisione degli advisory e aggiornamento compatibile prima di produzione. Conteggi in `dependency-audit.json`.
+
+## Redesign "Mattino" e ON/OFF automatico — 23 novembre 2026
+
+Modifiche: nuovo tema chiaro/scuro (crema, terracotta, salvia, titoli serif; `frontend/src/theme.css`), navigazione a 5 voci (Oggi, Dieta, Allena, Progressi, Tu) con barra laterale da 900px, Oggi riprogettata (saluto, chip ON/OFF, avanzamento, prossimo pasto, swipe, allenamento del giorno, domani), Dieta con striscia settimanale e schede Pasti/Spesa, Tu come elenco, toast con "Annulla" per i pasti. Backend: `personal-setting.data.trainingDays` (0–6, default vuoto = comportamento precedente tutto OFF); la giornata nasce ON/OFF secondo quei giorni, una giornata mai modificata (revision 0, senza consumi) segue i giorni aggiornati, azione `mode: "auto"` per tornare all'automatico, `autoMode` nella risposta `/days/:date`. Nessuna modifica di schema DB.
+
+Risultati reali:
+- `backend`: `npm test` 33/33 passati (incluso nuovo test ON/OFF per i 7 giorni); `npm run build` riuscito.
+- `frontend`: `npm run build` riuscito; `npm test` 6/6 passati.
+- Stack Docker ricostruito (`docker compose up -d --build --wait`): tutti healthy.
+- Verifica browser su stack reale (porta 8081) con un utente sintetico temporaneo (piani dal CSV di esempio dell'app, poi utente e dati eliminati): chip "Giorno ON · automatico" nel giorno di allenamento; ON→OFF manuale e "Torna all'automatico"; settimana successiva automatica; "Mangiato" → toast con Annulla → pasto ripristinato e persistente dopo il reload. 12 schermate × (375×740, 1280×850) × (chiaro, scuro): 0 errori console, 0 overflow orizzontale, 0 aree di tocco sotto 44px dopo le correzioni. Screenshot ispezionati.
+
+Non eseguito: la suite `npm run test:e2e` richiede le fixture di `backend/scripts/test-fixtures.js`, che importano un PDF privato non montato in questo ambiente. I test e2e sono stati aggiornati ai nuovi nomi (voci "Allena"/"Tu", titolo "La tua giornata", scheda "Lista della spesa", layout di Tu) ma non sono stati eseguiti: da lanciare con le fixture prima del rilascio. Swipe e `prefers-reduced-motion` non coperti da test automatici; contrasto AA non misurato con strumento.

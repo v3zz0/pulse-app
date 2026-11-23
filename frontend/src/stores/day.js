@@ -14,6 +14,7 @@ export const useDay = defineStore("day", {
   state: () => ({
     date: localDate(),
     mode: "OFF",
+    autoMode: null,
     meals: [],
     shopping: [],
     revision: 0,
@@ -30,6 +31,10 @@ export const useDay = defineStore("day", {
     next() {
       return this.meals.find((m) => !m.consumedAt);
     },
+    /** Modalità automatica: coincide con quella dei giorni di allenamento. */
+    isAuto() {
+      return !this.autoMode || this.mode === this.autoMode;
+    },
     count() {
       return this.meals.filter((m) => m.consumedAt).length;
     },
@@ -41,6 +46,7 @@ export const useDay = defineStore("day", {
       this.planOutdated = data.planOutdated ?? false;
       this.nutrientTotals = data.nutrientTotals;
       this.mode = data.mode;
+      this.autoMode = data.autoMode ?? null;
       this.meals = data.meals;
       this.revision = data.revision;
       this.shopping = data.shopping;

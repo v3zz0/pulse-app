@@ -4,6 +4,7 @@ const validate = require("../../../pulse/validation");
 const nutrition = require("../../../pulse/nutrition");
 const { activePlan } = require("../../../pulse/active-plan");
 const nutrientTotals = require("../../../pulse/nutrient-totals");
+const settings = require("../../../pulse/plan-settings");
 const uid = (name) => `api::${name}.${name}`;
 const query = (strapi, name) => strapi.db.query(uid(name));
 const safeUser = (user) => ({ id: user.id, username: user.username });
@@ -30,6 +31,7 @@ const handler = (action) =>
 async function currentPlan(user) {
   return activePlan(strapi, "nutrition", user.id);
 }
+const usesModes = (plan) => !plan?.editor?.schedule || plan.editor.schedule.mode === "legacy";
 async function getDay(user, day) {
   validate.date(day);
   const uniqueKey = `${user.id}:${day}`;
@@ -37,7 +39,17 @@ async function getDay(user, day) {
     where: { uniqueKey, owner: user.id },
     populate: { plan: true },
   });
-  if (entry) return entry;
+  const days = (await settings.get(strapi, user.id)).data.trainingDays,
+    auto = settings.autoMode(days, day);
+  // Giornata mai toccata dall'utente: segue i giorni di allenamento attuali.
+  if (entry && entry.revision === 0 && entry.mode !== auto && usesModes(entry.plan) && !entry.meals.some((m) => m.consumedAt)) {
+    await query(strapi, "daily-plan").updateMany({
+      where: { id: entry.id, owner: user.id, revision: 0 },
+      data: { mode: auto, meals: structuredClone(nutrition.mealsForDate(entry.plan, auto, day)), shoppingChecked: {} },
+    });
+    entry = await query(strapi, "daily-plan").findOne({ where: { uniqueKey, owner: user.id }, populate: { plan: true } });
+  }
+  if (entry) return Object.assign(entry, { autoMode: auto });
   const plan = await currentPlan(user);
   if (!plan)
     validate.fail(
@@ -48,25 +60,26 @@ async function getDay(user, day) {
     owner: user.id,
     uniqueKey,
     day,
-    mode: "OFF",
+    mode: usesModes(plan) ? auto : "OFF",
     plan: plan.id,
-    meals: structuredClone(nutrition.mealsForDate(plan, "OFF", day)),
+    meals: structuredClone(nutrition.mealsForDate(plan, usesModes(plan) ? auto : "OFF", day)),
     planEditRevision: plan.editor?.requestId || null,
     shoppingChecked: {},
     revision: 0,
   };
   try {
     await query(strapi, "daily-plan").create({ data });
-    return query(strapi, "daily-plan").findOne({
+    const created = await query(strapi, "daily-plan").findOne({
       where: { uniqueKey, owner: user.id },
       populate: { plan: true },
     });
+    return Object.assign(created, { autoMode: auto });
   } catch (error) {
     entry = await query(strapi, "daily-plan").findOne({
       where: { uniqueKey, owner: user.id },
       populate: { plan: true },
     });
-    if (entry) return entry;
+    if (entry) return Object.assign(entry, { autoMode: auto });
     throw error;
   }
 }
@@ -77,6 +90,7 @@ const presentDay = (entry) => ({
   planOutdated: (entry.planEditRevision || null) !== (entry.plan?.editor?.requestId || null),
   nutrientTotals: nutrientTotals.dayTotals(entry.meals),
   mode: entry.mode,
+  autoMode: entry.autoMode,
   meals: entry.meals.map((meal) => ({
     ...meal,
     nutrientTotals: nutrientTotals.mealTotals(meal),
@@ -133,7 +147,7 @@ module.exports = {
       shoppingChecked = {};
       nextPlanId = current.id;
     } else if (body.action === "mode") {
-      mode = validate.mode(body.mode);
+      mode = body.mode === "auto" ? entry.autoMode : validate.mode(body.mode);
       if (meals.some((m) => m.consumedAt))
         validate.fail(
           "Annulla i pasti consumati prima di cambiare ON/OFF",

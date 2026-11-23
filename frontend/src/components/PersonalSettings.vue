@@ -2,6 +2,7 @@
 import { ref, onMounted } from "vue";
 import { api, send } from "../api";
 import FoodChips from "./FoodChips.vue";
+import { weekdays } from "../workout-display";
 const data = ref(null),
   revision = ref(0),
   busy = ref(false),
@@ -21,7 +22,7 @@ async function load() {
   error.value = "";
   try {
     const r = await api("/personal-settings");
-    data.value = r.data;
+    data.value = { ...r.data, trainingDays: r.data.trainingDays || [] };
     revision.value = r.revision;
     suggested.value = r.suggestedGoals;
     hasGoals.value = !!r.data.goals;
@@ -70,7 +71,7 @@ async function save() {
       revision: revision.value,
       confirm: true,
     });
-    data.value = r.data;
+    data.value = { ...r.data, trainingDays: r.data.trainingDays || [] };
     revision.value = r.revision;
     savedGoals.value = !!r.data.goals;
     message.value = "Preferenze personali salvate";
@@ -105,6 +106,17 @@ async function save() {
           id="avoided-foods"
           label="Alimenti non graditi"
         />
+        <div class="divider"></div>
+        <fieldset id="giorni-allenamento" class="checks" tabindex="-1">
+          <legend>Giorni di allenamento</legend>
+          <label v-for="d in [1, 2, 3, 4, 5, 6, 0]" :key="d"
+            ><input v-model="data.trainingDays" type="checkbox" :value="d" />{{ weekdays[d] }}</label
+          >
+        </fieldset>
+        <p class="note">
+          Decidono in automatico se un giorno è ON o OFF. Puoi sempre cambiarlo a
+          mano per una singola data e tornare all'automatico.
+        </p>
         <div class="divider"></div>
         <h3>Obiettivi indicativi</h3>
         <label class="grocery-item"

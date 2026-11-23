@@ -25,12 +25,21 @@ function foodList(value) {
     fail("Elenco alimenti: massimo 2.000 caratteri");
   return out;
 }
+/** Giorni di allenamento (0 = domenica … 6 = sabato): decidono ON/OFF automatico. */
+function trainingDays(value = []) {
+  if (!Array.isArray(value) || value.length > 7 || value.some((d) => !Number.isInteger(d) || d < 0 || d > 6))
+    fail("Giorni di allenamento non validi");
+  return [...new Set(value)].sort();
+}
+/** ON se la data (YYYY-MM-DD, giorno locale) cade in un giorno di allenamento. */
+const autoMode = (days, day) => (days.includes(new Date(day + "T12:00:00Z").getUTCDay()) ? "ON" : "OFF");
 function validate(data) {
   if (!data || typeof data !== "object" || Array.isArray(data))
     fail("Impostazioni non valide");
   const out = {
     favoriteFoods: foodList(data.favoriteFoods),
     avoidedFoods: foodList(data.avoidedFoods),
+    trainingDays: trainingDays(data.trainingDays),
   };
   if (data.goals !== null) {
     if (!data.goals || typeof data.goals !== "object")
@@ -58,6 +67,7 @@ async function get(app, owner) {
     favoriteFoods: foodList(stored.favoriteFoods || []),
     avoidedFoods: foodList(stored.avoidedFoods || []),
     goals: stored.goals ?? null,
+    trainingDays: trainingDays(stored.trainingDays || []),
   };
   return {
     data,
@@ -86,4 +96,4 @@ async function save(app, owner, body) {
     return get(app, owner);
   });
 }
-module.exports = { get, save, validate, suggestedGoals };
+module.exports = { get, save, validate, suggestedGoals, trainingDays, autoMode };

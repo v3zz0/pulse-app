@@ -17,6 +17,10 @@ import Progress from "./Progress.vue";
 import { useAuth } from "./stores/auth";
 import "./style.css";
 import "./editor.css";
+import "./progress.css";
+import "./theme.css";
+import { applyTheme } from "./ui.js";
+applyTheme();
 const pinia = createPinia();
 const router = createRouter({
   history: createWebHistory(),

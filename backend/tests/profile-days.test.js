@@ -24,10 +24,11 @@ test("food chips accept legacy strings, remove duplicates and retire removed pre
     "avoidedFoods",
     "favoriteFoods",
     "goals",
+    "trainingDays",
   ]);
   assert.deepEqual(
     settings.validate({ favoriteFoods: [], avoidedFoods: [], goals: null }),
-    { favoriteFoods: [], avoidedFoods: [], goals: null },
+    { favoriteFoods: [], avoidedFoods: [], goals: null, trainingDays: [] },
   );
   const app = {
     db: {
@@ -39,6 +40,7 @@ test("food chips accept legacy strings, remove duplicates and retire removed pre
     "avoidedFoods",
     "favoriteFoods",
     "goals",
+    "trainingDays",
   ]);
   assert.equal(old.mealCount, 4);
   assert.equal(old.cookingMinutes, 20);
@@ -70,4 +72,17 @@ test("daily Strapi cards preserve full source and identifiers without creating i
   split[0].blocks[0].sets[0].standardKg = 50;
   assert.equal(source.days.A[0].sets[0].standardKg, 60);
   assert.throws(() => protect(), /generata dal programma/);
+});
+
+test("training days decide automatic ON/OFF for every weekday", () => {
+  assert.deepEqual(settings.trainingDays([5, 1, 3, 1]), [1, 3, 5]);
+  assert.throws(() => settings.trainingDays([7]));
+  assert.throws(() => settings.trainingDays("1"));
+  // 2026-11-23 is a Monday
+  const expected = ["ON", "OFF", "ON", "OFF", "ON", "OFF", "OFF"];
+  for (let i = 0; i < 7; i++) {
+    const day = `2026-11-${23 + i}`;
+    assert.equal(settings.autoMode([1, 3, 5], day), expected[i], day);
+  }
+  assert.equal(settings.autoMode([], "2026-11-23"), "OFF");
 });

@@ -106,7 +106,7 @@ onUnmounted(() => {
   display: block;
   object-fit: contain;
   max-width: 100%;
-  background: #19232d;
+  background: var(--panel);
   border-radius: 12px;
   margin: 10px auto;
 }

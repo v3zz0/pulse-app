@@ -690,11 +690,11 @@ onUnmounted(() => clearInterval(interval));
   padding: 8px;
   border: 1px solid var(--border);
   border-radius: 14px;
-  background: #151e28;
+  background: var(--panel2);
 }
 .danger {
-  color: #ff9292;
-  border-color: #925050;
+  color: var(--red);
+  border-color: var(--red);
 }
 .workout-modal::backdrop {
   background: #000b;

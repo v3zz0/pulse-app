@@ -19,8 +19,8 @@ test("logo ufficiale: favicon, manifest, dimensioni, cache e installabilità", a
   const manifest = await response.json();
   expect(manifest.name).toBe("PULSE");
   expect(manifest.short_name).toBe("PULSE");
-  expect(manifest.theme_color).toBe("#0B1018");
-  expect(manifest.background_color).toBe("#0B1018");
+  expect(manifest.theme_color).toBe("#f6f1e8");
+  expect(manifest.background_color).toBe("#f6f1e8");
   expect(manifest.display).toBe("standalone");
   expect(manifest.icons).toHaveLength(4);
   const images = [

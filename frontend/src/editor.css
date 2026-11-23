@@ -135,7 +135,7 @@
   justify-content: space-between;
 }
 .editor-add.btn {
-  border-color: #398776;
+  border-color: var(--accent-line);
   color: var(--accent);
 }
 .editor-week-field {

@@ -24,7 +24,7 @@ async function login(page) {
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "La tua giornata." }),
+    page.getByRole("heading", { name: "La tua giornata", exact: true }),
   ).toBeVisible();
 }
 async function spacing(page) {
@@ -72,7 +72,7 @@ test("editor Allenati, libreria, ordinamento, Flow e allenamento", async ({
     });
   const plans = await call(page, "/plans/training");
   const previous = plans.find((p) => p.status === "active")?.id;
-  await page.getByRole("link", { name: "Allenati", exact: true }).click();
+  await page.getByRole("link", { name: "Allena", exact: true }).click();
   await page.getByRole("link", { name: "Crea nuova scheda" }).click();
   await expect(
     page.getByRole("heading", { name: "Crea allenamento" }),

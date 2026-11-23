@@ -26,7 +26,7 @@ async function login(page, user) {
   await page.getByLabel("Email o nome utente").fill(user.email);
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "La tua giornata." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "La tua giornata", exact: true })).toBeVisible();
 }
 const rome = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome", year: "numeric", month: "2-digit", day: "2-digit" }).format();
 const weekdays = [0, 1, 2, 3, 4, 5, 6];

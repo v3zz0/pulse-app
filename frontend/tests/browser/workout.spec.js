@@ -13,7 +13,7 @@ async function login(page) {
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "La tua giornata." }),
+    page.getByRole("heading", { name: "La tua giornata", exact: true }),
   ).toBeVisible();
 }
 test("scheda completa, peso temporaneo, timer, offline/reload, sync e storico", async ({
@@ -33,7 +33,7 @@ test("scheda completa, peso temporaneo, timer, offline/reload, sync e storico", 
   await expect(
     page.getByRole("heading", { name: /Riprendi allenamento/ }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Allenati", exact: true }).click();
+  await page.getByRole("link", { name: "Allena", exact: true }).click();
   await expect(page.getByTestId("set-A:1:1")).toBeVisible();
   const program = await page.request.get("/api/pulse/training").then((r) => r.json());
   const [bench, , , incline] = program.program.days.A;
@@ -113,7 +113,7 @@ test("scheda completa, peso temporaneo, timer, offline/reload, sync e storico", 
   await expect(
     page.getByRole("img", { name: "Andamento peso corporeo" }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Altro", exact: true }).click();
+  await page.getByRole("link", { name: "Tu", exact: true }).click();
   await page.getByRole("button", { name: "Installa PULSE" }).click();
   const installDialog = page.getByRole("dialog", { name: "Installa PULSE" });
   await expect(installDialog).toContainText(mobile ? "menu ⋮ di Chrome" : "barra degli indirizzi");

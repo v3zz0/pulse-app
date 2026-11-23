@@ -16,7 +16,7 @@ test("accesso privato, Home persistente e navigazione nutrizione", async ({
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "La tua giornata." }),
+    page.getByRole("heading", { name: "La tua giornata", exact: true }),
   ).toBeVisible();
   // Keep this synthetic fixture repeatable across test runs and viewports.
   expect(user.email).toMatch(/^pulse-test-[12]@example.invalid$/);
@@ -72,6 +72,7 @@ test("accesso privato, Home persistente e navigazione nutrizione", async ({
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.keyboard.press("Escape");
   await page.getByRole("link", { name: "Dieta", exact: true }).click();
+  await page.getByRole("button", { name: "Lista della spesa", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Lista della spesa" }),
   ).toBeVisible();
@@ -83,7 +84,7 @@ test("accesso privato, Home persistente e navigazione nutrizione", async ({
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await page.getByRole("link", { name: "Altro", exact: true }).click();
+  await page.getByRole("link", { name: "Tu", exact: true }).click();
   const weightCard = page.locator("form").filter({
     has: page.getByRole("heading", { name: "Registra peso" }),
   });

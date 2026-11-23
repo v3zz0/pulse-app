@@ -74,7 +74,7 @@ test("CSV: esempi, anteprima, conferma, versioni, obiettivi e scheda completa", 
   await expect(
     page.getByRole("link", { name: "Gestisci piano", exact: true }),
   ).toHaveCount(0);
-  await page.getByRole("link", { name: "Allenati", exact: true }).click();
+  await page.getByRole("link", { name: "Allena", exact: true }).click();
   await expect(
     page.getByRole("link", { name: "Gestisci scheda", exact: true }),
   ).toHaveCount(0);
@@ -86,7 +86,7 @@ test("CSV: esempi, anteprima, conferma, versioni, obiettivi e scheda completa", 
     );
     await expect(page).toHaveURL(base + path);
     await page
-      .getByRole("link", { name: "Torna ad Altro", exact: true })
+      .getByRole("link", { name: "Torna al tuo spazio", exact: true })
       .click();
     const imports = page.getByRole("region", { name: "Piani e importazioni" });
     const dietButton = page.getByRole("link", {
@@ -97,17 +97,13 @@ test("CSV: esempi, anteprima, conferma, versioni, obiettivi e scheda completa", 
       name: "Gestisci scheda allenamento",
       exact: true,
     });
+    // Nuovo layout "Tu": voci in elenco, una sotto l'altra, con la stessa larghezza.
     const dietBox = await dietButton.boundingBox(),
       workoutBox = await workoutButton.boundingBox();
     expect(Math.abs(dietBox.width - workoutBox.width)).toBeLessThan(1);
-    expect(dietBox.y).toBe(workoutBox.y);
-    expect(
-      (
-        await page
-          .getByRole("button", { name: "Installa PULSE" })
-          .boundingBox()
-      ).y,
-    ).toBeLessThan((await imports.boundingBox()).y);
+    expect(dietBox.y).toBeLessThan(workoutBox.y);
+    await expect(imports).toBeVisible();
+    await expect(page.getByRole("button", { name: "Installa PULSE" })).toBeVisible();
     await page
       .getByRole("link", {
         name:
@@ -119,10 +115,10 @@ test("CSV: esempi, anteprima, conferma, versioni, obiettivi e scheda completa", 
       .click();
     await expect(page).toHaveURL(base + path);
     await expect(
-      page.getByRole("link", { name: "Altro", exact: true }),
+      page.getByRole("link", { name: "Tu", exact: true }),
     ).toHaveClass(/active/);
     await expect(
-      page.getByRole("link", { name: "Altro", exact: true }),
+      page.getByRole("link", { name: "Tu", exact: true }),
     ).toHaveAttribute("aria-current", "page");
     const dl = page.waitForEvent("download");
     await page

@@ -14,7 +14,7 @@ test("due tab e conflitto con un altro dispositivo senza perdita silenziosa", as
   await page.getByLabel("Email o nome utente").fill(user.email);
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
-  await page.getByRole("link", { name: "Allenati", exact: true }).click();
+  await page.getByRole("link", { name: "Allena", exact: true }).click();
   await expect(page.getByTestId("workout-sync")).toHaveText(
     "Tutte le modifiche sincronizzate",
   );
@@ -126,7 +126,7 @@ test("due tab e conflitto con un altro dispositivo senza perdita silenziosa", as
   await expect(tab.getByTestId("workout-sync")).toHaveText(
     "Tutte le modifiche sincronizzate",
   );
-  await page.getByRole("link", { name: "Altro", exact: true }).click();
+  await page.getByRole("link", { name: "Tu", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Esci", exact: true }),
   ).toHaveCount(0);
@@ -165,7 +165,7 @@ test("ciclo completo UI: standard 60, temporaneo 50, senza peso, nuova scheda an
   await page.getByLabel("Email o nome utente").fill(u.email);
   await page.getByLabel("Password", { exact: true }).fill(u.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
-  await page.getByRole("link", { name: "Allenati", exact: true }).click();
+  await page.getByRole("link", { name: "Allena", exact: true }).click();
   async function finish() {
     await page.getByRole("button", { name: /Mostra tutti/ }).click();
     const buttons = page.getByRole("button", {

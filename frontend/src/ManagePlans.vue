@@ -226,7 +226,7 @@ async function copyPrompt() {
     <RouterLink :to="editorUrl" class="btn primary">
       {{ kind === "nutrition" ? "Crea nuova dieta" : "Crea nuova scheda" }}
     </RouterLink>
-    <RouterLink to="/altro" class="btn secondary">Torna ad Altro</RouterLink>
+    <RouterLink to="/altro" class="btn secondary">Torna al tuo spazio</RouterLink>
   </div>
   <p v-if="error" role="alert" class="warning">{{ error }}</p>
   <p v-if="message" role="status" class="inline-note">{{ message }}</p>

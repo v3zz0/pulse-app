@@ -18,7 +18,7 @@ test("consenso, notifica reale service worker, rinvio e disattivazione", async (
   await page.getByLabel("Email o nome utente").fill(user.email);
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
-  await page.getByRole("link", { name: "Altro", exact: true }).click();
+  await page.getByRole("link", { name: "Tu", exact: true }).click();
   await page.evaluate(() =>
     Promise.race([
       navigator.serviceWorker.ready,

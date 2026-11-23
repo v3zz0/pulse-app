@@ -18,7 +18,7 @@ test("PWA produzione: installabilità, cache solo shell e ripresa offline dopo r
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "La tua giornata." }),
+    page.getByRole("heading", { name: "La tua giornata", exact: true }),
   ).toBeVisible();
   await ensurePendingWorkout(page, user);
   await page.evaluate(() => navigator.serviceWorker.ready);
@@ -32,7 +32,7 @@ test("PWA produzione: installabilità, cache solo shell e ripresa offline dopo r
   );
   expect(manifest.display).toBe("standalone");
   expect(manifest.icons).toHaveLength(4);
-  await page.getByRole("link", { name: "Allenati", exact: true }).click();
+  await page.getByRole("link", { name: "Allena", exact: true }).click();
   await expect(page.getByTestId("workout-sync")).toHaveText(
     "Tutte le modifiche sincronizzate",
   );

@@ -86,3 +86,7 @@ Training-program aggiunge displaySettings/displayRevision per nomi e calendario,
 ## Associazioni Flow
 
 `training-program.flowAssociations` è un JSON nullable separato dalla fonte della scheda. Contiene la revisione delle modifiche e scelte per chiavi stabili di giorno, blocco e movimento. Una scelta `null` rimuove esplicitamente la proposta automatica. Una scelta positiva identifica l’ID Flow e la revisione del dataset. Il server risolve le associazioni nella risposta Allenati. CSV, carichi e snapshot conclusi restano indipendenti. Vedere [FLOW_DATASET.md](FLOW_DATASET.md).
+
+## Giorni di allenamento e ON/OFF automatico — 23 novembre 2026
+
+`personal-setting.data.trainingDays`: array di interi 0–6 (0 = domenica), validato e deduplicato; assente = nessun giorno ON. Alla creazione di `daily-plan` la modalità vale ON se il giorno locale della data è tra i giorni di allenamento (solo per piani con modalità ON/OFF). Una giornata con revision 0 e senza consumi viene riallineata ai giorni correnti alla lettura. Il cambio manuale resta l'azione `mode`; `mode: "auto"` torna alla modalità calcolata. Non esiste un flag "manuale" persistito: l'interfaccia mostra "automatico" quando la modalità coincide con `autoMode`.

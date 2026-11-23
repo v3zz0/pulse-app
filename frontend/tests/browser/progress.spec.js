@@ -20,7 +20,7 @@ test("Progressi con dati reali, intervalli, storico e layout", async ({
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "La tua giornata." }),
+    page.getByRole("heading", { name: "La tua giornata", exact: true }),
   ).toBeVisible();
   async function api(path, data) {
     const result = await page.request.fetch(base + "/api/pulse" + path, {

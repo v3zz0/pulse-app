@@ -46,7 +46,7 @@ test("proposte, bozza persistente PWA, annullamento offline e terminalità multi
   await page.getByLabel("Password", { exact: true }).fill(u.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "La tua giornata." }),
+    page.getByRole("heading", { name: "La tua giornata", exact: true }),
   ).toBeVisible();
   let data = await call(page, "/training");
   expect(data.program.title).toBe("Test sintetico proposte e annullamento");
@@ -57,7 +57,7 @@ test("proposte, bozza persistente PWA, annullamento offline e terminalità multi
       operation(data.active, { action: "cancel", confirm: true }),
     );
   const history = data.history;
-  await page.getByRole("link", { name: "Allenati", exact: true }).click();
+  await page.getByRole("link", { name: "Allena", exact: true }).click();
   await page.getByRole("button", { name: "Inizia scheda A completa" }).click();
   const exact = page.getByTestId("set-A:exact:1"),
     range = page.getByTestId("set-A:range:1"),

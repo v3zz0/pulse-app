@@ -13,6 +13,7 @@ export const icons = {
   food: '<path d="M4 3v7a3 3 0 0 0 6 0V3M7 3v18M19 3v18M19 3c-4 2-5 7-5 11h5"/>',
   gym: '<path d="m6 8 2-2m8 10 2-2M4 10l6-6m4 16 6-6M3 13l10-10m8 8L11 21M6 18l12-12"/>',
   chart: '<path d="M3 19V5m0 14h18M7 15l4-4 3 2 5-7"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>',
   more: '<circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/>',
   arrow: '<path d="m9 18 6-6-6-6"/>',
   check: '<path d="m4 12 5 5L20 6"/>',

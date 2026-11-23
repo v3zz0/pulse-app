@@ -5,6 +5,7 @@ import { useWorkout } from "./stores/workout";
 import Reminders from "./Reminders.vue";
 import { dayName } from "./workout-display";
 import Icon from "./components/Icon.vue";
+import Toast from "./components/Toast.vue";
 import { useAuth } from "./stores/auth";
 const auth = useAuth(),
   workout = useWorkout(), intakes = useIntakes();
@@ -18,9 +19,9 @@ watch(
 const tabs = [
   ["/", "home", "Oggi"],
   ["/dieta", "food", "Dieta"],
-  ["/allenati", "gym", "Allenati"],
+  ["/allenati", "gym", "Allena"],
   ["/progressi", "chart", "Progressi"],
-  ["/altro", "more", "Altro"],
+  ["/altro", "user", "Tu"],
 ];
 </script>
 <template>
@@ -72,6 +73,7 @@ const tabs = [
     </section>
     <RouterView /><Reminders v-if="auth.user" />
   </main>
+  <Toast />
   <p class="footer-note">PULSE · Il tuo spazio privato</p>
   <nav v-if="auth.user" class="bottom-nav" aria-label="Navigazione principale">
     <RouterLink
@@ -81,12 +83,12 @@ const tabs = [
       class="navitem"
       :class="{
         active: (path !== '/' && $route.path.startsWith(path + '/')) ||
-          (path === '/altro' && $route.path === '/integratori'),
+          (path === '/altro' && ['/integratori', '/account'].includes($route.path)),
       }"
       :aria-current="
         $route.path === path ||
         (path !== '/' && $route.path.startsWith(path + '/')) ||
-        (path === '/altro' && $route.path === '/integratori')
+        (path === '/altro' && ['/integratori', '/account'].includes($route.path))
           ? 'page'
           : undefined
       "
