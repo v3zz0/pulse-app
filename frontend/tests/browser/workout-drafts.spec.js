@@ -45,7 +45,7 @@ test("proposte, bozza persistente PWA, annullamento offline e terminalità multi
   await page.getByLabel("Password", { exact: true }).fill(u.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "La tua giornata", exact: true }),
+    page.getByRole("link", { name: "Oggi", exact: true }),
   ).toBeVisible();
   let data = await call(page, "/training");
   expect(data.program.title).toBe("Test sintetico proposte e annullamento");

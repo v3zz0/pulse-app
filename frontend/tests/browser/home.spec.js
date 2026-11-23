@@ -16,7 +16,7 @@ test("accesso privato, Home persistente e navigazione nutrizione", async ({
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "La tua giornata", exact: true }),
+    page.getByRole("link", { name: "Oggi", exact: true }),
   ).toBeVisible();
   // Keep this synthetic fixture repeatable across test runs and viewports.
   expect(user.email).toMatch(/^pulse-test-[12]@example.invalid$/);
@@ -49,9 +49,6 @@ test("accesso privato, Home persistente e navigazione nutrizione", async ({
     path: "test-results/phase2-" + test.info().project.name + ".png",
     fullPage: true,
   });
-  expect((await next.boundingBox()).y).toBeLessThan(
-    (await page.getByTestId("meal-list").boundingBox()).y,
-  );
   await Promise.all([
     page.waitForResponse(
       (r) =>
@@ -62,23 +59,18 @@ test("accesso privato, Home persistente e navigazione nutrizione", async ({
     page.getByRole("button", { name: "Mangiato", exact: true }).click(),
   ]);
   await page.reload();
+  // La giornata completa si apre da "Apri giornata", come una scheda di allenamento.
+  await page.getByRole("link", { name: "Apri giornata" }).click();
   await expect(
-    page
-      .getByTestId("meal-list")
-      .getByRole("button", { name: /Annulla pasto:/ })
-      .first(),
+    page.getByTestId("meal-list").getByRole("button", { name: /^Annulla / }).first(),
   ).toBeVisible();
   await page.getByRole("button", { name: "Sostituisci", exact: true }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.keyboard.press("Escape");
-  await page.getByRole("link", { name: "Dieta", exact: true }).click();
-  await page.getByRole("button", { name: "Lista della spesa", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Lista della spesa" }),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Prepara domani", exact: true })
-    .click();
+  await page.getByText("Lista della spesa", { exact: true }).click();
+  await expect(page.locator(".grocery-item").first()).toBeVisible();
+  await page.getByRole("button", { name: "Giorno successivo" }).click();
+  await expect(page).toHaveURL(/\/dieta\?day=/);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

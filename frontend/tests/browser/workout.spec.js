@@ -13,7 +13,7 @@ async function login(page) {
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "La tua giornata", exact: true }),
+    page.getByRole("link", { name: "Oggi", exact: true }),
   ).toBeVisible();
 }
 test("scheda completa, peso temporaneo, timer, offline/reload, sync e storico", async ({

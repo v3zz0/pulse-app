@@ -18,7 +18,7 @@ test("PWA produzione: installabilità, cache solo shell e ripresa offline dopo r
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "La tua giornata", exact: true }),
+    page.getByRole("link", { name: "Oggi", exact: true }),
   ).toBeVisible();
   await ensurePendingWorkout(page, user);
   await page.evaluate(() => navigator.serviceWorker.ready);

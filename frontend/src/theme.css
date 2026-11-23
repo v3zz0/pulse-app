@@ -189,3 +189,7 @@ a.btn, a.quick-action, .menu-list a, .page-back { text-decoration: none; }
   .nav-subitem:hover { background: var(--panel2); color: var(--ink); }
   .nav-subitem[aria-current="page"] { color: var(--accent); background: var(--accent-soft); font-weight: 600; }
 }
+.home-progress { height: 8px; border-radius: 99px; background: var(--panel2); overflow: hidden; margin-top: 8px; }
+.home-progress i { display: block; height: 100%; background: var(--sage); transition: width .4s; }
+.training-actions .btn { text-decoration: none; }
+.toast { width: max-content; max-width: calc(100vw - 24px); }
