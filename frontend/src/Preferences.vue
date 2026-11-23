@@ -1,5 +1,5 @@
 <template>
-  <RouterLink to="/altro" class="page-back">‹ Tu</RouterLink>
+  <RouterLink to="/altro" class="page-back">‹ Impostazioni</RouterLink>
   <div class="pagehead">
     <div><h1>Preferenze<em>.</em></h1></div>
   </div>

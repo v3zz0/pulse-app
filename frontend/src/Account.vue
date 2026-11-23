@@ -44,7 +44,7 @@ async function save() {
 <template>
   <div class="pagehead">
     <div>
-      <RouterLink to="/altro" class="page-back">‹ Tu</RouterLink>
+      <RouterLink to="/altro" class="page-back">‹ Impostazioni</RouterLink>
       <h1>Il tuo account<span style="color: var(--accent)">.</span></h1>
     </div>
   </div>

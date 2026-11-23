@@ -5,7 +5,21 @@ import { onMounted, ref } from "vue";
 import { api, send } from "./api";
 import { localDate } from "./stores/day";
 import { useAuth } from "./stores/auth";
-import { theme, setTheme } from "./ui.js";
+import { theme, setTheme, notify } from "./ui.js";
+import { profile, saveAvatar } from "./profile.js";
+const photoBusy = ref(false);
+async function setPhoto(file) {
+  photoBusy.value = true;
+  try {
+    await saveAvatar(file);
+    notify(file ? "Foto profilo aggiornata" : "Foto profilo rimossa");
+  } catch (e) {
+    notify(e.message);
+  } finally {
+    photoBusy.value = false;
+  }
+}
+const pickPhoto = (e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) setPhoto(f); };
 const auth = useAuth(), weightInput = ref(null);
 const themes = [["auto", "Automatico"], ["light", "Chiaro"], ["dark", "Scuro"]];
 function focusWeight() {
@@ -47,12 +61,22 @@ onMounted(async () => {
 });
 </script>
 <template>
-  <div class="pagehead">
-    <div>
-      <div class="focus-label">Il tuo spazio</div>
-      <h1>Ciao{{ auth.user ? ", " + auth.user.username : "" }}<em>.</em></h1>
+  <section class="profile-head">
+    <div class="profile-photo" aria-hidden="true">
+      <img v-if="profile.avatar" :src="profile.avatar" alt="" />
+      <span v-else>{{ auth.user?.username?.slice(0, 1).toUpperCase() }}</span>
     </div>
-  </div>
+    <div>
+      <h1>Ciao{{ auth.user ? ", " + auth.user.username : "" }}<em>.</em></h1>
+      <div class="rowbtns">
+        <label class="btn secondary sm photo-pick">
+          {{ profile.avatar ? "Cambia foto" : "Aggiungi foto" }}
+          <input type="file" accept="image/*" class="sr-only" :disabled="photoBusy" @change="pickPhoto" />
+        </label>
+        <button v-if="profile.avatar" type="button" class="btn ghost sm" :disabled="photoBusy" @click="setPhoto(null)">Rimuovi</button>
+      </div>
+    </div>
+  </section>
   <div class="today-grid">
     <div>
       <section class="card menu-list" aria-label="Ogni giorno">
@@ -63,7 +87,7 @@ onMounted(async () => {
       <section class="card menu-list" aria-labelledby="plan-settings-title">
         <h2 id="plan-settings-title" class="sr-only">Piani e importazioni</h2>
         <RouterLink to="/altro/piani" aria-label="Gestisci piano alimentare"><span class="ic"><Icon name="food" /></span><span class="grow">Gestisci piano alimentare<small>Versioni, CSV, editor</small></span><Icon name="arrow" /></RouterLink>
-        <RouterLink to="/altro/schede" aria-label="Gestisci scheda allenamento"><span class="ic"><Icon name="gym" /></span><span class="grow">Gestisci scheda allenamento<small>Versioni, CSV, editor</small></span><Icon name="arrow" /></RouterLink>
+        <RouterLink to="/altro/schede" aria-label="Gestisci scheda allenamento"><span class="ic"><Icon name="barbell" /></span><span class="grow">Gestisci scheda allenamento<small>Versioni, CSV, editor</small></span><Icon name="arrow" /></RouterLink>
         <RouterLink to="/altro/preferenze#giorni-allenamento"><span class="ic"><Icon name="calendar" /></span><span class="grow">Giorni di allenamento, preferenze e obiettivi</span><Icon name="arrow" /></RouterLink>
         <RouterLink to="/account"><span class="ic"><Icon name="user" /></span><span class="grow">Account e password</span><Icon name="arrow" /></RouterLink>
       </section>
@@ -99,9 +123,6 @@ onMounted(async () => {
         <div class="seg" role="group" aria-label="Tema" style="margin-top: 10px">
           <button v-for="[v, l] in themes" :key="v" type="button" :aria-pressed="theme.value === v" @click="setTheme(v)">{{ l }}</button>
         </div>
-      </section>
-      <section class="card">
-        <button type="button" class="btn secondary wide" @click="auth.logout">Esci</button>
       </section>
     </div>
   </div>

@@ -245,7 +245,7 @@ test("Integratori quotidiani in Oggi: gestione separata, assunzioni indipendenti
   await login(page);
   const name = "Prodotto UI " + crypto.randomUUID().slice(0, 8);
   const beforeReminders = await call(page, "/reminders");
-  await page.getByRole("link", { name: "Tu", exact: true }).click();
+  await page.getByRole("link", { name: "Impostazioni", exact: true }).click();
   await page.getByRole("link", { name: "Gestisci i miei integratori" }).click();
   await page.getByRole("button", { name: "Aggiungi integratore" }).click();
   await page.getByLabel("Nome integratore").fill(name);
@@ -291,7 +291,7 @@ test("Integratori quotidiani in Oggi: gestione separata, assunzioni indipendenti
   await expect(page.getByText(/in attesa di sincronizzazione/)).toHaveCount(0);
   await expect(slots).toHaveCount(2);
   await page.screenshot({ path: `test-results/oggi-integratori-${test.info().project.name}.png` });
-  await page.getByRole("link", { name: "Tu", exact: true }).click();
+  await page.getByRole("link", { name: "Impostazioni", exact: true }).click();
   await page.getByRole("link", { name: "Gestisci i miei integratori" }).click();
   await page.getByRole("button", { name: "Modifica " + name }).click();
   await page.getByLabel("Quantità per assunzione").fill("3");

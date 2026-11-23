@@ -32,7 +32,7 @@ test("PWA produzione: installabilità, cache solo shell e ripresa offline dopo r
   );
   expect(manifest.display).toBe("standalone");
   expect(manifest.icons).toHaveLength(4);
-  await page.getByRole("link", { name: "Allena", exact: true }).click();
+  await page.getByRole("link", { name: "Allenamenti", exact: true }).click();
   await expect(page.getByTestId("workout-sync")).toHaveText(
     "Tutte le modifiche sincronizzate",
   );

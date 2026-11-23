@@ -82,7 +82,7 @@ async function remove(product) {
 </script>
 
 <template>
-  <RouterLink class="page-back" to="/altro">‹ Tu</RouterLink>
+  <RouterLink class="page-back" to="/altro">‹ Impostazioni</RouterLink>
   <div class="feature-heading">
     <Icon name="pill" :size="36" />
     <div><h1>I miei integratori</h1><p>Configura quantità, frequenza e orari.</p></div>

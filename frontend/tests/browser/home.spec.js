@@ -84,7 +84,7 @@ test("accesso privato, Home persistente e navigazione nutrizione", async ({
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await page.getByRole("link", { name: "Tu", exact: true }).click();
+  await page.getByRole("link", { name: "Impostazioni", exact: true }).click();
   const weightCard = page.locator("form").filter({
     has: page.getByRole("heading", { name: "Registra peso" }),
   });
@@ -92,12 +92,9 @@ test("accesso privato, Home persistente e navigazione nutrizione", async ({
   await weightCard.getByLabel("Peso in kg").fill("72.4");
   await weightCard.getByRole("button", { name: "Salva peso" }).click();
   await expect(weightCard.getByRole("status")).toHaveText("Peso salvato");
-  await expect(
-    page.getByRole("button", { name: "Esci", exact: true }),
-  ).toHaveCount(0);
+  // Profilo ed Esci sono nella barra in alto, accanto a Progressi.
   await page.getByRole("link", { name: "Il tuo account" }).click();
-  await expect(page).toHaveURL(/\/account$/);
-  await page.getByRole("link", { name: "Tu", exact: true }).click();
+  await expect(page).toHaveURL(/\/altro$/);
   await page.getByRole("button", { name: "Esci", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Accedi a PULSE" }),

@@ -387,3 +387,11 @@ Non eseguito: la suite `npm run test:e2e` richiede le fixture di `backend/script
 - Impostazioni: Preferenze, giorni di allenamento e obiettivi in pagina propria (`/altro/preferenze`); Account solo credenziali; "Esci" solo in Tu; versioni salvate in cima a Piani/Schede e import CSV in sezione apribile; rimossi i riferimenti ad "Altro".
 - Verifica su stack reale con utente sintetico temporaneo (eliminato): avvio scheda, 42,5 kg registrati con standard invariato via API, timer 1:01 → +15 s 1:16, stesso valore dopo reload, serie 1 di 2, salto esercizio, defaticamento, conclusione. Nessun overflow a 375 e 1280 px su Allena, Tu, Schede, Preferenze, Account, Dieta. Errori console solo attesi (401 prima del login, 409 "nessun piano attivo" prima del setup).
 - `frontend` build ok, `npm test` 6/6; `backend` `npm test` 33/33. Test e2e aggiornati ai nuovi nomi ("Vedi", "Annulla", "Fatta", "Pausa", "Defaticamento fatto", "Organizza", `/altro/preferenze`) ma non eseguiti: richiedono le fixture con PDF privato.
+
+### Barra in alto, foto profilo e logo — 23 novembre 2026
+
+- Barra superiore: solo logo (nuovo segno "Mattino", `components/Logo.vue`) a sinistra; a destra Progressi, profilo (foto o iniziale, porta a Tu) ed Esci. Navigazione ridotta a Oggi · Dieta · Allena · Tu. "Esci" rimosso da Tu (non duplicato).
+- Foto profilo: caricata da Tu, ritagliata e ridimensionata a 256 px JPEG nel browser, salvata in `personal-setting.data.avatar` (data URL immagine, max ~200 KB, validata dal server; nuovo test backend). Nessuna modifica di schema DB.
+- Verifica su stack reale con utente temporaneo (eliminato): caricamento foto → toast, foto visibile in alto e in Tu dopo reload a 375 e 1280 px; 4 voci di navigazione; Esci porta al login; nessun overflow, nessun errore JavaScript. Backend `npm test` 34/34, frontend build ok e `npm test` 6/6. E2E aggiornati, non eseguiti (fixture con PDF privato).
+- Icone PWA e favicon usano ancora il vecchio logo.
+- Navigazione: "Allena" → "Allenamenti" (icona bilanciere), "Tu" → "Impostazioni" (ingranaggio); su desktop le sottovoci delle impostazioni compaiono sotto la voce solo quando si è in quella sezione. Verificato a 375 e 1280 px con utente temporaneo (eliminato): sottomenu nascosto su Oggi, visibile in Impostazioni, voce attiva corretta su Integratori, etichette non tagliate, nessun errore JavaScript.

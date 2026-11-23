@@ -25,10 +25,11 @@ test("food chips accept legacy strings, remove duplicates and retire removed pre
     "favoriteFoods",
     "goals",
     "trainingDays",
-  ]);
+    "avatar",
+  ].sort());
   assert.deepEqual(
     settings.validate({ favoriteFoods: [], avoidedFoods: [], goals: null }),
-    { favoriteFoods: [], avoidedFoods: [], goals: null, trainingDays: [] },
+    { favoriteFoods: [], avoidedFoods: [], goals: null, trainingDays: [], avatar: null },
   );
   const app = {
     db: {
@@ -41,7 +42,8 @@ test("food chips accept legacy strings, remove duplicates and retire removed pre
     "favoriteFoods",
     "goals",
     "trainingDays",
-  ]);
+    "avatar",
+  ].sort());
   assert.equal(old.mealCount, 4);
   assert.equal(old.cookingMinutes, 20);
   assert.deepEqual(got.data.favoriteFoods, ["Riso", "Pollo"]);
@@ -85,4 +87,12 @@ test("training days decide automatic ON/OFF for every weekday", () => {
     assert.equal(settings.autoMode([1, 3, 5], day), expected[i], day);
   }
   assert.equal(settings.autoMode([], "2026-11-23"), "OFF");
+});
+
+test("profile photo accepts only small image data URLs", () => {
+  assert.equal(settings.avatar(null), null);
+  assert.equal(settings.avatar("data:image/jpeg;base64,AAAA"), "data:image/jpeg;base64,AAAA");
+  assert.throws(() => settings.avatar("data:text/html;base64,AAAA"));
+  assert.throws(() => settings.avatar("https://example.com/a.jpg"));
+  assert.throws(() => settings.avatar("data:image/png;base64," + "A".repeat(280000)));
 });

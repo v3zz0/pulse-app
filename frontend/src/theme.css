@@ -169,3 +169,23 @@ a.btn, a.quick-action, .menu-list a, .page-back { text-decoration: none; }
 .sync-alerts { display: grid; gap: 8px; margin-bottom: 12px; }
 .session-bar h1 { margin: 0; }
 .workout-sync:not(.sr-only) { color: var(--muted); }
+.start-workout { margin: 18px 0 8px !important; min-height: 56px; font-size: 17px; }
+/* Barra superiore: logo a sinistra, Progressi · profilo · Esci a destra */
+.topbar .brand { text-decoration: none; min-height: 44px; }
+.topright { display: flex; align-items: center; gap: 8px; }
+.top-icon { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--panel); border: 1px solid var(--line); color: var(--ink); padding: 0; text-decoration: none; }
+.top-icon[aria-current="page"] { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.avatar { width: 44px; height: 44px; overflow: hidden; padding: 0; }
+.avatar img, .profile-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.profile-head { display: flex; gap: 16px; align-items: center; margin-bottom: 14px; }
+.profile-head h1 { margin: 0 0 8px; font-size: clamp(26px, 6vw, 36px); }
+.profile-photo { width: 84px; height: 84px; flex: none; border-radius: 50%; overflow: hidden; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-family: var(--serif); font-size: 36px; }
+.photo-pick { cursor: pointer; }
+.photo-pick:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+.nav-sub { display: none; }
+@media (min-width: 900px) {
+  .nav-sub { display: grid; gap: 2px; margin: 2px 0 6px 38px; border-left: 2px solid var(--line); padding-left: 10px; }
+  .nav-subitem { min-height: 40px; display: flex; align-items: center; padding: 0 10px; border-radius: 10px; color: var(--muted); text-decoration: none; font-size: 15px; }
+  .nav-subitem:hover { background: var(--panel2); color: var(--ink); }
+  .nav-subitem[aria-current="page"] { color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+}

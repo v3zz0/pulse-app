@@ -74,7 +74,7 @@ test("CSV: esempi, anteprima, conferma, versioni, obiettivi e scheda completa", 
   await expect(
     page.getByRole("link", { name: "Gestisci piano", exact: true }),
   ).toHaveCount(0);
-  await page.getByRole("link", { name: "Allena", exact: true }).click();
+  await page.getByRole("link", { name: "Allenamenti", exact: true }).click();
   await expect(
     page.getByRole("link", { name: "Gestisci scheda", exact: true }),
   ).toHaveCount(0);
@@ -115,10 +115,10 @@ test("CSV: esempi, anteprima, conferma, versioni, obiettivi e scheda completa", 
       .click();
     await expect(page).toHaveURL(base + path);
     await expect(
-      page.getByRole("link", { name: "Tu", exact: true }),
+      page.getByRole("link", { name: "Impostazioni", exact: true }),
     ).toHaveClass(/active/);
     await expect(
-      page.getByRole("link", { name: "Tu", exact: true }),
+      page.getByRole("link", { name: "Impostazioni", exact: true }),
     ).toHaveAttribute("aria-current", "page");
     const dl = page.waitForEvent("download");
     await page

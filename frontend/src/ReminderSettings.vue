@@ -152,7 +152,7 @@ async function change(row, action) {
 </script>
 
 <template>
-  <RouterLink class="page-back" to="/altro">‹ Tu</RouterLink>
+  <RouterLink class="page-back" to="/altro">‹ Impostazioni</RouterLink>
   <div class="feature-heading">
     <Icon name="bell" :size="36" />
     <div><h1>I miei promemoria</h1><p>Gestisci orari e notifiche.</p></div>

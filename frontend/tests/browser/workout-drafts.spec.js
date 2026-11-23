@@ -56,7 +56,7 @@ test("proposte, bozza persistente PWA, annullamento offline e terminalità multi
       operation(data.active, { action: "cancel", confirm: true }),
     );
   const history = data.history;
-  await page.getByRole("link", { name: "Allena", exact: true }).click();
+  await page.getByRole("link", { name: "Allenamenti", exact: true }).click();
   await page.getByRole("button", { name: "Inizia scheda A completa" }).click();
   const exact = page.getByTestId("set-A:exact:1"),
     range = page.getByTestId("set-A:range:1"),

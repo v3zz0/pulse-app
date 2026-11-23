@@ -25,6 +25,13 @@ function foodList(value) {
     fail("Elenco alimenti: massimo 2.000 caratteri");
   return out;
 }
+/** Foto profilo: JPEG/PNG/WebP già ridimensionata dal client, come data URL, massimo ~200 KB. */
+function avatar(value) {
+  if (value == null || value === "") return null;
+  if (typeof value !== "string" || value.length > 270000 || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/.test(value))
+    fail("Foto profilo non valida");
+  return value;
+}
 /** Giorni di allenamento (0 = domenica … 6 = sabato): decidono ON/OFF automatico. */
 function trainingDays(value = []) {
   if (!Array.isArray(value) || value.length > 7 || value.some((d) => !Number.isInteger(d) || d < 0 || d > 6))
@@ -40,6 +47,7 @@ function validate(data) {
     favoriteFoods: foodList(data.favoriteFoods),
     avoidedFoods: foodList(data.avoidedFoods),
     trainingDays: trainingDays(data.trainingDays),
+    avatar: avatar(data.avatar),
   };
   if (data.goals !== null) {
     if (!data.goals || typeof data.goals !== "object")
@@ -68,6 +76,7 @@ async function get(app, owner) {
     avoidedFoods: foodList(stored.avoidedFoods || []),
     goals: stored.goals ?? null,
     trainingDays: trainingDays(stored.trainingDays || []),
+    avatar: avatar(stored.avatar),
   };
   return {
     data,
@@ -96,4 +105,4 @@ async function save(app, owner, body) {
     return get(app, owner);
   });
 }
-module.exports = { get, save, validate, suggestedGoals, trainingDays, autoMode };
+module.exports = { get, save, validate, suggestedGoals, trainingDays, autoMode, avatar };

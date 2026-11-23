@@ -216,7 +216,7 @@ async function copyPrompt() {
 <template>
   <div class="pagehead">
     <div>
-      <RouterLink to="/altro" class="page-back">‹ Tu</RouterLink>
+      <RouterLink to="/altro" class="page-back">‹ Impostazioni</RouterLink>
       <h1>{{ title }}<span class="mint">.</span></h1>
     </div>
   </div>

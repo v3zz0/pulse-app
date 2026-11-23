@@ -99,6 +99,7 @@ test("account: username, password, ownership e revoca altri accessi", async ({
     await page.getByLabel("Password", { exact: true }).fill(user.password);
     await page.getByRole("button", { name: "Accedi", exact: true }).click();
     await page.getByRole("link", { name: "Il tuo account" }).click();
+    await page.getByRole("link", { name: "Account e password" }).click();
     await expect(
       page.getByRole("heading", { name: "Il tuo account." }),
     ).toBeVisible();

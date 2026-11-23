@@ -59,7 +59,7 @@ test("Progressi con dati reali, intervalli, storico e layout", async ({
     ),
   ).toBeTruthy();
 
-  await page.getByRole("link", { name: "Progressi", exact: true }).click();
+  await page.getByRole("link", { name: "Progressi", exact: true }).first().click();
   const weight = page.getByRole("region", { name: "Peso corporeo" });
   await expect(weight).toContainText("Ultima misurazione");
   const graph = weight.getByRole("img", { name: "Andamento peso corporeo" });

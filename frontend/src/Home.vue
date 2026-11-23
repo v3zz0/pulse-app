@@ -13,7 +13,7 @@
         : "Piano storico del 17/09/2026, validità originale 30–40 giorni: da rivedere con il professionista."
     }}
   </div>
-  <p v-if="day.error" role="alert" class="warning">{{ day.error }}</p>
+  <p v-if="day.error && day.plan" role="alert" class="warning">{{ day.error }}</p>
   <p v-if="day.busy && !day.meals.length" role="status" class="note">Caricamento…</p>
   <div class="today-grid">
     <div>
