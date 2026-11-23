@@ -72,7 +72,7 @@ test("editor Allenati, libreria, ordinamento, Flow e allenamento", async ({
     });
   const plans = await call(page, "/plans/training");
   const previous = plans.find((p) => p.status === "active")?.id;
-  await page.getByRole("link", { name: "Allena", exact: true }).click();
+  await page.goto("/altro/schede");
   await page.getByRole("link", { name: "Crea nuova scheda" }).click();
   await expect(
     page.getByRole("heading", { name: "Crea allenamento" }),
@@ -206,7 +206,7 @@ test("editor Dieta, calendario, alternative, copia ed eliminazione", async ({
   await login(page);
   const plans = await call(page, "/plans/nutrition");
   const previous = plans.find((p) => p.status === "active")?.id;
-  await page.getByRole("link", { name: "Dieta", exact: true }).click();
+  await page.goto("/altro/piani");
   await page.getByRole("link", { name: "Crea nuova dieta" }).click();
   await expect(
     page.getByRole("heading", { name: "Crea piano alimentare" }),

@@ -9,6 +9,7 @@ import Nutrition from "./Nutrition.vue";
 import Personal from "./Personal.vue";
 import ReminderSettings from "./ReminderSettings.vue";
 import Account from "./Account.vue";
+import Preferences from "./Preferences.vue";
 import PlanEditor from "./PlanEditor.vue";
 import ManagePlans from "./ManagePlans.vue";
 import Workout from "./Workout.vue";
@@ -45,6 +46,7 @@ const router = createRouter({
     { path: "/altro", component: Personal },
     { path: "/altro/promemoria", component: ReminderSettings },
     { path: "/account", component: Account },
+    { path: "/altro/preferenze", component: Preferences },
     { path: "/integratori", component: Supplements },
     { path: "/allenati", component: Workout },
     { path: "/progressi", component: Progress },

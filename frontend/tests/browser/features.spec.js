@@ -56,8 +56,7 @@ const synced = (page) =>
     { timeout: 20000 },
   );
 async function cancel(page) {
-  await page.getByRole("button", { name: "Menu allenamento" }).click();
-  await page.getByRole("menuitem", { name: "Annulla allenamento" }).click();
+  await page.getByRole("button", { name: "Annulla", exact: true }).click();
   await page.getByRole("button", { name: "Annulla definitivamente" }).click();
 }
 test("Allenati: card compatte, CSV, nomi e calendario, Flow verificato offline e annullamento", async ({
@@ -80,7 +79,7 @@ test("Allenati: card compatte, CSV, nomi e calendario, Flow verificato offline e
     const before = (
       await call(page, "/plans/training/" + fixture.program.id + "/export")
     ).csv;
-    await page.getByRole("button", { name: "Modifica programma" }).click();
+    await page.getByRole("button", { name: "Organizza" }).click();
     for (const [d, name] of Object.entries({
       A: "Lunedì",
       B: "Mercoledì",
@@ -111,7 +110,7 @@ test("Allenati: card compatte, CSV, nomi e calendario, Flow verificato offline e
     await expect(card).toContainText("Lunedì · Mercoledì");
     expect((await card.boundingBox()).y).toBeLessThan((await page.getByTestId("training-day-B").boundingBox()).y);
     await page.screenshot({ path: `test-results/schede-${test.info().project.name}.png` });
-    await card.getByRole("button", { name: "Visualizza scheda" }).click();
+    await card.getByRole("button", { name: "Vedi", exact: true }).click();
     const block = page.getByTestId("block-A:press1");
     await expect(block).toContainText("60 kg");
     await block.locator("details").first().locator("summary").click();
@@ -141,7 +140,7 @@ test("Allenati: card compatte, CSV, nomi e calendario, Flow verificato offline e
     await page.evaluate(() => navigator.serviceWorker.ready);
     await page.reload();
     await synced(page);
-    await card.getByRole("button", { name: "Visualizza scheda" }).click();
+    await card.getByRole("button", { name: "Vedi", exact: true }).click();
     await page.locator(".media-download > summary").click();
     await page
       .getByRole("button", { name: "Scarica animazioni offline" })

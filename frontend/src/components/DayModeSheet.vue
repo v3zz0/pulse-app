@@ -17,7 +17,7 @@
     </div>
     <div class="rowbtns" style="margin-top: 14px">
       <button v-if="!day.isAuto" type="button" class="btn secondary" :disabled="blocked || day.busy" @click="choose('auto')">Torna all'automatico</button>
-      <RouterLink class="btn ghost" to="/account#giorni-allenamento" @click="dialog.close()">Giorni di allenamento</RouterLink>
+      <RouterLink class="btn ghost" to="/altro/preferenze#giorni-allenamento" @click="dialog.close()">Giorni di allenamento</RouterLink>
     </div>
     <p v-if="day.error" class="warning" role="alert">{{ day.error }}</p>
   </dialog>

@@ -64,7 +64,7 @@ onMounted(async () => {
         <h2 id="plan-settings-title" class="sr-only">Piani e importazioni</h2>
         <RouterLink to="/altro/piani" aria-label="Gestisci piano alimentare"><span class="ic"><Icon name="food" /></span><span class="grow">Gestisci piano alimentare<small>Versioni, CSV, editor</small></span><Icon name="arrow" /></RouterLink>
         <RouterLink to="/altro/schede" aria-label="Gestisci scheda allenamento"><span class="ic"><Icon name="gym" /></span><span class="grow">Gestisci scheda allenamento<small>Versioni, CSV, editor</small></span><Icon name="arrow" /></RouterLink>
-        <RouterLink to="/account#giorni-allenamento"><span class="ic"><Icon name="calendar" /></span><span class="grow">Giorni di allenamento, preferenze e obiettivi</span><Icon name="arrow" /></RouterLink>
+        <RouterLink to="/altro/preferenze#giorni-allenamento"><span class="ic"><Icon name="calendar" /></span><span class="grow">Giorni di allenamento, preferenze e obiettivi</span><Icon name="arrow" /></RouterLink>
         <RouterLink to="/account"><span class="ic"><Icon name="user" /></span><span class="grow">Account e password</span><Icon name="arrow" /></RouterLink>
       </section>
       <Pwa />

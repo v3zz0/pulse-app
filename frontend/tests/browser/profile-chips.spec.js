@@ -14,17 +14,14 @@ test("preferenze: card separate, chip Invio/rimozione e persistenza senza tempo 
   await page.getByLabel("Email o nome utente").fill(u.email);
   await page.getByLabel("Password", { exact: true }).fill(u.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
-  await page.getByRole("link", { name: "Il tuo account" }).click();
-  const form = page.locator("form.account-form"),
-    section = page.getByRole("region", {
+  // Preferenze e obiettivi hanno ora una pagina dedicata in Tu.
+  await page.goto("http://127.0.0.1:8081/altro/preferenze");
+  const section = page.getByRole("region", {
       name: "Preferenze e obiettivi personali",
     });
   await expect(
     section.getByLabel("Alimenti preferiti", { exact: true }),
   ).toBeVisible();
-  const a = await form.boundingBox(),
-    b = await section.boundingBox();
-  expect(b.y - (a.y + a.height)).toBeGreaterThanOrEqual(24);
   await expect(
     page.getByText("Tempo per cucinare (minuti)", { exact: true }),
   ).toHaveCount(0);

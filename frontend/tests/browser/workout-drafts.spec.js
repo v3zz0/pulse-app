@@ -29,8 +29,7 @@ async function synced(page) {
   );
 }
 async function cancel(page) {
-  await page.getByRole("button", { name: "Menu allenamento" }).click();
-  await page.getByRole("menuitem", { name: "Annulla allenamento" }).click();
+  await page.getByRole("button", { name: "Annulla", exact: true }).click();
   await page.getByRole("button", { name: "Annulla definitivamente" }).click();
 }
 test("proposte, bozza persistente PWA, annullamento offline e terminalità multi-dispositivo", async ({
@@ -86,7 +85,7 @@ test("proposte, bozza persistente PWA, annullamento offline e terminalità multi
   await exact.getByLabel("Carico della seduta (kg)").fill("50");
   await exact.getByLabel("Ripetizioni effettive").fill("4");
   await exact
-    .getByRole("button", { name: "Completa e registra peso", exact: true })
+    .getByRole("button", { name: "Fatta", exact: true })
     .click();
   await expect(exact).toContainText("50 kg");
   await expect(exact).toContainText("4 ripetizioni");
@@ -169,8 +168,7 @@ test("proposte, bozza persistente PWA, annullamento offline e terminalità multi
     path: `test-results/workout-drafts-${test.info().project.name}.png`,
     fullPage: false,
   });
-  await page.getByRole("button", { name: "Menu allenamento" }).click();
-  await page.getByRole("menuitem", { name: "Annulla allenamento" }).click();
+  await page.getByRole("button", { name: "Annulla", exact: true }).click();
   await expect(page.getByRole("alertdialog")).toContainText(
     "Hai già completato 1 serie",
   );

@@ -92,7 +92,7 @@ test("scheda completa, peso temporaneo, timer, offline/reload, sync e storico", 
     .getByRole("button", { name: "Avvia recupero", exact: true })
     .click();
   await expect(page.getByRole("timer")).toBeVisible();
-  await page.getByRole("button", { name: "Pausa recupero" }).click();
+  await page.getByRole("button", { name: "Pausa", exact: true }).click();
   await expect(page.getByRole("timer")).toContainText("In pausa");
   await page.reload();
   await expect(page.getByRole("timer")).toContainText("In pausa");

@@ -216,9 +216,7 @@ async function copyPrompt() {
 <template>
   <div class="pagehead">
     <div>
-      <div class="focus-label">
-        ALTRO · {{ kind === "nutrition" ? "ALIMENTAZIONE" : "ALLENAMENTO" }}
-      </div>
+      <RouterLink to="/altro" class="page-back">‹ Tu</RouterLink>
       <h1>{{ title }}<span class="mint">.</span></h1>
     </div>
   </div>
@@ -226,12 +224,55 @@ async function copyPrompt() {
     <RouterLink :to="editorUrl" class="btn primary">
       {{ kind === "nutrition" ? "Crea nuova dieta" : "Crea nuova scheda" }}
     </RouterLink>
-    <RouterLink to="/altro" class="btn secondary">Torna al tuo spazio</RouterLink>
   </div>
   <p v-if="error" role="alert" class="warning">{{ error }}</p>
   <p v-if="message" role="status" class="inline-note">{{ message }}</p>
+
   <section class="card workout-block">
-    <h2>Importa {{ kind === "nutrition" ? "dieta" : "allenamento" }} CSV</h2>
+    <h2>{{ kind === "nutrition" ? "Piani salvati" : "Schede salvate" }}</h2>
+    <p v-if="!rows.length" class="smallmuted">Nessuna versione salvata.</p>
+    <article v-for="p in rows" :key="p.id" class="setting-row plan-list-row">
+      <div>
+        <strong>{{ p.title }}</strong>
+        <p class="note">
+          {{ states[p.status] }}<template v-if="p.provenance !== 'manual'"> · versione {{ p.version }} · {{ p.provenance }}</template> ·
+          {{ new Date(p.createdAt).toLocaleDateString("it-IT") }}
+        </p>
+      </div>
+      <div class="editor-actions plan-editor-actions">
+        <RouterLink class="btn secondary" :to="editorUrl + '/' + p.id" :aria-label="'Modifica ' + p.title">Modifica</RouterLink>
+        <button class="btn secondary" :disabled="busy" :aria-label="'Duplica ' + p.title"
+          @click="duplicatePlan(p)">Duplica</button>
+        <button
+          class="btn secondary"
+          :disabled="busy"
+          :aria-label="'Visualizza ' + p.title"
+          @click="view(p.id)"
+        >
+          Visualizza</button>
+        <label v-if="p.schedule?.mode === 'weekly'" class="fieldlabel">
+          Giorno da esportare
+          <select class="field" v-model="exportDay[p.id]">
+            <option :value="undefined">Primo giorno</option>
+            <option v-for="d in italianDays.filter((d) => p.schedule.weekdays.includes(d.id))"
+              :key="d.id" :value="d.id">{{ d.name }}</option>
+          </select>
+        </label>
+        <button
+          class="btn ghost"
+          :disabled="busy"
+          :aria-label="'Esporta ' + p.title"
+          @click="exportPlan(p.id)"
+        >
+          Esporta CSV
+        </button>
+        <button class="btn ghost danger" :disabled="busy" :aria-label="'Elimina ' + p.title"
+          @click="removePlan(p)">Elimina</button>
+      </div>
+    </article>
+  </section>
+  <details class="card workout-block csv-import" :open="!!preview">
+    <summary><h2>Importa da CSV</h2></summary>
     <p class="note">
       Scarica l’esempio, compilalo o fallo compilare a un’AI, poi caricalo qui.
       UTF-8, separatore ; (accettati anche virgola e tab), decimali 12,5 o 12.5
@@ -282,10 +323,10 @@ async function copyPrompt() {
       @change="upload"
     />
     <p v-if="busy" role="status">Operazione in corso…</p>
-    <RouterLink v-if="kind === 'nutrition'" to="/account" class="tiny-link"
+    <RouterLink v-if="kind === 'nutrition'" to="/altro/preferenze" class="tiny-link"
       >Modifica preferenze alimentari e obiettivi</RouterLink
     >
-  </section>
+  </details>
   <section
     v-if="preview"
     class="card workout-block"
@@ -338,49 +379,7 @@ async function copyPrompt() {
       </button>
     </div>
   </section>
-  <section class="card workout-block">
-    <h2>{{ kind === "nutrition" ? "Piani salvati" : "Schede salvate" }}</h2>
-    <p v-if="!rows.length" class="smallmuted">Nessuna versione salvata.</p>
-    <article v-for="p in rows" :key="p.id" class="setting-row plan-list-row">
-      <div>
-        <strong>{{ p.title }}</strong>
-        <p class="note">
-          {{ states[p.status] }}<template v-if="p.provenance !== 'manual'"> · versione {{ p.version }} · {{ p.provenance }}</template> ·
-          {{ new Date(p.createdAt).toLocaleDateString("it-IT") }}
-        </p>
-      </div>
-      <div class="editor-actions plan-editor-actions">
-        <RouterLink class="btn secondary" :to="editorUrl + '/' + p.id" :aria-label="'Modifica ' + p.title">Modifica</RouterLink>
-        <button class="btn secondary" :disabled="busy" :aria-label="'Duplica ' + p.title"
-          @click="duplicatePlan(p)">Duplica</button>
-        <button
-          class="btn secondary"
-          :disabled="busy"
-          :aria-label="'Visualizza ' + p.title"
-          @click="view(p.id)"
-        >
-          Visualizza</button>
-        <label v-if="p.schedule?.mode === 'weekly'" class="fieldlabel">
-          Giorno da esportare
-          <select class="field" v-model="exportDay[p.id]">
-            <option :value="undefined">Primo giorno</option>
-            <option v-for="d in italianDays.filter((d) => p.schedule.weekdays.includes(d.id))"
-              :key="d.id" :value="d.id">{{ d.name }}</option>
-          </select>
-        </label>
-        <button
-          class="btn ghost"
-          :disabled="busy"
-          :aria-label="'Esporta ' + p.title"
-          @click="exportPlan(p.id)"
-        >
-          Esporta CSV
-        </button>
-        <button class="btn ghost danger" :disabled="busy" :aria-label="'Elimina ' + p.title"
-          @click="removePlan(p)">Elimina</button>
-      </div>
-    </article>
-  </section>
+
   <section
     v-if="selected"
     class="card workout-block"

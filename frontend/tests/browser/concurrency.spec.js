@@ -180,7 +180,7 @@ test("ciclo completo UI: standard 60, temporaneo 50, senza peso, nuova scheda an
       );
     }
     const cooldown = page.getByRole("button", {
-      name: "Conferma defaticamento",
+      name: "Defaticamento fatto",
       exact: true,
     });
     if (await cooldown.count()) await cooldown.click();
@@ -196,7 +196,7 @@ test("ciclo completo UI: standard 60, temporaneo 50, senza peso, nuova scheda an
   }
   await expect(page.getByTestId("workout-sync")).toHaveText("Tutte le modifiche sincronizzate");
   if (await page.locator(".session-progress").count()) await finish();
-  await page.getByTestId("training-day-A").getByRole("button", { name: "Visualizza scheda" }).click();
+  await page.getByTestId("training-day-A").getByRole("button", { name: "Vedi", exact: true }).click();
   await page.locator(".training-preview").first().locator("summary").click();
   page.on("dialog", (d) => d.accept(d.type() === "prompt" ? "60" : undefined));
   await page

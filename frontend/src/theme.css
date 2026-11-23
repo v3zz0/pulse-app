@@ -159,3 +159,13 @@ a.btn, a.quick-action, .menu-list a, .page-back { text-decoration: none; }
 .mode-chip { white-space: nowrap; }
 .todayline:has(.mode-chip) { flex-wrap: wrap; }
 .todayline:has(.mode-chip) > input[type="date"] { flex: 1 1 150px; width: auto; }
+/* Allenati */
+.training-cards { display: grid; gap: 12px; }
+@media (min-width: 900px) { .training-cards { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); } }
+.training-card h2 { margin: 2px 0 4px; }
+.training-card.today { border-color: var(--accent) !important; }
+.training-actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; margin-top: 12px; }
+.training-actions .btn { margin: 0; }
+.sync-alerts { display: grid; gap: 8px; margin-bottom: 12px; }
+.session-bar h1 { margin: 0; }
+.workout-sync:not(.sr-only) { color: var(--muted); }

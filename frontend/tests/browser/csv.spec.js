@@ -22,7 +22,7 @@ test("CSV: esempi, anteprima, conferma, versioni, obiettivi e scheda completa", 
   await page.getByLabel("Email o nome utente").fill(user.email);
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Accedi", exact: true }).click();
-  await page.getByRole("link", { name: "Il tuo account" }).click();
+  await page.goto(base + "/altro/preferenze");
   await page
     .getByLabel("Alimenti preferiti", { exact: true })
     .fill("Riso e pollo sintetici");
@@ -220,7 +220,7 @@ test("CSV: esempi, anteprima, conferma, versioni, obiettivi e scheda completa", 
     });
   }
   await page.goto(base + "/allenati");
-  await page.getByTestId("training-day-D").getByRole("button", { name: "Visualizza scheda" }).click();
+  await page.getByTestId("training-day-D").getByRole("button", { name: "Vedi", exact: true }).click();
   const prescriptions = page.getByRole("list", { name: "Prescrizioni per serie" });
   for (const kg of ["60", "47.25", "0", "32.75"])
     await expect(prescriptions).toContainText(` · ${kg} kg`);

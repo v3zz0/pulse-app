@@ -50,10 +50,7 @@ function applyPlan() {
       <div class="focus-label">ALIMENTAZIONE</div>
       <h1>La tua dieta<em>.</em></h1>
     </div>
-  </div>
-  <div class="editor-launch">
-    <RouterLink to="/dieta/editor" class="btn primary"><Icon name="plus" :size="18" /> Crea nuova dieta</RouterLink>
-    <RouterLink to="/altro/piani" class="btn secondary">Gestisci piani</RouterLink>
+    <RouterLink to="/altro/piani" class="btn secondary sm">Gestisci piani</RouterLink>
   </div>
   <section class="card workout-block">
     <div class="week-nav">

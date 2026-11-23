@@ -18,7 +18,7 @@ const names = {
     <h2>In arrivo nella fase 3</h2>
     <p class="note">
       Allenamento e riepiloghi saranno disponibili nella prossima fase.
-      Pasti, peso e assunzioni sono già gestibili dalle sezioni Oggi, Dieta e Altro.
+      Pasti, peso e assunzioni sono già gestibili dalle sezioni Oggi, Dieta e Tu.
     </p>
     <RouterLink to="/" class="btn primary">Torna a Oggi</RouterLink>
   </section>

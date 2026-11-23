@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from "vue";
 import { useAuth } from "./stores/auth";
-import PersonalSettings from "./components/PersonalSettings.vue";
 const auth = useAuth();
 const username = ref(auth.user?.username || "");
 const currentPassword = ref("");
@@ -45,7 +44,7 @@ async function save() {
 <template>
   <div class="pagehead">
     <div>
-      <div class="focus-label">IL TUO SPAZIO</div>
+      <RouterLink to="/altro" class="page-back">‹ Tu</RouterLink>
       <h1>Il tuo account<span style="color: var(--accent)">.</span></h1>
     </div>
   </div>
@@ -116,10 +115,4 @@ async function save() {
     <p v-if="error" class="warning" role="alert">{{ error }}</p>
     <p v-if="saved" class="inline-note" role="status">Credenziali aggiornate</p>
   </form>
-  <PersonalSettings />
-  <div class="account-form">
-    <button type="button" class="btn ghost wide" @click="auth.logout">
-      Esci
-    </button>
-  </div>
 </template>

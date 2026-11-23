@@ -97,6 +97,7 @@ test("accesso privato, Home persistente e navigazione nutrizione", async ({
   ).toHaveCount(0);
   await page.getByRole("link", { name: "Il tuo account" }).click();
   await expect(page).toHaveURL(/\/account$/);
+  await page.getByRole("link", { name: "Tu", exact: true }).click();
   await page.getByRole("button", { name: "Esci", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Accedi a PULSE" }),

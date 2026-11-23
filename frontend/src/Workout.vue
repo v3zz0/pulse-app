@@ -5,6 +5,7 @@ import { useAuth } from "./stores/auth";
 import { useRouter } from "vue-router";
 import Icon from "./components/Icon.vue";
 import WorkoutExercise from "./components/WorkoutExercise.vue";
+import WorkoutSession from "./components/WorkoutSession.vue";
 import { mediaFor, offlineAnimations } from "./flow-media";
 import { dayName, weekdays } from "./workout-display";
 const router = useRouter();
@@ -148,8 +149,10 @@ const fullWeek = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "
 function scheduleFor(key) {
   const days = w.program.displaySettings?.days?.[key]?.weekdays || [];
   return [1, 2, 3, 4, 5, 6, 0].filter((n) => days.includes(n)).map((n) => fullWeek[n]).join(" · ")
-    || "Giorno non assegnato";
+    || "Nessun giorno fisso";
 }
+const todayWeekday = new Date(new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(new Date()) + "T12:00:00").getDay();
+const isToday = (key) => !!w.program?.displaySettings?.days?.[key]?.weekdays?.includes(todayWeekday);
 async function start(key) {
   if (starting.value) return;
   starting.value = true;
@@ -243,38 +246,17 @@ onMounted(() => {
 onUnmounted(() => clearInterval(interval));
 </script>
 <template>
-  <button v-if="day && !isActive" class="textbutton page-back" @click="day = null">
-    ‹ Tutte le schede
-  </button>
-  <div class="feature-heading">
-    <Icon name="dumbbell" :size="36" />
-    <div>
-      <h1>{{ isActive ? 'Allenamento in corso' : day ? dayName(w.program, day) : 'Le mie schede' }}</h1>
-      <p v-if="!day && !isActive">Seleziona una scheda o consulta i suoi esercizi.</p>
-    </div>
-    <button v-if="w.program && !day && !isActive" class="btn secondary" @click="organize">
-      <Icon name="edit" :size="17" /> Modifica programma
-    </button>
+  <div v-if="error || w.error || (w.queue.length && !w.syncing) || w.conflict || w.active?.status === 'cancelled'" class="sync-alerts">
+    <p v-if="error" role="alert" class="warning">{{ error }}</p>
+    <p v-if="w.error" role="status" class="warning">{{ w.error }}</p>
+    <button v-if="w.error.includes('Accesso')" class="btn secondary" @click="reauthenticate">Accedi per sincronizzare</button>
+    <button v-if="w.queue.length && !w.conflict && !w.syncing" class="btn secondary" @click="run(() => w.load())">Riprova sincronizzazione</button>
+    <button v-if="w.conflict" class="btn secondary" @click="resolveConflict">Scarica bozza e usa versione server</button>
+    <p v-if="w.active?.status === 'cancelled'" class="note" role="status">
+      Allenamento annullato sul dispositivo. Attendi la sincronizzazione prima di iniziarne un altro.
+    </p>
   </div>
-  <div v-if="!isActive" class="editor-launch">
-    <RouterLink v-if="!day" to="/allenati/editor" class="btn primary">
-      <Icon name="plus" :size="18" /> Crea nuova scheda
-    </RouterLink>
-    <RouterLink v-else-if="w.program" :to="'/allenati/editor/' + w.program.id" class="btn secondary">
-      <Icon name="edit" :size="18" /> Modifica scheda
-    </RouterLink>
-    <RouterLink to="/altro/schede" class="btn secondary">Gestisci schede</RouterLink>
-  </div>
-  <p v-if="error" role="alert" class="warning">{{ error }}</p>
-  <p v-if="w.error" role="status" class="warning">{{ w.error }}</p>
-  <button
-    v-if="w.error.includes('Accesso')"
-    class="btn secondary"
-    @click="reauthenticate"
-  >
-    Accedi per sincronizzare
-  </button>
-  <p role="status" class="workout-sync" data-testid="workout-sync">
+  <p role="status" class="workout-sync" :class="{ 'sr-only': !w.queue.length || w.syncing }" data-testid="workout-sync">
     {{
       w.saving
         ? "Salvataggio sul dispositivo…"
@@ -287,101 +269,28 @@ onUnmounted(() => clearInterval(interval));
               : "Caricamento…"
     }}
   </p>
-  <button
-    v-if="w.queue.length && !w.conflict"
-    class="btn secondary"
-    @click="run(() => w.load())"
-  >
-    Riprova sincronizzazione
-  </button>
-  <button v-if="w.conflict" class="btn secondary" @click="resolveConflict">
-    Scarica bozza e usa versione server
-  </button>
-  <p v-if="w.active?.status === 'cancelled'" class="note" role="status">
-    Allenamento annullato sul dispositivo. Attendi la sincronizzazione prima di
-    iniziarne un altro.
-  </p>
-  <template v-if="w.program && !day && !isActive">
-    <div class="feature-list training-list">
-      <article v-for="d in dayKeys" :key="d" class="card feature-card" :data-testid="'training-day-' + d">
-        <div class="feature-row">
-          <span class="feature-icon"><Icon name="calendar" /></span>
-          <div class="feature-content">
-            <div class="focus-label">{{ scheduleFor(d) }}</div>
-            <h2>{{ dayName(w.program, d) }}</h2>
-            <p class="note">
-              {{ w.program.displaySettings?.days?.[d]?.description ||
-                w.program.days[d].length + ' esercizi · ' +
-                  w.program.days[d].reduce((count, block) => count + block.sets.length, 0) + ' serie' }}
-            </p>
-          </div>
-          <Icon name="arrow" :size="17" />
-        </div>
-        <div class="feature-actions feature-pair">
-          <button class="btn secondary" @click="day = d">
-            <Icon name="eye" :size="16" /> Visualizza scheda
-          </button>
-          <button class="btn primary" :aria-label="'Inizia scheda ' + d + ' completa'"
-            :disabled="starting || !!w.queue.length" @click="start(d)">
-            <Icon name="play" :size="16" /> Inizia allenamento
-          </button>
-        </div>
-      </article>
+
+  <WorkoutSession
+    v-if="isActive && w.active.status === 'active'"
+    :media-block="mediaBlock"
+    @cancel="cancelOpen = true"
+    @standard="standard"
+  />
+  <section v-else-if="isActive" class="card">
+    <h2>Allenamento concluso</h2>
+    <p class="note">Salvato sul dispositivo: verrà inviato appena possibile.</p>
+  </section>
+
+  <template v-else-if="day && w.program">
+    <button class="page-back textbutton" @click="day = null">‹ Tutte le schede</button>
+    <div class="session-bar">
+      <h1>{{ dayName(w.program, day) }}<em>.</em></h1>
     </div>
-    <p class="note">{{ w.program.title }}<template v-if="w.program.provenance !== 'manual'"> · Versione {{ w.program.version }}</template></p>
-    <p v-if="w.pendingImports?.length" class="note">
-      {{ w.pendingImports.length }} versioni CSV in bozza.
-      <RouterLink to="/altro/schede">Gestisci le versioni</RouterLink>
+    <p class="note">
+      {{ w.program.displaySettings?.days?.[day]?.description || "" }}
+      {{ blocks.length }} esercizi · {{ blocks.reduce((n, b) => n + b.sets.length, 0) }} serie
     </p>
-  </template>
-  <section v-if="(w.program && day) || isActive" class="card workout-program">
-    <div class="program-heading">
-      <span class="program-icon"><Icon name="gym" :size="26" /></span>
-      <h2>{{ isActive ? w.active.snapshot.title : w.program.title }}</h2>
-      <div class="program-menu">
-        <button
-          class="btn secondary"
-          aria-label="Menu allenamento"
-          :aria-expanded="menuOpen"
-          @click="menuOpen = !menuOpen"
-        >
-          <Icon name="more" />
-        </button>
-        <div v-if="menuOpen" role="menu">
-          <button
-            v-if="w.active?.status === 'active'"
-            role="menuitem"
-            class="danger"
-            @click="
-              cancelOpen = true;
-              menuOpen = false;
-            "
-          >
-            Annulla allenamento</button
-          ><button v-if="w.program" role="menuitem" @click="organize">
-            Modifica programma
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="program-summary">
-      <span><Icon name="layers" :size="17" />{{ blocks.length }} blocchi</span
-      ><span
-        ><Icon name="chart" :size="17" />{{
-          blocks.reduce((n, b) => n + b.sets.length, 0)
-        }}
-        serie</span
-      ><span
-        ><Icon name="clock" :size="17" />{{
-          cooldown?.durationSeconds
-            ? cooldown.durationSeconds + " s"
-            : "Da verificare"
-        }}
-        defaticamento</span
-      >
-    </div>
     <button
-      v-if="!isActive"
       class="btn primary wide start-workout"
       :aria-label="'Inizia scheda ' + day + ' completa'"
       :disabled="starting || !!w.queue.length"
@@ -389,222 +298,99 @@ onUnmounted(() => clearInterval(interval));
     >
       <Icon name="play" :size="20" />Inizia allenamento
     </button>
-    <p v-else class="session-progress">
-      {{ dayName(w.program, w.active.day) }} ·
-      {{
-        w.active.status === "completed"
-          ? "Conclusa sul dispositivo"
-          : "In corso"
-      }}
-      · {{ completedCount }} serie gestite · {{ pending }} da fare
-    </p>
-    <div v-if="w.program || w.pendingImports?.length" class="program-information">
-      <p v-if="w.pendingImports?.length" class="source-note">
-        Versioni CSV ancora in bozza: {{ w.pendingImports.length }}.
-        L’importazione da sola non cambia la scheda attiva: attivala da Altro.
-      </p>
-      <details v-if="w.program" class="program-version">
-        <summary>
-          Piano attivo: {{ w.program.provenance }} · versione
-          {{ w.program.version || "precedente" }} · riferimento {{ selectedDay }}
-        </summary>
-        <p>
-          Le versioni importate si attivano da Altro → Gestisci scheda
-          allenamento. Il trasferimento dei carichi precedenti richiede conferma e
-          può sostituire quelli della nuova versione.
-        </p>
-        <p v-if="w.pendingImports?.length">
-          {{ w.pendingImports.length }} versioni CSV recenti sono ancora in bozza:
-          {{
-            w.pendingImports.map((p) => p.title + " · v" + p.version).join(", ")
-          }}.
-        </p>
-        <p>
-          I carichi della sessione sono quelli presenti all’avvio; aggiornare lo
-          standard vale per la prossima sessione.
-        </p>
-      </details>
+    <div class="workout-exercises">
+      <WorkoutExercise
+        v-for="b in blocks"
+        :key="b.id"
+        :block="b"
+        :loads="w.standards"
+        :media-block="mediaBlock(b)"
+        :save-media="w.program?.flowAvailable && mediaBlock(b).media
+          ? (item, id) => w.chooseFlow({ day: selectedDay, blockId: b.id, key: item.key, flowId: id })
+          : undefined"
+        :active="false"
+        :disabled="w.conflict"
+        @standard="standard"
+      />
     </div>
-  </section>
-  <p v-else-if="w.ready && !w.program" class="empty">
-    Nessuna scheda attiva. Controlla le versioni importate in Altro.
-  </p>
-  <template v-if="isActive">
-    <section
-      v-if="w.active.timer"
-      class="rest-panel compact-timer"
-      role="timer"
-      aria-label="Timer recupero"
-    >
-      <Icon name="clock" /><strong
-        >{{ Number.isFinite(remaining) ? remaining : 0 }} s</strong
-      ><span>{{
-        w.active.timer.pausedRemaining != null ? "In pausa" : "Recupero"
-      }}</span
-      ><button
-        class="btn secondary"
-        @click="
-          run(() =>
-            w.act({
-              action: 'timer',
-              command: w.active.timer.endAt ? 'pause' : 'resume',
-            }),
-          )
-        "
-      >
-        {{
-          w.active.timer.endAt ? "Pausa recupero" : "Riprendi recupero"
-        }}</button
-      ><button
-        class="btn ghost"
-        @click="run(() => w.act({ action: 'timer', command: 'stop' }))"
-      >
-        Ferma recupero
-      </button>
-    </section>
-    <details class="manual-recovery">
-      <summary>Recupero manuale</summary>
-      <div class="btnrow">
-        <label class="fieldlabel" for="manual-rest"
-          >Recupero manuale in secondi<input
-            id="manual-rest"
-            v-model.number="seconds"
-            class="field"
-            type="number"
-            min="1"
-            max="3600" /></label
-        ><button
-          class="btn secondary"
-          @click="
-            run(() => w.act({ action: 'timer', command: 'start', seconds }))
-          "
-        >
-          Avvia recupero
-        </button>
-      </div>
+    <details v-if="flowIds.length" class="card media-download">
+      <summary>Scarica le animazioni per usarle offline</summary>
+      <button class="btn secondary" :disabled="flowBusy" @click="downloadFlow">Scarica animazioni</button>
+      <p v-if="flowProgress" class="note" role="status">
+        {{ flowProgress.complete ? "Animazioni disponibili offline" : "Download" }}
+        · {{ flowProgress.done }}/{{ flowProgress.total }} · {{ (flowProgress.bytes / 1024).toFixed(1) }} KiB
+      </p>
     </details>
-    <dialog
-      ref="cancelDialog"
-      class="card workout-modal"
-      role="alertdialog"
-      aria-modal="true"
-      aria-labelledby="cancel-title"
-      aria-describedby="cancel-description"
-      @cancel.prevent="cancelOpen = false"
-    >
-      <h2 id="cancel-title">Annullare questo allenamento?</h2>
-      <p id="cancel-description">
-        {{ registered ? `Hai già completato ${registered} serie. ` : "" }}La
-        sessione sarà annullata e non conterà nello storico completato o nelle
-        statistiche. I carichi standard restano invariati.
-      </p>
-      <p class="smallmuted">
-        Senza connessione, l’annullamento viene salvato sul dispositivo e
-        inviato appena possibile.
-      </p>
-      <div class="btnrow">
-        <button autofocus class="btn secondary" @click="cancelOpen = false">
-          Torna all’allenamento</button
-        ><button class="btn secondary danger" @click="cancelWorkout">
-          Annulla definitivamente
-        </button>
-      </div>
-    </dialog>
   </template>
-  <details v-if="(day || isActive) && flowIds.length" class="media-download">
-    <summary>Animazioni offline</summary>
-    <button
-      v-if="flowIds.length"
-      class="btn secondary"
-      :disabled="flowBusy"
-      @click="downloadFlow"
-    >
-      Scarica animazioni offline
-    </button>
-    <p v-if="flowProgress" class="note" role="status">
-      {{
-        flowProgress.complete ? "Animazioni disponibili offline" : "Download"
-      }}
-      · {{ flowProgress.done }}/{{ flowProgress.total }} ·
-      {{ (flowProgress.bytes / 1024).toFixed(1) }} KiB
-    </p>
-  </details>
-  <div v-if="blocks.length" class="section-title workout-exercises-title">
-    <h2>Esercizi della scheda</h2>
-    <button class="textbutton" @click="expandAll">
-      Mostra tutti ({{ blocks.length }}) <Icon name="arrow" :size="16" />
-    </button>
-  </div>
-  <div class="workout-exercises">
-    <WorkoutExercise
-      v-for="b in blocks"
-      :key="b.id"
-      :block="b"
-      :loads="w.standards"
-      :media-block="mediaBlock(b)"
-      :save-media="w.program?.flowAvailable && mediaBlock(b).media
-        ? (item, id) => w.chooseFlow({ day: selectedDay, blockId: b.id, key: item.key, flowId: id })
-        : undefined"
-      :active="!!isActive"
-      :disabled="w.conflict || (isActive && w.active.status !== 'active')"
-      @draft="draft"
-      @result="result"
-      @standard="standard"
-      @skip="(id) => run(() => w.act({ action: 'skip-block', blockId: id }))"
-    />
-  </div>
-  <template v-if="isActive">
-    <section class="card workout-block">
-      <h2>
-        {{ w.active.snapshot.cooldown.name }} ·
-        {{
-          w.active.snapshot.cooldown.durationSeconds
-            ? w.active.snapshot.cooldown.durationSeconds + " s"
-            : "durata da verificare"
-        }}
-      </h2>
-      <p>{{ w.active.snapshot.cooldown.sourceText }}</p>
-      <div class="btnrow">
-        <button
-          v-if="w.active.snapshot.cooldown.durationSeconds"
-          class="btn secondary"
-          @click="
-            run(() =>
-              w.act({
-                action: 'timer',
-                command: 'start',
-                seconds: w.active.snapshot.cooldown.durationSeconds,
-              }),
-            )
-          "
-        >
-          Avvia defaticamento</button
-        ><button
-          class="btn secondary"
-          :disabled="w.active.snapshot.cooldownDone"
-          @click="run(() => w.act({ action: 'cooldown' }))"
-        >
-          {{
-            w.active.snapshot.cooldownDone
-              ? "Defaticamento confermato"
-              : "Conferma defaticamento"
-          }}
-        </button>
+
+  <template v-else>
+    <div class="pagehead">
+      <div>
+        <div class="focus-label">{{ w.program?.title || "Allenamento" }}</div>
+        <h1>Allenati<em>.</em></h1>
       </div>
-      <button
-        class="btn primary wide"
-        :disabled="
-          pending > 0 ||
-          !w.active.snapshot.cooldownDone ||
-          w.conflict ||
-          w.active.status !== 'active'
-        "
-        @click="run(() => w.act({ action: 'finish' }))"
-      >
-        Concludi allenamento
+      <button v-if="w.program" class="btn secondary sm" @click="organize">
+        <Icon name="calendar" :size="16" /> Organizza
       </button>
-    </section>
+    </div>
+    <div v-if="w.program" class="training-cards">
+      <article
+        v-for="d in dayKeys"
+        :key="d"
+        class="card training-card"
+        :class="{ today: isToday(d) }"
+        :data-testid="'training-day-' + d"
+      >
+        <div class="section-head">
+          <span class="focus-label">{{ scheduleFor(d) }}</span>
+          <span v-if="isToday(d)" class="tag ok">Oggi</span>
+        </div>
+        <h2>{{ dayName(w.program, d) }}</h2>
+        <p class="note">
+          <template v-if="w.program.displaySettings?.days?.[d]?.description">{{ w.program.displaySettings.days[d].description }} · </template>
+          {{ w.program.days[d].length }} esercizi · {{ w.program.days[d].reduce((n, b) => n + b.sets.length, 0) }} serie
+        </p>
+        <div class="training-actions">
+          <button class="btn secondary" @click="day = d">Vedi</button>
+          <button
+            class="btn primary"
+            :aria-label="'Inizia scheda ' + d + ' completa'"
+            :disabled="starting || !!w.queue.length"
+            @click="start(d)"
+          >
+            <Icon name="play" :size="15" /> Inizia
+          </button>
+        </div>
+      </article>
+    </div>
+    <p v-else-if="w.ready" class="empty">
+      Nessuna scheda attiva. <RouterLink to="/altro/schede">Crea o importa una scheda</RouterLink>.
+    </p>
+    <p v-if="w.pendingImports?.length" class="note">
+      {{ w.pendingImports.length }} versioni in bozza.
+      <RouterLink to="/altro/schede">Gestisci le schede</RouterLink>
+    </p>
   </template>
+
+  <dialog
+    ref="cancelDialog"
+    class="card workout-modal"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="cancel-title"
+    aria-describedby="cancel-description"
+    @cancel.prevent="cancelOpen = false"
+  >
+    <h2 id="cancel-title">Annullare questo allenamento?</h2>
+    <p id="cancel-description">
+      {{ registered ? `Hai già completato ${registered} serie. ` : "" }}La sessione non conterà nello
+      storico né nelle statistiche. I carichi standard restano invariati.
+    </p>
+    <div class="btnrow">
+      <button autofocus class="btn secondary" @click="cancelOpen = false">Torna all’allenamento</button
+      ><button class="btn secondary danger" @click="cancelWorkout">Annulla definitivamente</button>
+    </div>
+  </dialog>
   <dialog
     ref="organizeDialog"
     class="card workout-modal"
