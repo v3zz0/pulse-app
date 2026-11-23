@@ -42,7 +42,7 @@ async function getDay(user, day) {
   const days = (await settings.get(strapi, user.id)).data.trainingDays,
     auto = settings.autoMode(days, day);
   // Giornata mai toccata dall'utente: segue i giorni di allenamento attuali.
-  if (entry && entry.revision === 0 && entry.mode !== auto && usesModes(entry.plan) && !entry.meals.some((m) => m.consumedAt)) {
+  if (entry && entry.revision === 0 && entry.mode !== auto && usesModes(entry.plan) && !entry.meals.some((m) => m.consumedAt || m.skippedAt)) {
     await query(strapi, "daily-plan").updateMany({
       where: { id: entry.id, owner: user.id, revision: 0 },
       data: { mode: auto, meals: structuredClone(nutrition.mealsForDate(entry.plan, auto, day)), shoppingChecked: {} },
@@ -135,7 +135,7 @@ module.exports = {
       planEditRevision = entry.planEditRevision;
     if (body.action === "apply-plan") {
       if (body.confirm !== true) validate.fail("Conferma esplicita richiesta");
-      if (meals.some((m) => m.consumedAt))
+      if (meals.some((m) => m.consumedAt || m.skippedAt))
         validate.fail(
           "Giornata con pasti consumati: mantieni il piano storico",
           409,
@@ -148,7 +148,7 @@ module.exports = {
       nextPlanId = current.id;
     } else if (body.action === "mode") {
       mode = body.mode === "auto" ? entry.autoMode : validate.mode(body.mode);
-      if (meals.some((m) => m.consumedAt))
+      if (meals.some((m) => m.consumedAt || m.skippedAt))
         validate.fail(
           "Annulla i pasti consumati prima di cambiare ON/OFF",
           409,
@@ -167,12 +167,19 @@ module.exports = {
     } else if (body.action === "meal") {
       const index = meals.findIndex((m) => m.id === body.mealId);
       if (index < 0) validate.fail("Pasto inesistente", 404);
-      if (body.consumed === true) validate.notFuture(ctx.params.day);
-      if (typeof body.consumed === "boolean")
+      if (body.consumed === true || body.skipped === true) validate.notFuture(ctx.params.day);
+      // Mangiato e saltato si escludono: segnare uno annulla l'altro.
+      if (typeof body.consumed === "boolean") {
         meals[index].consumedAt = body.consumed
           ? meals[index].consumedAt || new Date().toISOString()
           : null;
-      else
+        if (body.consumed) meals[index].skippedAt = null;
+      } else if (typeof body.skipped === "boolean") {
+        meals[index].skippedAt = body.skipped
+          ? meals[index].skippedAt || new Date().toISOString()
+          : null;
+        if (body.skipped) meals[index].consumedAt = null;
+      } else
         meals[index] = nutrition.selectMeal(
           meals[index],
           body.menuIndex,

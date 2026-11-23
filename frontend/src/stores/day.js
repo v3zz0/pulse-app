@@ -29,11 +29,14 @@ export const useDay = defineStore("day", {
   }),
   getters: {
     next() {
-      return this.meals.find((m) => !m.consumedAt);
+      return this.meals.find((m) => !m.consumedAt && !m.skippedAt);
     },
     /** Modalità automatica: coincide con quella dei giorni di allenamento. */
     isAuto() {
       return !this.autoMode || this.mode === this.autoMode;
+    },
+    skipped() {
+      return this.meals.filter((m) => m.skippedAt).length;
     },
     count() {
       return this.meals.filter((m) => m.consumedAt).length;
@@ -107,6 +110,10 @@ export const useDay = defineStore("day", {
         mealId: id,
         consumed: !this.isDone(id),
       });
+    },
+    /** Salta il pasto (o annulla il salto): distinto da "mangiato". */
+    skip(id, skipped = true) {
+      return this.change({ action: "meal", mealId: id, skipped });
     },
     setMode(mode) {
       return this.change({ action: "mode", mode });

@@ -9,7 +9,7 @@ async function completed(app, owner, s, day) {
     const daily = await q(app, "daily-plan").findOne({ where: { owner, day } });
     const plan = daily ? null : await activePlan(app, "nutrition", owner);
     const meals = daily?.meals || (plan ? mealsForDate(plan, "OFF", day) : []);
-    return !meals.some((m) => m.id === s.target && !m.consumedAt);
+    return !meals.some((m) => m.id === s.target && !m.consumedAt && !m.skippedAt);
   }
   if (s.kind === "supplement")
     return require("./supplements").reminderDone(
@@ -39,4 +39,4 @@ const withReminderLock = (app, owner, fn) =>
     return fn(trx);
   });
 
-module.exports = { checkDue, withReminderLock };
+module.exports = { checkDue, withReminderLock, completed };

@@ -25,7 +25,7 @@
         <div class="progressbar home-progress" role="progressbar" aria-label="Pasti fatti" :aria-valuenow="day.count" aria-valuemin="0" :aria-valuemax="day.meals.length">
           <i :style="{ width: percent + '%' }"></i>
         </div>
-        <p class="note">{{ day.count }} di {{ day.meals.length }} pasti</p>
+        <p class="note">{{ day.count }} di {{ day.meals.length }} pasti<template v-if="day.skipped"> · {{ day.skipped }} saltat{{ day.skipped === 1 ? "o" : "i" }}</template></p>
         <div v-if="day.next" data-testid="next-meal">
           <h2>{{ day.next.name }} · {{ day.next.time }}</h2>
           <p class="note">{{ day.choice(day.next).desc }}</p>
@@ -35,6 +35,7 @@
           <button v-if="day.next" class="btn secondary" :disabled="day.busy" @click="toggle(day.next.id)">
             <Icon name="check" :size="15" /> Mangiato
           </button>
+          <button v-if="day.next" class="btn ghost" style="grid-column: 1 / -1" :disabled="day.busy" @click="skip(day.next)">Salta questo pasto</button>
           <RouterLink class="btn primary" :style="day.next ? '' : 'grid-column: 1 / -1'" :to="{ path: '/dieta', query: { day: localDate() } }">
             <Icon name="play" :size="15" /> Apri giornata
           </RouterLink>
@@ -109,7 +110,11 @@ const train = computed(() => day.mode === "ON" && !!suggested.value);
 const workoutDone = computed(() =>
   (w.history || []).some((h) => h.completedAt && localDate() === new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(new Date(h.completedAt))),
 );
-const percent = computed(() => Math.round((100 * day.count) / (day.meals.length || 1)));
+const percent = computed(() => Math.round((100 * (day.count + day.skipped)) / (day.meals.length || 1)));
+async function skip(meal) {
+  const id = meal.id, name = meal.name;
+  if (await day.skip(id, true)) notify(`${name} saltato`, async () => { await day.skip(id, false); });
+}
 async function toggle(id) {
   const meal = day.meals.find((m) => m.id === id), was = day.isDone(id);
   if (await day.toggle(id))

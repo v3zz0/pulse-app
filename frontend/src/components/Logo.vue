@@ -1,10 +1,12 @@
 <template>
-  <!-- Logo "Mattino": cerchio terracotta con battito in crema; nessuna scritta. -->
-  <svg class="pulse-logo" :width="size" :height="size" viewBox="0 0 48 48" role="img" aria-label="PULSE">
-    <circle cx="24" cy="24" r="24" fill="var(--accent)" />
-    <path d="M9 25h8l3.5-8 6 16 4-9H39" fill="none" stroke="var(--on-accent)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Logo ufficiale "Spinta" (logo/pulse-spinta-icona.svg): la P segue il tema, le piastre restano terracotta. -->
+  <svg class="pulse-logo" :width="size" :height="size" viewBox="2 -2 128 128" role="img" aria-label="PULSE">
+    <g transform="translate(7 7) scale(0.9)">
+      <path d="M14 37H22L15 88H7Z M26 26H39L30 99H16Z M103 32H113L105 89H95Z M117 43H124L118 79H111Z" fill="#f47756" fill-rule="evenodd" />
+      <path d="M41 22H81C96 22 102 32 99 46L96 61C93 74 85 80 71 80H54L50 101H32ZM60 40L57 62H74C79 62 81 59 82 55L84 47C85 42 83 40 78 40Z" fill="var(--logo-ink)" fill-rule="evenodd" />
+    </g>
   </svg>
 </template>
 <script setup>
-defineProps({ size: { type: Number, default: 40 } });
+defineProps({ size: { type: Number, default: 56 } });
 </script>

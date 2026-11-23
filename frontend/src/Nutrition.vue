@@ -33,7 +33,7 @@ const modeCards = computed(() =>
     ["OFF", "Giorni di riposo"],
   ].map(([mode, kind]) => ({ mode, kind, date: nextDateFor(mode) })),
 );
-const progress = computed(() => Math.round((100 * day.count) / (day.meals.length || 1)));
+const progress = computed(() => Math.round((100 * (day.count + day.skipped)) / (day.meals.length || 1)));
 async function load() {
   await day.load(openDate.value || today);
 }
@@ -53,6 +53,11 @@ async function toggle(meal) {
     notify(was ? `${name}: consumo annullato` : `${name} segnato come mangiato`, async () => {
       if (day.isDone(id) !== was) await day.toggle(id);
     });
+}
+async function skip(meal, skipped = true) {
+  const id = meal.id, name = meal.name;
+  if (await day.skip(id, skipped))
+    notify(skipped ? `${name} saltato` : `${name}: salto annullato`, skipped ? async () => { await day.skip(id, false); } : null);
 }
 function applyPlan() {
   if (
@@ -132,13 +137,13 @@ function applyPlan() {
     <p v-if="day.error" role="alert" class="warning">{{ day.error }}</p>
     <p v-if="day.planId && day.plan && (day.planOutdated || day.plan.id !== day.planId)" class="warning">
       Questa giornata conserva il piano con cui è stata preparata.
-      <button v-if="!day.meals.some((m) => m.consumedAt)" class="btn secondary sm" :disabled="day.busy" @click="applyPlan">Usa il piano attivo</button>
+      <button v-if="!day.meals.some((m) => m.consumedAt || m.skippedAt)" class="btn secondary sm" :disabled="day.busy" @click="applyPlan">Usa il piano attivo</button>
     </p>
     <template v-if="day.meals.length">
       <div class="progressbar diet-progress" role="progressbar" aria-label="Pasti fatti" :aria-valuenow="day.count" aria-valuemin="0" :aria-valuemax="day.meals.length">
         <i :style="{ width: progress + '%' }"></i>
       </div>
-      <p class="note">{{ day.count }} di {{ day.meals.length }} pasti</p>
+      <p class="note">{{ day.count }} di {{ day.meals.length }} pasti<template v-if="day.skipped"> · {{ day.skipped }} saltat{{ day.skipped === 1 ? "o" : "i" }}</template></p>
       <section v-if="day.next && openDate <= today" class="card next-card" data-testid="next-meal">
         <div class="focus-label">Prossimo pasto · {{ day.next.time }}</div>
         <h2>{{ day.next.name }}</h2>
@@ -146,6 +151,7 @@ function applyPlan() {
         <div class="row">
           <button class="btn primary" :disabled="day.busy" @click="toggle(day.next)"><Icon name="check" :size="16" /> Mangiato</button>
           <button class="btn secondary" @click="selected = day.next">Sostituisci</button>
+          <button class="btn ghost" :disabled="day.busy" @click="skip(day.next)">Salta</button>
         </div>
       </section>
       <section class="card">
@@ -153,6 +159,14 @@ function applyPlan() {
         <div data-testid="meal-list">
           <div v-for="meal in day.meals" :key="meal.id" class="home-meal-row">
             <button
+              v-if="meal.skippedAt"
+              class="meal-check-mini skipped"
+              :disabled="day.busy"
+              :aria-label="'Annulla salto: ' + meal.name"
+              @click="skip(meal, false)"
+            ><Icon name="skip" :size="16" /></button
+            ><button
+              v-else
               class="meal-check-mini"
               :class="{ done: meal.consumedAt }"
               :disabled="day.busy || openDate > today"
@@ -160,8 +174,8 @@ function applyPlan() {
               :aria-pressed="!!meal.consumedAt"
               @click="toggle(meal)"
             ><Icon :name="meal.consumedAt ? 'check' : 'plus'" :size="17" /></button
-            ><button class="meal-row-main" :class="{ done: meal.consumedAt }" @click="selected = meal">
-              <strong>{{ meal.name }}</strong><small>{{ day.choice(meal).title }}</small></button
+            ><button class="meal-row-main" :class="{ done: meal.consumedAt, skipped: meal.skippedAt }" @click="selected = meal">
+              <strong>{{ meal.name }}</strong><small>{{ meal.skippedAt ? "Saltato" : day.choice(meal).title }}</small></button
             ><button class="meal-row-hour" :aria-label="'Alternative ' + meal.name" @click="selected = meal">{{ meal.time }} <Icon name="arrow" :size="13" /></button>
           </div>
         </div>

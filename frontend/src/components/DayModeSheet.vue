@@ -11,7 +11,7 @@
       In automatico il giorno è <b>ON</b> nei tuoi giorni di allenamento e <b>OFF</b> negli altri.
       <template v-if="day.autoMode">Per questa data in automatico: <b>{{ day.autoMode }}</b>.</template>
     </p>
-    <p v-if="blocked" class="warning">Ci sono pasti già consumati: annullali prima di cambiare ON/OFF.</p>
+    <p v-if="blocked" class="warning">Ci sono pasti già segnati (mangiati o saltati): annullali prima di cambiare ON/OFF.</p>
     <div class="seg" role="group" aria-label="Tipo di giorno">
       <button v-for="m in ['ON', 'OFF']" :key="m" type="button" :aria-pressed="day.mode === m" :disabled="blocked || day.busy" @click="choose(m)">Giorno {{ m }}</button>
     </div>
@@ -27,7 +27,7 @@ import { ref, computed } from "vue";
 import { useDay } from "../stores/day.js";
 import { notify } from "../ui.js";
 const day = useDay(), dialog = ref(null);
-const blocked = computed(() => day.meals.some((m) => m.consumedAt));
+const blocked = computed(() => day.meals.some((m) => m.consumedAt || m.skippedAt));
 const label = computed(() => new Date(day.date + "T12:00:00").toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" }));
 async function choose(mode) {
   if (await day.setMode(mode)) {

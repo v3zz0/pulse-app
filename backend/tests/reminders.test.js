@@ -64,3 +64,12 @@ test("un orario saltato al cambio d’ora scatta al primo minuto valido", () => 
   a.equal(isDue(reminder, false, Date.parse("2026-03-29T01:00:00Z")), true);
   a.equal(isDue(reminder, true, Date.parse("2026-03-29T01:00:00Z")), false);
 });
+
+test("promemoria pasto: niente notifica se il pasto è mangiato o saltato", async () => {
+  const { completed } = require("../src/pulse/reminder-due");
+  const app = (meals) => ({ db: { query: () => ({ findOne: async () => ({ meals }) }) } });
+  const s = { kind: "meal", target: "m1" };
+  a.equal(await completed(app([{ id: "m1", consumedAt: null, skippedAt: null }]), 1, s, "2026-11-23"), false);
+  a.equal(await completed(app([{ id: "m1", consumedAt: "2026-11-23T10:00:00Z" }]), 1, s, "2026-11-23"), true);
+  a.equal(await completed(app([{ id: "m1", consumedAt: null, skippedAt: "2026-11-23T10:00:00Z" }]), 1, s, "2026-11-23"), true);
+});
