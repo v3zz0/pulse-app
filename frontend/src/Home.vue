@@ -59,9 +59,9 @@
           <h2>{{ dayName(w.program, w.active.day) }}</h2>
           <RouterLink class="btn primary wide" to="/allenati"><Icon name="play" :size="15" /> Riprendi allenamento</RouterLink>
         </template>
-        <template v-else-if="train && workoutDone">
+        <template v-else-if="workoutDone">
           <div class="section-head"><span class="focus-label">Allenamento di oggi</span><span class="tag ok">Fatto</span></div>
-          <h2>{{ dayName(w.program, suggested) }}</h2>
+          <h2>{{ dayName(w.program, todaySession.day) }}</h2>
           <RouterLink class="btn secondary wide" to="/progressi">Vedi progressi</RouterLink>
         </template>
         <template v-else-if="suggested">
@@ -118,9 +118,11 @@ const suggested = computed(() => {
   return days.find((k) => w.program.displaySettings?.days?.[k]?.weekdays?.includes(weekday)) || null;
 });
 const train = computed(() => day.mode === "ON" && !!suggested.value);
-const workoutDone = computed(() =>
-  (w.history || []).some((h) => h.completedAt && localDate() === new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(new Date(h.completedAt))),
+// Un allenamento concluso oggi conta anche se il giorno era segnato OFF.
+const todaySession = computed(() =>
+  (w.history || []).find((h) => h.completedAt && localDate() === new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(new Date(h.completedAt))),
 );
+const workoutDone = computed(() => !!todaySession.value);
 const intakes = useIntakes(), showDay = ref(false), quote = quoteOfDay(localDate());
 const closed = computed(() =>
   !!day.plan &&
