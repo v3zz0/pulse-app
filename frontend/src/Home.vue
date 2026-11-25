@@ -1,4 +1,11 @@
 <template>
+  <section v-if="closed && !showDay" class="day-closed" data-testid="day-closed">
+    <h1>Ci vediamo domani.</h1>
+    <p class="day-closed-quote">{{ quote }}</p>
+    <p class="note">✓ Dieta · ✓ Integratori<template v-if="train"> · ✓ Allenamento</template></p>
+    <button class="textbutton" @click="showDay = true">mostra giornata</button>
+  </section>
+  <template v-else>
   <div class="today-head">
     <div>
       <div class="focus-label">{{ date }}</div>
@@ -81,6 +88,7 @@
     </div>
   </div>
   <MealDialog :meal="selected" @close="selected = null" />
+  </template>
 </template>
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
@@ -93,6 +101,9 @@ import TodaySupplements from "./components/TodaySupplements.vue";
 import MealDialog from "./components/MealDialog.vue";
 import DayModeSheet from "./components/DayModeSheet.vue";
 import { notify } from "./ui.js";
+import { useIntakes } from "./stores/supplement-intakes";
+import { todayIntakes } from "./today-intakes";
+import { isDayClosed, quoteOfDay } from "./day-closed.js";
 const day = useDay(),
   w = useWorkout(),
   router = useRouter(),
@@ -109,6 +120,15 @@ const suggested = computed(() => {
 const train = computed(() => day.mode === "ON" && !!suggested.value);
 const workoutDone = computed(() =>
   (w.history || []).some((h) => h.completedAt && localDate() === new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(new Date(h.completedAt))),
+);
+const intakes = useIntakes(), showDay = ref(false), quote = quoteOfDay(localDate());
+const closed = computed(() =>
+  !!day.plan &&
+  isDayClosed({
+    meals: day.meals.length, count: day.count, skipped: day.skipped,
+    intakes: todayIntakes(intakes.data, intakes.queue, intakes.today),
+    train: train.value, workoutDone: workoutDone.value,
+  }),
 );
 const percent = computed(() => Math.round((100 * (day.count + day.skipped)) / (day.meals.length || 1)));
 async function skip(meal) {
@@ -136,6 +156,7 @@ async function start(key) {
 const dayStarted = localDate();
 let interval;
 onMounted(async () => {
+  intakes.load().catch(() => {});
   await day.load();
   interval = setInterval(() => {
     if (localDate() !== dayStarted) location.reload();

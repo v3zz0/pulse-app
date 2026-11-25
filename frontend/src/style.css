@@ -286,3 +286,7 @@ a.navitem{text-decoration:none}button:disabled{opacity:.5;cursor:not-allowed}.ph
   .feature-pair .btn svg { display: none; }
   .compact-set-controls { grid-template-columns: 1fr; }
 }
+
+.day-closed { min-height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 16px; padding: 24px; }
+.day-closed h1 { font-size: clamp(2.4rem, 9vw, 4.5rem); line-height: 1.05; margin: 0; }
+.day-closed-quote { font-size: 1.25rem; max-width: 32ch; margin: 0; opacity: .85; }
