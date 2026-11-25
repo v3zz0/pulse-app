@@ -282,7 +282,7 @@ onUnmounted(() => clearInterval(interval));
   </section>
 
   <template v-else-if="day && w.program">
-    <button class="page-back textbutton" @click="day = null">‹ Tutte le schede</button>
+    <button class="btn secondary" style="margin-bottom: 12px" @click="day = null"><Icon name="list" :size="15" /> Tutte le schede</button>
     <div class="session-bar">
       <h1>{{ dayName(w.program, day) }}<em>.</em></h1>
     </div>
