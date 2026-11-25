@@ -161,6 +161,9 @@ function scheduleFor(key) {
     || "Nessun giorno fisso";
 }
 const todayWeekday = new Date(new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(new Date()) + "T12:00:00").getDay();
+const doneToday = (key) =>
+  (w.history || []).some((h) => h.day === key && h.completedAt &&
+    new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(new Date(h.completedAt)) === new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(new Date()));
 const isToday = (key) => !!w.program?.displaySettings?.days?.[key]?.weekdays?.includes(todayWeekday);
 async function start(key) {
   if (starting.value) return;
@@ -353,7 +356,8 @@ onUnmounted(() => clearInterval(interval));
       >
         <div class="section-head">
           <span class="focus-label">{{ scheduleFor(d) }}</span>
-          <span v-if="isToday(d)" class="tag ok">Oggi</span>
+          <span v-if="doneToday(d)" class="tag ok">✓ Fatta oggi</span>
+          <span v-else-if="isToday(d)" class="tag ok">Oggi</span>
         </div>
         <h2>{{ dayName(w.program, d) }}</h2>
         <p class="note">
@@ -368,7 +372,7 @@ onUnmounted(() => clearInterval(interval));
             :disabled="starting || !!w.queue.length"
             @click="start(d)"
           >
-            <Icon name="play" :size="15" /> Inizia
+            <Icon name="play" :size="15" /> {{ doneToday(d) ? "Rifai" : "Inizia" }}
           </button>
         </div>
       </article>

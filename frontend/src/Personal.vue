@@ -67,7 +67,7 @@ onMounted(async () => {
       <span v-else>{{ auth.user?.username?.slice(0, 1).toUpperCase() }}</span>
     </div>
     <div>
-      <h1>Ciao{{ auth.user ? ", " + auth.user.username : "" }}<em>.</em></h1>
+      <h1>Ciao{{ auth.user ? ", " + auth.user.username.split("@")[0] : "" }}<em>.</em></h1>
       <div class="rowbtns">
         <label class="btn secondary sm photo-pick">
           {{ profile.avatar ? "Cambia foto" : "Aggiungi foto" }}
@@ -79,19 +79,33 @@ onMounted(async () => {
   </section>
   <div class="today-grid">
     <div>
-      <section class="card menu-list" aria-label="Ogni giorno">
+      <h2 class="settings-group">Profilo</h2>
+      <section class="card menu-list" aria-label="Profilo">
         <a href="#peso" @click.prevent="focusWeight"><span class="ic"><Icon name="weight" /></span><span class="grow">Peso<small>{{ weights.at(-1) ? weights.at(-1).kg + " kg" : "Nessuna misurazione" }}</small></span><Icon name="arrow" /></a>
-        <RouterLink to="/integratori"><span class="ic"><Icon name="pill" /></span><span class="grow">Integratori<small>Quantità, orari e storico</small></span><Icon name="arrow" /></RouterLink>
-        <RouterLink to="/altro/promemoria"><span class="ic"><Icon name="bell" /></span><span class="grow">Promemoria e notifiche</span><Icon name="arrow" /></RouterLink>
-      </section>
-      <section class="card menu-list" aria-labelledby="plan-settings-title">
-        <h2 id="plan-settings-title" class="sr-only">Piani e importazioni</h2>
-        <RouterLink to="/altro/piani" aria-label="Gestisci piano alimentare"><span class="ic"><Icon name="food" /></span><span class="grow">Gestisci piano alimentare<small>Versioni, CSV, editor</small></span><Icon name="arrow" /></RouterLink>
-        <RouterLink to="/altro/schede" aria-label="Gestisci scheda allenamento"><span class="ic"><Icon name="barbell" /></span><span class="grow">Gestisci scheda allenamento<small>Versioni, CSV, editor</small></span><Icon name="arrow" /></RouterLink>
-        <RouterLink to="/altro/preferenze#giorni-allenamento"><span class="ic"><Icon name="calendar" /></span><span class="grow">Giorni di allenamento, preferenze e obiettivi</span><Icon name="arrow" /></RouterLink>
         <RouterLink to="/account"><span class="ic"><Icon name="user" /></span><span class="grow">Account e password</span><Icon name="arrow" /></RouterLink>
       </section>
+      <h2 class="settings-group">Dieta</h2>
+      <section class="card menu-list" aria-label="Dieta">
+        <RouterLink to="/altro/piani"><span class="ic"><Icon name="food" /></span><span class="grow">Piano alimentare<small>Versioni, CSV, editor</small></span><Icon name="arrow" /></RouterLink>
+        <RouterLink to="/altro/preferenze"><span class="ic"><Icon name="edit" /></span><span class="grow">Preferenze e obiettivi<small>Alimenti preferiti, calorie, macro</small></span><Icon name="arrow" /></RouterLink>
+        <RouterLink to="/integratori"><span class="ic"><Icon name="pill" /></span><span class="grow">Integratori<small>Quantità, orari e storico</small></span><Icon name="arrow" /></RouterLink>
+      </section>
+      <h2 class="settings-group">Allenamento</h2>
+      <section class="card menu-list" aria-label="Allenamento">
+        <RouterLink to="/altro/schede"><span class="ic"><Icon name="barbell" /></span><span class="grow">Scheda di allenamento<small>Versioni, CSV, editor</small></span><Icon name="arrow" /></RouterLink>
+        <RouterLink to="/allenati"><span class="ic"><Icon name="calendar" /></span><span class="grow">Giorni di allenamento<small>Quale scheda in quale giorno: decide anche ON/OFF della dieta</small></span><Icon name="arrow" /></RouterLink>
+      </section>
+      <h2 class="settings-group">App</h2>
+      <section class="card menu-list" aria-label="App">
+        <RouterLink to="/altro/promemoria"><span class="ic"><Icon name="bell" /></span><span class="grow">Promemoria e notifiche</span><Icon name="arrow" /></RouterLink>
+      </section>
       <Pwa />
+      <section class="card">
+        <h2>Aspetto</h2>
+        <div class="seg" role="group" aria-label="Tema" style="margin-top: 10px">
+          <button v-for="[v, l] in themes" :key="v" type="button" :aria-pressed="theme.value === v" @click="setTheme(v)">{{ l }}</button>
+        </div>
+      </section>
     </div>
     <div>
       <form id="peso" class="card settings-space" @submit.prevent="saveWeight">
@@ -118,17 +132,18 @@ onMounted(async () => {
         </div>
         <p class="note">Il peso non misura direttamente la massa muscolare.</p>
       </form>
-      <section class="card">
-        <h2>Aspetto</h2>
-        <div class="seg" role="group" aria-label="Tema" style="margin-top: 10px">
-          <button v-for="[v, l] in themes" :key="v" type="button" :aria-pressed="theme.value === v" @click="setTheme(v)">{{ l }}</button>
-        </div>
-      </section>
     </div>
   </div>
 </template>
 
 <style scoped>
+.settings-group {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.65;
+  margin: 18px 4px 8px;
+}
 .plan-imports {
   margin-top: 14px;
 }

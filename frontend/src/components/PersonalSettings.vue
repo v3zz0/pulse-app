@@ -107,16 +107,12 @@ async function save() {
           label="Alimenti non graditi"
         />
         <div class="divider"></div>
-        <fieldset id="giorni-allenamento" class="checks" tabindex="-1">
-          <legend>Giorni di allenamento</legend>
-          <label v-for="d in [1, 2, 3, 4, 5, 6, 0]" :key="d"
-            ><input v-model="data.trainingDays" type="checkbox" :value="d" />{{ weekdays[d] }}</label
-          >
-        </fieldset>
-        <p class="note">
-          Decidono in automatico se un giorno è ON o OFF. Puoi sempre cambiarlo a
-          mano per una singola data e tornare all'automatico.
-        </p>
+        <div id="giorni-allenamento" tabindex="-1">
+          <strong>Giorni di allenamento:</strong>
+          {{ data.trainingDays.length ? [1, 2, 3, 4, 5, 6, 0].filter((d) => data.trainingDays.includes(d)).map((d) => weekdays[d]).join(", ") : "nessuno" }}
+          <p class="note">Si impostano in Allenamenti → Organizza (giorno di ogni scheda). Decidono in automatico se un giorno è ON o OFF.
+            <RouterLink to="/allenati">Cambia giorni</RouterLink></p>
+        </div>
         <div class="divider"></div>
         <h3>Obiettivi indicativi</h3>
         <label class="grocery-item"

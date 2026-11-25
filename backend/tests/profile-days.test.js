@@ -96,3 +96,9 @@ test("profile photo accepts only small image data URLs", () => {
   assert.throws(() => settings.avatar("https://example.com/a.jpg"));
   assert.throws(() => settings.avatar("data:image/png;base64," + "A".repeat(280000)));
 });
+test("i giorni della scheda attiva sono la fonte unica dei giorni di allenamento", async () => {
+  const program = { displaySettings: { days: { A: { weekdays: [1] }, B: { weekdays: [3] }, C: { weekdays: [5] } } } };
+  const app = (prog) => ({ db: { query: (uid) => ({ findOne: async () => (uid.includes("training-program") ? prog : { data: { trainingDays: [0] }, revision: 1 }) }) } });
+  assert.deepEqual((await settings.get(app(program), 1)).data.trainingDays, [1, 3, 5]);
+  assert.deepEqual((await settings.get(app(null), 1)).data.trainingDays, [0]);
+});

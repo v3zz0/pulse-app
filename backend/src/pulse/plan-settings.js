@@ -1,5 +1,6 @@
 "use strict";
 const { fail } = require("./validation");
+const { activePlan } = require("./active-plan");
 const repo = (app) => app.db.query("api::personal-setting.personal-setting");
 const suggestedGoals = { kcal: 2900, protein_g: 140, carbs_g: 405, fat_g: 80 };
 function foodList(value) {
@@ -67,6 +68,12 @@ function validate(data) {
   } else out.goals = null;
   return out;
 }
+// Fonte unica: i giorni assegnati alle schede attive; i vecchi trainingDays solo se la scheda non ne ha.
+async function scheduleDays(app, owner, legacy = []) {
+  const program = await activePlan(app, "training", owner).catch(() => null);
+  const days = Object.values(program?.displaySettings?.days || {}).flatMap((d) => d.weekdays || []);
+  return trainingDays(days.length ? days : legacy);
+}
 async function get(app, owner) {
   const r = await repo(app).findOne({ where: { owner } });
   const stored = r?.data || {};
@@ -75,7 +82,7 @@ async function get(app, owner) {
     favoriteFoods: foodList(stored.favoriteFoods || []),
     avoidedFoods: foodList(stored.avoidedFoods || []),
     goals: stored.goals ?? null,
-    trainingDays: trainingDays(stored.trainingDays || []),
+    trainingDays: await scheduleDays(app, owner, stored.trainingDays),
     avatar: avatar(stored.avatar),
   };
   return {
