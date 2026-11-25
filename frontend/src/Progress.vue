@@ -3,7 +3,9 @@ import { ref, computed, watch, onMounted } from "vue";
 import { useWorkout } from "./stores/workout";
 import { api } from "./api";
 import { localDate } from "./stores/day";
-import { phase } from "./workout-display";
+import { phase, dayName } from "./workout-display";
+import { shareReport } from "./workout-report.js";
+import { notify } from "./ui.js";
 import {
   dayOf,
   periodStart,
@@ -131,6 +133,13 @@ const volumePoints = computed(() =>
       value: s.metrics.volume,
     })),
 );
+const sharing = ref(null);
+async function share(h) {
+  sharing.value = h.clientId;
+  try { await shareReport(h, w.program?.days?.[h.day] ? dayName(w.program, h.day) : h.snapshot?.title || "Allenamento"); }
+  catch (e) { notify("Export non riuscito: " + e.message); }
+  finally { sharing.value = null; }
+}
 const history = computed(() => [...sessions.value].reverse());
 onMounted(async () => {
   const [weightResult, weekResult] = await Promise.allSettled([
@@ -374,6 +383,9 @@ onMounted(async () => {
           {{ h.metrics.recorded }} serie con peso ·
           {{ h.metrics.unlogged }} senza peso · {{ h.metrics.skipped }} saltate
         </p>
+        <button class="btn primary wide" :disabled="sharing === h.clientId" @click="share(h)">
+          <Icon name="download" :size="15" /> Invia al coach (PDF)
+        </button>
         <div
           v-for="b in h.snapshot.blocks"
           :key="b.id"
