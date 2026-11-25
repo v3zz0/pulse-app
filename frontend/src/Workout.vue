@@ -8,6 +8,15 @@ import WorkoutExercise from "./components/WorkoutExercise.vue";
 import WorkoutSession from "./components/WorkoutSession.vue";
 import { mediaFor, offlineAnimations } from "./flow-media";
 import { dayName, weekdays } from "./workout-display";
+import { shareReport } from "./workout-report.js";
+import { notify } from "./ui.js";
+const sharing = ref(false);
+async function share() {
+  sharing.value = true;
+  try { await shareReport(w.active, dayName(w.program, w.active.day) || w.active.snapshot.title || "Allenamento"); }
+  catch (e) { notify("Export non riuscito: " + e.message); }
+  finally { sharing.value = false; }
+}
 const router = useRouter();
 const menuOpen = ref(false),
   cancelOpen = ref(false),
@@ -279,6 +288,7 @@ onUnmounted(() => clearInterval(interval));
   <section v-else-if="isActive" class="card">
     <h2>Allenamento concluso</h2>
     <p class="note">Salvato sul dispositivo: verrà inviato appena possibile.</p>
+    <button class="btn primary wide" :disabled="sharing" @click="share"><Icon name="download" :size="15" /> Invia al coach (PDF)</button>
   </section>
 
   <template v-else-if="day && w.program">
