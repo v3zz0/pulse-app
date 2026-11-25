@@ -6,6 +6,7 @@
     <button class="textbutton" @click="showDay = true">mostra giornata</button>
   </section>
   <template v-else>
+  <button v-if="closed" class="btn secondary" style="margin-bottom: 12px" @click="showDay = false">✨ Torna alla frase del giorno</button>
   <div class="today-head">
     <div>
       <div class="focus-label">{{ date }}</div>
